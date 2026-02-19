@@ -1,0 +1,185 @@
+package uy.gub.registro.api;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import uy.gub.registro.config.JwtUtil;
+import uy.gub.registro.model.*;
+import uy.gub.registro.repository.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/reddis/admin")
+public class ReddisAdminController {
+
+    private final BarreraRepository barreraRepo;
+    private final RoleRequestRepository roleRequestRepo;
+    private final UsuarioRepository usuarioRepo;
+    private final JwtUtil jwtUtil;
+
+    public ReddisAdminController(BarreraRepository barreraRepo, RoleRequestRepository roleRequestRepo,
+            UsuarioRepository usuarioRepo, JwtUtil jwtUtil) {
+        this.barreraRepo = barreraRepo;
+        this.roleRequestRepo = roleRequestRepo;
+        this.usuarioRepo = usuarioRepo;
+        this.jwtUtil = jwtUtil;
+    }
+
+    // ═══════ PENDING BARRIERS ═══════
+
+    @GetMapping("/pending-barriers")
+    public ResponseEntity<?> pendingBarriers() {
+        List<Barrera> pending = barreraRepo.findAll().stream()
+                .filter(b -> !b.getApproved())
+                .sorted(Comparator.comparing(Barrera::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> result = pending.stream()
+                .map(this::barrierToMap)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/barriers/{id}/approve")
+    public ResponseEntity<?> approveBarrier(@PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+        Barrera barrera = barreraRepo.findById(id).orElse(null);
+        if (barrera == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Long userId = jwtUtil.getUserId(authHeader.substring(7));
+        Usuario approver = usuarioRepo.findById(userId).orElse(null);
+
+        barrera.setApproved(true);
+        barrera.setApprovedBy(approver);
+        barreraRepo.save(barrera);
+
+        System.out.println("✅ BARRERA APROBADA: #" + id + " - " + barrera.getTitle() + " (por "
+                + approver.getNombreCompleto() + ")");
+
+        return ResponseEntity.ok(Map.of("message", "Barrera aprobada y publicada"));
+    }
+
+    @PutMapping("/barriers/{id}/reject")
+    public ResponseEntity<?> rejectBarrier(@PathVariable Long id) {
+        Barrera barrera = barreraRepo.findById(id).orElse(null);
+        if (barrera == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        barrera.setStatus("rechazada");
+        barreraRepo.save(barrera);
+
+        return ResponseEntity.ok(Map.of("message", "Barrera rechazada"));
+    }
+
+    // ═══════ ROLE REQUESTS ═══════
+
+    @GetMapping("/role-requests")
+    public ResponseEntity<?> roleRequests() {
+        List<RoleRequest> pending = roleRequestRepo.findByStatusOrderByCreatedAtDesc("PENDIENTE");
+
+        List<Map<String, Object>> result = pending.stream().map(r -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", r.getId());
+            map.put("userId", r.getUsuario().getId());
+            map.put("userName", r.getUsuario().getNombreCompleto());
+            map.put("userEmail", r.getUsuario().getEmail());
+            map.put("requestedRole", r.getRequestedRole());
+            map.put("message", r.getMessage());
+            map.put("status", r.getStatus());
+            map.put("createdAt", r.getCreatedAt().toString());
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/role-requests/{id}/approve")
+    public ResponseEntity<?> approveRoleRequest(@PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+        RoleRequest req = roleRequestRepo.findById(id).orElse(null);
+        if (req == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Long reviewerId = jwtUtil.getUserId(authHeader.substring(7));
+        Usuario reviewer = usuarioRepo.findById(reviewerId).orElse(null);
+
+        // Update the request
+        req.setStatus("APROBADA");
+        req.setReviewedBy(reviewer);
+        req.setReviewedAt(LocalDateTime.now());
+        roleRequestRepo.save(req);
+
+        // Update the user's role
+        Usuario user = req.getUsuario();
+        user.setRol(req.getRequestedRole());
+        usuarioRepo.save(user);
+
+        System.out.println("✅ ROL APROBADO: " + user.getNombreCompleto() + " → " + req.getRequestedRole());
+
+        return ResponseEntity.ok(Map.of("message", "Rol aprobado para " + user.getNombreCompleto()));
+    }
+
+    @PutMapping("/role-requests/{id}/reject")
+    public ResponseEntity<?> rejectRoleRequest(@PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        RoleRequest req = roleRequestRepo.findById(id).orElse(null);
+        if (req == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        req.setStatus("RECHAZADA");
+        req.setRejectionReason(body.getOrDefault("reason", ""));
+        req.setReviewedAt(LocalDateTime.now());
+        roleRequestRepo.save(req);
+
+        return ResponseEntity.ok(Map.of("message", "Solicitud rechazada"));
+    }
+
+    // ═══════ ALL USERS (admin) ═══════
+
+    @GetMapping("/users")
+    public ResponseEntity<?> listUsers() {
+        List<Map<String, Object>> result = usuarioRepo.findAll().stream().map(u -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", u.getId());
+            map.put("nombre", u.getNombreCompleto());
+            map.put("email", u.getEmail());
+            map.put("rol", u.getRol());
+            map.put("activo", u.getActivo());
+            map.put("emailConfirmed", u.getEmailConfirmed());
+            map.put("departamento", u.getDepartamento());
+            map.put("createdAt", u.getCreatedAt().toString());
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    // ═══════ HELPERS ═══════
+
+    private Map<String, Object> barrierToMap(Barrera b) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", b.getId());
+        map.put("title", b.getTitle());
+        map.put("description", b.getDescription());
+        map.put("type", b.getType());
+        map.put("category", b.getCategory());
+        map.put("address", b.getAddress());
+        map.put("urgency", b.getUrgency());
+        map.put("status", b.getStatus());
+        map.put("reportedBy", b.getReportedBy());
+        map.put("approved", b.getApproved());
+        map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
+        if (b.getReportedByUser() != null) {
+            map.put("reportedByUserName", b.getReportedByUser().getNombreCompleto());
+        }
+        return map;
+    }
+}

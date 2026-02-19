@@ -1,0 +1,24 @@
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend (built and copied, not committed)
+src/main/resources/static/assets/
+src/main/resources/static/index.html
+frontend/node_modules/
+frontend/dist/
+
+# Environment
+.env
+*.log

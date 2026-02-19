@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Usuario')}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="main-content">
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="mb-4">
+                        <h2 class="page-title">
+                            <i class="bi bi-person-gear me-2"></i>
+                            <span th:text="${usuario.id != null} ? 'Editar Usuario' : 'Nuevo Usuario'"></span>
+                        </h2>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body p-4">
+                            <form th:action="@{/usuarios/guardar}" th:object="${usuario}" method="post">
+                                <input type="hidden" th:field="*{id}">
+                                <input type="hidden" th:field="*{createdAt}" th:if="${usuario.id != null}">
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="username">Usuario *</label>
+                                    <input type="text" class="form-control" id="username" th:field="*{username}"
+                                        required minlength="3" th:readonly="${usuario.id != null}">
+                                    <div th:if="${errorUsername}" class="text-danger small mt-1"
+                                        th:text="${errorUsername}"></div>
+                                    <div th:if="${#fields.hasErrors('username')}" class="text-danger small mt-1"
+                                        th:errors="*{username}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label"
+                                        th:for="${usuario.id != null} ? 'nuevaPassword' : 'password'">
+                                        <span
+                                            th:text="${usuario.id != null} ? 'Nueva Contraseña' : 'Contraseña *'"></span>
+                                    </label>
+                                    <input th:if="${usuario.id == null}" type="password" class="form-control"
+                                        id="password" th:field="*{password}" required minlength="6">
+                                    <input th:if="${usuario.id != null}" type="password" class="form-control"
+                                        id="nuevaPassword" name="nuevaPassword"
+                                        placeholder="Dejar vacío para no cambiar">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="nombreCompleto">Nombre Completo *</label>
+                                    <input type="text" class="form-control" id="nombreCompleto"
+                                        th:field="*{nombreCompleto}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" th:field="*{email}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="rol">Rol *</label>
+                                    <select class="form-select" id="rol" th:field="*{rol}" required>
+                                        <option value="">-- Seleccionar --</option>
+                                        <option value="ADMIN">Administrador</option>
+                                        <option value="TECNICO">Técnico</option>
+                                        <option value="ADMINISTRATIVO">Administrativo</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4" th:if="${usuario.id != null}">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="activo"
+                                            th:field="*{activo}">
+                                        <label class="form-check-label" for="activo">Usuario Activo</label>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-lg me-1"></i> Guardar
+                                    </button>
+                                    <a th:href="@{/usuarios}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-lg me-1"></i> Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

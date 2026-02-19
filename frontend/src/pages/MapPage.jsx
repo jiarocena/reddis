@@ -1,0 +1,129 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
+import InteractiveMap from '../components/Map/InteractiveMap';
+import BarrierCard from '../components/Barrier/BarrierCard';
+import { CATEGORIES, PROJECT_STATUSES } from '../data/seedData';
+import { Filter, X, Search } from 'lucide-react';
+
+export default function MapPage() {
+    const { barriers } = useData();
+    const navigate = useNavigate();
+    const [selectedCategory, setSelectedCategory] = useState('todas');
+    const [selectedStatus, setSelectedStatus] = useState('todos');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedBarrierId, setSelectedBarrierId] = useState(null);
+
+    const filteredBarriers = barriers.filter(b => {
+        if (!b.isPublic) return false;
+        if (selectedCategory !== 'todas' && b.category !== selectedCategory) return false;
+        if (selectedStatus !== 'todos' && b.status !== selectedStatus) return false;
+        if (searchTerm && !b.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !b.description.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+        return true;
+    });
+
+    const handleMarkerClick = (barrierId) => {
+        setSelectedBarrierId(barrierId);
+        // Scroll sidebar to the barrier card
+        const el = document.getElementById(`barrier-${barrierId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    return (
+        <div className="map-page">
+            <div className="map-container">
+                <InteractiveMap
+                    barriers={filteredBarriers}
+                    selectedBarrierId={selectedBarrierId}
+                    onMarkerClick={handleMarkerClick}
+                />
+            </div>
+
+            <div className="map-sidebar">
+                <h2 style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-4)', color: 'var(--gray-900)' }}>
+                    Barreras Reportadas
+                </h2>
+
+                {/* Search */}
+                <div style={{ position: 'relative', marginBottom: 'var(--space-4)' }}>
+                    <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--gray-400)' }} />
+                    <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Buscar barreras..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ paddingLeft: '36px' }}
+                    />
+                </div>
+
+                {/* Category Filters */}
+                <div style={{ marginBottom: 'var(--space-3)' }}>
+                    <label style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontWeight: 600, marginBottom: 'var(--space-2)', display: 'block' }}>
+                        <Filter size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                        Categoría
+                    </label>
+                    <div className="map-filters">
+                        <button
+                            className={`filter-btn ${selectedCategory === 'todas' ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory('todas')}
+                        >Todas</button>
+                        {Object.entries(CATEGORIES).map(([key, cat]) => (
+                            <button
+                                key={key}
+                                className={`filter-btn ${selectedCategory === key ? `active-${key}` : ''}`}
+                                onClick={() => setSelectedCategory(key)}
+                            >{cat.label}</button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Status Filters */}
+                <div style={{ marginBottom: 'var(--space-4)' }}>
+                    <label style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontWeight: 600, marginBottom: 'var(--space-2)', display: 'block' }}>
+                        Estado
+                    </label>
+                    <div className="map-filters">
+                        <button
+                            className={`filter-btn ${selectedStatus === 'todos' ? 'active' : ''}`}
+                            onClick={() => setSelectedStatus('todos')}
+                        >Todos</button>
+                        {Object.entries(PROJECT_STATUSES).map(([key, st]) => (
+                            <button
+                                key={key}
+                                className={`filter-btn ${selectedStatus === key ? `active` : ''}`}
+                                onClick={() => setSelectedStatus(key)}
+                            >{st.label}</button>
+                        ))}
+                    </div>
+                </div>
+
+                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', marginBottom: 'var(--space-4)' }}>
+                    {filteredBarriers.length} barrera{filteredBarriers.length !== 1 ? 's' : ''} encontrada{filteredBarriers.length !== 1 ? 's' : ''}
+                </div>
+
+                {/* Barrier List */}
+                <div className="barrier-list">
+                    {filteredBarriers.map(barrier => (
+                        <div
+                            key={barrier.id}
+                            id={`barrier-${barrier.id}`}
+                            style={{
+                                border: selectedBarrierId === barrier.id ? '2px solid var(--primary-400)' : undefined,
+                                borderRadius: selectedBarrierId === barrier.id ? 'var(--radius-lg)' : undefined,
+                            }}
+                        >
+                            <BarrierCard barrier={barrier} compact />
+                        </div>
+                    ))}
+                    {filteredBarriers.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-400)' }}>
+                            <p>No se encontraron barreras con estos filtros.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

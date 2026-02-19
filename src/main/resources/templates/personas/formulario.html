@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Registro de Persona')}">
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="main-content">
+        <div class="container py-4">
+            <div class="mb-4">
+                <h2 class="page-title">
+                    <i class="bi bi-person-plus me-2"></i>
+                    <span th:text="${persona.id != null} ? 'Editar Persona' : 'Registrar Persona'"></span>
+                </h2>
+                <p class="page-subtitle">Complete los datos en cada sección</p>
+            </div>
+
+            <form th:action="@{/personas/guardar}" th:object="${persona}" method="post" id="personaForm">
+                <input type="hidden" th:field="*{id}">
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-identificacion"
+                            type="button">
+                            <i class="bi bi-person-vcard me-1"></i> Identificación
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-contacto" type="button">
+                            <i class="bi bi-geo-alt me-1"></i> Contacto y Ubicación
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-socioeconomico"
+                            type="button">
+                            <i class="bi bi-mortarboard me-1"></i> Educación, Empleo, Vivienda
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Tab 1: Identificación -->
+                    <div class="tab-pane fade show active" id="tab-identificacion">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="cedula">Cédula de Identidad *</label>
+                                        <input type="text" class="form-control" id="cedula" th:field="*{cedula}"
+                                            required placeholder="Ej: 1.234.567-8">
+                                        <div th:if="${errorCedula}" class="text-danger small mt-1"
+                                            th:text="${errorCedula}"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="nombres">Nombres *</label>
+                                        <input type="text" class="form-control" id="nombres" th:field="*{nombres}"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="apellidos">Apellidos *</label>
+                                        <input type="text" class="form-control" id="apellidos" th:field="*{apellidos}"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="fechaNacimiento">Fecha de Nacimiento *</label>
+                                        <input type="date" class="form-control" id="fechaNacimiento"
+                                            th:field="*{fechaNacimiento}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Contacto y Ubicación -->
+                    <div class="tab-pane fade" id="tab-contacto">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="celular">Celular</label>
+                                        <input type="text" class="form-control" id="celular" th:field="*{celular}"
+                                            placeholder="Ej: 099 123 456">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label" for="direccion">Dirección</label>
+                                        <input type="text" class="form-control" id="direccion" th:field="*{direccion}"
+                                            placeholder="Calle, número, esquina...">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="departamentoId">Departamento</label>
+                                        <select class="form-select" id="departamentoId" name="departamentoId">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option th:each="d : ${departamentos}" th:value="${d.id}"
+                                                th:text="${d.nombre}"
+                                                th:selected="${persona.departamento != null and persona.departamento.id == d.id}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="municipio">Municipio</label>
+                                        <input type="text" class="form-control" id="municipio" th:field="*{municipio}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="localidad">Localidad</label>
+                                        <input type="text" class="form-control" id="localidad" th:field="*{localidad}">
+                                    </div>
+
+                                    <!-- Map -->
+                                    <div class="col-12">
+                                        <label class="form-label">
+                                            <i class="bi bi-geo-alt-fill me-1 text-danger"></i>
+                                            Georreferencia (haga clic en el mapa para marcar la ubicación)
+                                        </label>
+                                        <div id="map"></div>
+                                        <input type="hidden" id="latitud" th:field="*{latitud}">
+                                        <input type="hidden" id="longitud" th:field="*{longitud}">
+                                        <small class="text-muted">
+                                            Lat: <span id="latDisplay" th:text="${persona.latitud ?: '-'}"></span>,
+                                            Lng: <span id="lngDisplay" th:text="${persona.longitud ?: '-'}"></span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Educación, Empleo, Vivienda -->
+                    <div class="tab-pane fade" id="tab-socioeconomico">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="nivelEducativo">Nivel Educativo</label>
+                                        <select class="form-select" id="nivelEducativo" th:field="*{nivelEducativo}">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option th:each="ne : ${nivelesEducativos}" th:value="${ne}"
+                                                th:text="${ne}"></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="situacionLaboral">Situación Laboral</label>
+                                        <select class="form-select" id="situacionLaboral"
+                                            th:field="*{situacionLaboral}">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option th:each="sl : ${situacionesLaborales}" th:value="${sl}"
+                                                th:text="${sl}"></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="tipoVivienda">Tipo de Vivienda</label>
+                                        <select class="form-select" id="tipoVivienda" th:field="*{tipoVivienda}">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option th:each="tv : ${tiposVivienda}" th:value="${tv}" th:text="${tv}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label" for="descripcionVivienda">Descripción de la
+                                            Vivienda</label>
+                                        <textarea class="form-control" id="descripcionVivienda"
+                                            th:field="*{descripcionVivienda}" rows="2"
+                                            placeholder="Condiciones de la vivienda, accesibilidad, etc."></textarea>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label" for="observaciones">Observaciones Generales</label>
+                                        <textarea class="form-control" id="observaciones" th:field="*{observaciones}"
+                                            rows="3" placeholder="Notas adicionales..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-lg me-1"></i> Guardar Registro
+                    </button>
+                    <a th:href="@{/personas}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
+                    </a>
+                </div>
+
+                <div class="text-muted small mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    La composición del hogar, discapacidades y necesidades se agregan después de guardar el registro.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize map when tab is shown (Leaflet needs visible container)
+            const contactoTab = document.querySelector('[data-bs-target="#tab-contacto"]');
+            let mapInitialized = false;
+
+            function initMap() {
+                if (mapInitialized) return;
+                mapInitialized = true;
+
+                const latInput = document.getElementById('latitud');
+                const lngInput = document.getElementById('longitud');
+                const latDisplay = document.getElementById('latDisplay');
+                const lngDisplay = document.getElementById('lngDisplay');
+
+                // Default: center of Uruguay
+                let lat = latInput.value ? parseFloat(latInput.value) : -34.9011;
+                let lng = lngInput.value ? parseFloat(lngInput.value) : -56.1645;
+                let zoom = latInput.value ? 15 : 7;
+
+                const map = L.map('map').setView([lat, lng], zoom);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                let marker = null;
+                if (latInput.value && lngInput.value) {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+
+                map.on('click', function (e) {
+                    const { lat, lng } = e.latlng;
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker([lat, lng]).addTo(map);
+                    latInput.value = lat.toFixed(7);
+                    lngInput.value = lng.toFixed(7);
+                    latDisplay.textContent = lat.toFixed(7);
+                    lngDisplay.textContent = lng.toFixed(7);
+                });
+
+                setTimeout(() => map.invalidateSize(), 100);
+            }
+
+            contactoTab.addEventListener('shown.bs.tab', function () {
+                initMap();
+            });
+
+            // If editing and contacto tab is already shown
+            if (document.getElementById('latitud').value) {
+                // Map will be initialized when tab is clicked
+            }
+        });
+    </script>
+</body>
+
+</html>
