@@ -40,9 +40,18 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/reddis/**"))
 
                 .authorizeHttpRequests(auth -> auth
+                        // --- React SPA: static assets ---
+                        .requestMatchers("/", "/index.html", "/vite.svg").permitAll()
+                        .requestMatchers("/assets/**").permitAll()
+
+                        // --- React SPA: client-side routes ---
+                        .requestMatchers("/mapa", "/reportar", "/acerca").permitAll()
+                        .requestMatchers("/barrera/**", "/proyecto/**").permitAll()
+                        .requestMatchers("/login", "/registro", "/confirmar").permitAll()
+                        .requestMatchers("/perfil", "/pendientes", "/admin").permitAll()
+
                         // --- Static / Thymeleaf ---
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                        .requestMatchers("/login").permitAll()
 
                         // --- REDDIS Auth (public) ---
                         .requestMatchers("/api/reddis/auth/**").permitAll()
@@ -70,7 +79,7 @@ public class SecurityConfig {
                         // --- Existing Thymeleaf app ---
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
-                        .anyRequest().authenticated())
+                        .anyRequest().permitAll())
 
                 // Add JWT filter for REDDIS API
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
