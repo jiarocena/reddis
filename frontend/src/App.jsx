@@ -82,8 +82,8 @@ function AppContent() {
                 <Routes>
                     {/* ═══ PUBLIC ROUTES ═══ */}
                     <Route path="/" element={<HomePage />} />
-                    <Route path="/barreras" element={<BarrerasPage />} />
-                    <Route path="/mapa" element={<MapPage />} />
+                    <Route path="/barreras" element={<MapPage />} />
+                    <Route path="/mapa" element={<Navigate to="/barreras" replace />} />
                     <Route path="/reportar" element={<ReportPage />} />
                     <Route path="/barrera/:id" element={<BarrierDetailPage />} />
                     <Route path="/proyecto/:id" element={<ProjectDetailPage />} />

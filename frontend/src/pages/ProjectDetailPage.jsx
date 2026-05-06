@@ -39,7 +39,7 @@ export default function ProjectDetailPage() {
     if (!project) return (
         <div className="project-panel" style={{ textAlign: 'center', padding: '4rem 0' }}>
             <h2>Proyecto no encontrado</h2>
-            <Link to={`${prefix}/mapa`} className="btn btn-primary" style={{ marginTop: '1rem' }}>Volver al mapa</Link>
+            <Link to={`${prefix}/barreras`} className="btn btn-primary" style={{ marginTop: '1rem' }}>Volver al mapa</Link>
         </div>
     );
 
@@ -61,7 +61,7 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="project-panel animate-fadeIn">
-            <Link to={barrier ? `${prefix}/barrera/${barrier.id}` : `${prefix}/mapa`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <Link to={barrier ? `${prefix}/barrera/${barrier.id}` : `${prefix}/barreras`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
                 <ArrowLeft size={16} /> Volver
             </Link>
 

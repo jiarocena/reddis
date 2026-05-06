@@ -44,7 +44,7 @@ export default function BarrierDetailPage() {
         return (
             <div className="barrier-detail" style={{ textAlign: 'center', padding: 'var(--space-16) 0' }}>
                 <h2>Barrera no encontrada</h2>
-                <Link to={`${prefix}/mapa`} className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }}>
+                <Link to={`${prefix}/barreras`} className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }}>
                     Volver al mapa
                 </Link>
             </div>
@@ -69,7 +69,7 @@ export default function BarrierDetailPage() {
 
     return (
         <div className="barrier-detail animate-fadeIn">
-            <Link to={`${prefix}/mapa`} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginBottom: 'var(--space-6)' }}>
+            <Link to={`${prefix}/barreras`} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginBottom: 'var(--space-6)' }}>
                 <ArrowLeft size={16} /> Volver al mapa
             </Link>
 

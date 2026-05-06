@@ -23,7 +23,7 @@ export default function HomePage() {
                             <Link to="/reportar" className="btn btn-primary btn-lg">
                                 <PlusCircle size={20} /> Reportar Barrera
                             </Link>
-                            <Link to="/mapa" className="btn btn-secondary btn-lg">
+                            <Link to="/barreras" className="btn btn-secondary btn-lg">
                                 <MapPin size={20} /> Explorar Mapa
                             </Link>
                         </div>

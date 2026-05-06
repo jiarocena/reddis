@@ -46,7 +46,7 @@ export default function Navbar({ mode = 'public' }) {
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to="/mapa" onClick={() => setIsOpen(false)}>
+                                <NavLink to="/barreras" onClick={() => setIsOpen(false)}>
                                     <MapPin size={16} /> Mapa
                                 </NavLink>
                             </li>

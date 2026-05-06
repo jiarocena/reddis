@@ -16,7 +16,7 @@ export default function Footer() {
                     </div>
                     <div className="footer-links">
                         <h4>Plataforma</h4>
-                        <Link to="/mapa">Mapa de Barreras</Link>
+                        <Link to="/barreras">Mapa de Barreras</Link>
                         <Link to="/reportar">Reportar Barrera</Link>
                         <Link to="/acerca">Acerca de</Link>
                     </div>
