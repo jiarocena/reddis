@@ -78,19 +78,6 @@ export default function MapPage() {
                     Barreras Reportadas
                 </h2>
 
-                {/* Search */}
-                <div style={{ position: 'relative', marginBottom: 'var(--space-4)' }}>
-                    <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--gray-400)' }} />
-                    <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Buscar por nombre, departamento, localidad..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ paddingLeft: '36px' }}
-                    />
-                </div>
-
                 {/* Department Selector */}
                 <div style={{ marginBottom: 'var(--space-3)' }}>
                     <label style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontWeight: 600, marginBottom: 'var(--space-2)', display: 'block' }}>
