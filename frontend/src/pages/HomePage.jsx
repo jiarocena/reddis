@@ -12,8 +12,8 @@ export default function HomePage() {
                 <div className="container">
                     <div className="hero-content animate-fadeInUp">
                         <h1>
-                            Comunidad<br />
-                            <span className="highlight">sin barreras</span>
+                            <span className="highlight">Comunidad</span><br />
+                            sin barreras
                         </h1>
                         <p>
                             REDDIS conecta a quienes identifican barreras con quienes pueden resolverlas.
