@@ -182,4 +182,22 @@ public class ReddisAdminController {
         }
         return map;
     }
+
+    // ═══════ MANUAL USER CONFIRM ═══════
+
+    @PostMapping("/confirm-user")
+    public ResponseEntity<?> confirmUser(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null) return ResponseEntity.badRequest().body(Map.of("error", "Email requerido"));
+
+        var opt = usuarioRepo.findByEmail(email);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Usuario u = opt.get();
+        u.setEmailConfirmed(true);
+        u.setConfirmationToken(null);
+        usuarioRepo.save(u);
+
+        return ResponseEntity.ok(Map.of("message", "Email confirmado para " + u.getNombreCompleto()));
+    }
 }

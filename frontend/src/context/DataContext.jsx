@@ -49,26 +49,25 @@ export function DataProvider({ children }) {
             setBackendAvailable(isUp);
 
             if (isUp) {
+                // If user has a token, fetch all barriers (including unapproved for staff)
+                // Otherwise fetch only public/approved barriers
+                const hasToken = !!localStorage.getItem('reddis_token');
                 const [barreras, proyectos] = await Promise.all([
-                    api.fetchBarreras(),
+                    hasToken ? api.fetchBarreras() : api.fetchBarrerasPublic(),
                     api.fetchProyectos(),
                 ]);
                 setBarriers(barreras);
                 setProjects(proyectos);
-                // Also cache in localStorage
-                saveToStorage(STORAGE_KEYS.barriers, barreras);
-                saveToStorage(STORAGE_KEYS.projects, proyectos);
             } else {
-                // Fallback to localStorage
-                console.warn('Backend no disponible, usando datos locales.');
-                setBarriers(loadFromStorage(STORAGE_KEYS.barriers, SEED_BARRIERS));
-                setProjects(loadFromStorage(STORAGE_KEYS.projects, SEED_PROJECTS));
+                console.warn('Backend no disponible.');
+                setBarriers([]);
+                setProjects([]);
             }
         } catch (err) {
             console.error('Error cargando datos:', err);
             setBackendAvailable(false);
-            setBarriers(loadFromStorage(STORAGE_KEYS.barriers, SEED_BARRIERS));
-            setProjects(loadFromStorage(STORAGE_KEYS.projects, SEED_PROJECTS));
+            setBarriers([]);
+            setProjects([]);
         } finally {
             setLoading(false);
         }
@@ -77,15 +76,6 @@ export function DataProvider({ children }) {
     useEffect(() => {
         loadData();
     }, [loadData]);
-
-    // Persist to localStorage when data changes (as cache)
-    useEffect(() => {
-        if (!loading) saveToStorage(STORAGE_KEYS.barriers, barriers);
-    }, [barriers, loading]);
-
-    useEffect(() => {
-        if (!loading) saveToStorage(STORAGE_KEYS.projects, projects);
-    }, [projects, loading]);
 
     // ═══════════════ BARRIER OPERATIONS ═══════════════
 
@@ -180,31 +170,19 @@ export function DataProvider({ children }) {
         }
     }
 
-    async function addCollaborator(projectId, collaborator) {
+    async function addCollaborator(projectId) {
         if (backendAvailable) {
             try {
-                const saved = await api.addColaborador(projectId, collaborator);
+                const saved = await api.joinProyecto(projectId);
                 // Refresh the project to get updated collaborators list
                 const updated = await api.fetchProyecto(projectId);
                 setProjects(prev => prev.map(p => p.id == projectId ? updated : p));
-                showToast(`${saved.name} se sumó al proyecto`, 'success');
+                showToast(`Te sumaste al proyecto como colaborador`, 'success');
                 return saved;
             } catch (err) {
-                console.error('Error agregando colaborador:', err);
-                showToast('Error al agregar colaborador', 'error');
+                console.error('Error sumándose al proyecto:', err);
+                showToast(err.message || 'Error al sumarse al proyecto', 'error');
             }
-        } else {
-            const col = {
-                ...collaborator,
-                initials: collaborator.initials || collaborator.name?.split(' ').map(w => w[0]).join('').substring(0, 2) || '??',
-            };
-            setProjects(prev => prev.map(p => {
-                if (p.id === projectId) {
-                    return { ...p, collaborators: [...(p.collaborators || []), col] };
-                }
-                return p;
-            }));
-            showToast(`${col.name} se sumó al proyecto (modo local)`, 'success');
         }
     }
 
@@ -275,6 +253,7 @@ export function DataProvider({ children }) {
         addCollaborator,
         addTimelineEntry,
         resetData,
+        refreshData: loadData,
         showToast,
     };
 

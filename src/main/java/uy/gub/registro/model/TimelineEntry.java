@@ -29,6 +29,9 @@ public class TimelineEntry {
     @JoinColumn(name = "proyecto_id", nullable = false)
     private Proyecto proyecto;
 
+    @Column(length = 200)
+    private String authorName;
+
     @PrePersist
     protected void onCreate() {
         if (date == null) date = LocalDate.now();

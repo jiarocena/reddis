@@ -1,11 +1,15 @@
 package uy.gub.registro.api;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import uy.gub.registro.model.*;
+import uy.gub.registro.repository.UsuarioRepository;
 import uy.gub.registro.service.ReddisService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -13,9 +17,11 @@ import java.util.*;
 public class ProyectoRestController {
 
     private final ReddisService reddisService;
+    private final UsuarioRepository usuarioRepo;
 
-    public ProyectoRestController(ReddisService reddisService) {
+    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo) {
         this.reddisService = reddisService;
+        this.usuarioRepo = usuarioRepo;
     }
 
     @GetMapping("/proyectos")
@@ -55,30 +61,43 @@ public class ProyectoRestController {
     }
 
     @PutMapping("/proyectos/{id}/status")
-    public ResponseEntity<Map<String, Object>> cambiarStatus(@PathVariable Long id,
+    public ResponseEntity<?> cambiarStatus(@PathVariable Long id,
             @RequestBody Map<String, String> body) {
         String status = body.get("status");
         if (status == null)
             return ResponseEntity.badRequest().build();
 
-        Proyecto updated = reddisService.actualizarStatusProyecto(id, status);
+        Usuario user = getCurrentUser();
+        String authorName = user != null ? user.getNombreCompleto() : null;
+
+        Proyecto updated = reddisService.actualizarStatusProyecto(id, status, authorName);
         return ResponseEntity.ok(toMap(updated));
     }
 
     @PutMapping("/proyectos/{id}/finalizar")
-    public ResponseEntity<Map<String, Object>> finalizar(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        reddisService.actualizarStatusProyecto(id, "finalizado");
+    public ResponseEntity<?> finalizar(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        Usuario user = getCurrentUser();
+        String authorName = user != null ? user.getNombreCompleto() : null;
+
+        reddisService.actualizarStatusProyecto(id, "finalizado", authorName);
         Proyecto updated = reddisService.actualizarProyectoFinalizado(id,
                 body.get("impact"), body.get("lessons"));
         return ResponseEntity.ok(toMap(updated));
     }
 
     @PostMapping("/proyectos/{id}/timeline")
-    public ResponseEntity<Map<String, Object>> agregarTimeline(@PathVariable Long id,
+    public ResponseEntity<?> agregarTimeline(@PathVariable Long id,
             @RequestBody Map<String, Object> body) {
+        // Get current user for author name
+        Usuario user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
         TimelineEntry entry = TimelineEntry.builder()
                 .text((String) body.get("text"))
                 .completed(body.get("completed") != null && (Boolean) body.get("completed"))
+                .authorName(user.getNombreCompleto())
                 .build();
 
         if (body.get("date") != null) {
@@ -92,16 +111,45 @@ public class ProyectoRestController {
         result.put("date", saved.getDate().toString());
         result.put("text", saved.getText());
         result.put("completed", saved.getCompleted());
+        result.put("authorName", saved.getAuthorName());
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/proyectos/{id}/colaboradores")
-    public ResponseEntity<Map<String, Object>> agregarColaborador(@PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> agregarColaborador(@PathVariable Long id) {
+        // Get current user - they join with their own name
+        Usuario user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        // Check user has COLABORADOR or REFERENTE role
+        String rol = user.getRol();
+        if (!"COLABORADOR".equalsIgnoreCase(rol) && !"REFERENTE".equalsIgnoreCase(rol) && !"ADMIN".equalsIgnoreCase(rol)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Debes ser aprobado como Colaborador por un Referente para sumarte"));
+        }
+
+        // Check not already a collaborator
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        boolean alreadyJoined = proyecto.getCollaborators().stream()
+                .anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (alreadyJoined) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ya sos colaborador de este proyecto"));
+        }
+
+        String nombre = user.getNombreCompleto();
+        String initials = nombre.contains(" ")
+                ? ("" + nombre.split(" ")[0].charAt(0) + nombre.split(" ")[1].charAt(0)).toUpperCase()
+                : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
+
         Colaborador col = Colaborador.builder()
-                .name(body.get("name"))
-                .role(body.get("role"))
-                .initials(body.get("initials"))
+                .name(nombre)
+                .role(user.getRol())
+                .initials(initials)
+                .userId(user.getId())
                 .build();
 
         Colaborador saved = reddisService.agregarColaborador(id, col);
@@ -111,10 +159,20 @@ public class ProyectoRestController {
         result.put("name", saved.getName());
         result.put("role", saved.getRole());
         result.put("initials", saved.getInitials());
+        result.put("userId", saved.getUserId());
         return ResponseEntity.ok(result);
     }
 
-    // ---- mapping helpers ----
+    // ---- helpers ----
+
+    private Usuario getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        String username = auth.getName();
+        return usuarioRepo.findByUsername(username).orElse(null);
+    }
 
     private Map<String, Object> toMap(Proyecto p) {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -141,6 +199,7 @@ public class ProyectoRestController {
             cm.put("name", c.getName());
             cm.put("role", c.getRole());
             cm.put("initials", c.getInitials());
+            cm.put("userId", c.getUserId());
             collabs.add(cm);
         }
         m.put("collaborators", collabs);
@@ -153,6 +212,7 @@ public class ProyectoRestController {
             tm.put("date", t.getDate().toString());
             tm.put("text", t.getText());
             tm.put("completed", t.getCompleted());
+            tm.put("authorName", t.getAuthorName());
             tl.add(tm);
         }
         m.put("timeline", tl);

@@ -6,7 +6,7 @@ import { Shield, CheckCircle, XCircle, Clock, MapPin, Users, AlertTriangle } fro
 
 export default function PendingBarriersPage() {
     const { user, hasRole } = useAuth();
-    const { showToast } = useData();
+    const { showToast, refreshData } = useData();
     const [pendingBarriers, setPendingBarriers] = useState([]);
     const [roleRequests, setRoleRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,6 +37,7 @@ export default function PendingBarriersPage() {
             await api.approveBarrier(id);
             showToast('Barrera aprobada y publicada', 'success');
             setPendingBarriers(prev => prev.filter(b => b.id !== id));
+            refreshData(); // Reload public barriers so map updates
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
         }
@@ -47,6 +48,7 @@ export default function PendingBarriersPage() {
             await api.rejectBarrier(id);
             showToast('Barrera rechazada', 'info');
             setPendingBarriers(prev => prev.filter(b => b.id !== id));
+            refreshData(); // Reload public barriers
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
         }

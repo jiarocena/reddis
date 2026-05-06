@@ -72,10 +72,38 @@ public class DataInitializer {
                         ProyectoRepository proyectoRepo,
                         ColaboradorRepository colaboradorRepo,
                         TimelineEntryRepository timelineRepo,
-                        DepartamentoRepository departamentoRepo) {
+                        DepartamentoRepository departamentoRepo,
+                        UsuarioRepository usuarioRepo,
+                        RoleRequestRepository roleRequestRepo) {
                 return args -> {
                         // Only seed if empty
                         if (barreraRepo.count() > 0) {
+                                // Auto-approve barriers that have projects (logical consistency)
+                                List<Long> barreraIdsConProyecto = proyectoRepo.findAll().stream()
+                                        .map(p -> p.getBarrera().getId())
+                                        .distinct().toList();
+                                long fixed = barreraRepo.findAllById(barreraIdsConProyecto).stream()
+                                        .filter(b -> !Boolean.TRUE.equals(b.getApproved()))
+                                        .peek(b -> b.setApproved(true))
+                                        .map(barreraRepo::save)
+                                        .count();
+                                if (fixed > 0) {
+                                        System.out.println(">>> REDDIS: " + fixed + " barreras con proyecto aprobadas automáticamente");
+                                }
+
+                                // Auto-create role requests for USUARIO accounts that don't have one
+                                usuarioRepo.findAll().stream()
+                                        .filter(u -> "USUARIO".equalsIgnoreCase(u.getRol()))
+                                        .filter(u -> !roleRequestRepo.existsByUsuarioIdAndRequestedRole(u.getId(), "COLABORADOR"))
+                                        .forEach(u -> {
+                                                roleRequestRepo.save(RoleRequest.builder()
+                                                        .usuario(u)
+                                                        .requestedRole("COLABORADOR")
+                                                        .message("Solicitud automática (migración)")
+                                                        .build());
+                                                System.out.println(">>> REDDIS: Solicitud de COLABORADOR creada para " + u.getNombreCompleto());
+                                        });
+
                                 System.out.println(">>> REDDIS: datos ya existentes, saltando seed.");
                                 return;
                         }
@@ -100,6 +128,7 @@ public class DataInitializer {
                                         .affectedPeople("Estudiantes con discapacidad motriz")
                                         .urgency("alta").status("denuncia")
                                         .reportedBy("Madre de estudiante").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 11, 15, 10, 0)).build());
 
@@ -113,6 +142,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas sordas y con hipoacusia")
                                         .urgency("alta").status("iniciando")
                                         .reportedBy("Asociación de Sordos de Flores").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 10, 28, 14, 0)).build());
 
@@ -126,6 +156,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas en silla de ruedas, adultos mayores")
                                         .urgency("media").status("en-proceso")
                                         .reportedBy("Vecino del centro").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 9, 5, 9, 30)).build());
 
@@ -139,6 +170,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad motriz")
                                         .urgency("alta").status("denuncia")
                                         .reportedBy("Usuario de silla de ruedas").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 12, 1, 16, 0)).build());
 
@@ -152,6 +184,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad en general")
                                         .urgency("media").status("denuncia")
                                         .reportedBy("Asistente a evento").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 11, 20, 11, 0)).build());
 
@@ -165,6 +198,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad visual e intelectual")
                                         .urgency("media").status("denuncia")
                                         .reportedBy("Trabajador social").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 12, 10, 8, 45)).build());
 
@@ -178,6 +212,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad visual")
                                         .urgency("media").status("denuncia")
                                         .reportedBy("Familiar de persona ciega").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 12, 15, 10, 30)).build());
 
@@ -191,6 +226,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad motriz")
                                         .urgency("alta").status("finalizado")
                                         .reportedBy("Deportista").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 6, 15, 14, 0)).build());
 
@@ -204,6 +240,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad motriz y visual")
                                         .urgency("baja").status("denuncia")
                                         .reportedBy("Estudiante").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 12, 20, 9, 0)).build());
 
@@ -217,6 +254,7 @@ public class DataInitializer {
                                         .affectedPeople("Personas con discapacidad en edad laboral")
                                         .urgency("media").status("iniciando")
                                         .reportedBy("CODICEN Flores").isPublic(true)
+                                        .approved(true)
                                         .departamento(flores)
                                         .createdAt(LocalDateTime.of(2025, 11, 1, 12, 0)).build());
 

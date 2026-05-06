@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Layout/Navbar';
@@ -15,6 +15,8 @@ import RegisterPage from './pages/RegisterPage';
 import ConfirmPage from './pages/ConfirmPage';
 import ProfilePage from './pages/ProfilePage';
 import PendingBarriersPage from './pages/PendingBarriersPage';
+import BarrerasListPage from './pages/BarrerasListPage';
+import ProyectosListPage from './pages/ProyectosListPage';
 
 function Toast() {
     const { toast } = useData();
@@ -31,7 +33,7 @@ function ProtectedRoute({ children, requiredRole }) {
 
     if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
 
-    if (!isAuthenticated) return <Navigate to="/login" replace />;
+    if (!isAuthenticated) return <Navigate to="/gestion" replace />;
 
     if (requiredRole && !hasRole(requiredRole)) {
         return (
@@ -45,32 +47,77 @@ function ProtectedRoute({ children, requiredRole }) {
     return children;
 }
 
+// After login, redirect to /gestion/mapa
+function GestionLoginRedirect() {
+    const { isAuthenticated, loading } = useAuth();
+    if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
+    if (isAuthenticated) return <Navigate to="/gestion/mapa" replace />;
+    return <LoginPage redirectTo="/gestion/mapa" />;
+}
+
+function GestionRegisterRedirect() {
+    const { isAuthenticated, loading } = useAuth();
+    if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
+    if (isAuthenticated) return <Navigate to="/gestion/mapa" replace />;
+    return <RegisterPage />;
+}
+
 function AppContent() {
+    const location = useLocation();
+    const isGestion = location.pathname.startsWith('/gestion');
+
     return (
         <>
-            <Navbar />
+            <Navbar mode={isGestion ? 'gestion' : 'public'} />
             <main style={{ flex: 1 }}>
                 <Routes>
+                    {/* ═══ PUBLIC ROUTES ═══ */}
                     <Route path="/" element={<HomePage />} />
                     <Route path="/mapa" element={<MapPage />} />
-                    <Route path="/reportar" element={
-                        <ProtectedRoute><ReportPage /></ProtectedRoute>
-                    } />
+                    <Route path="/reportar" element={<ReportPage />} />
                     <Route path="/barrera/:id" element={<BarrierDetailPage />} />
                     <Route path="/proyecto/:id" element={<ProjectDetailPage />} />
-                    <Route path="/admin" element={
-                        <ProtectedRoute requiredRole="ADMIN"><AdminPage /></ProtectedRoute>
-                    } />
                     <Route path="/acerca" element={<AboutPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/registro" element={<RegisterPage />} />
-                    <Route path="/confirmar" element={<ConfirmPage />} />
-                    <Route path="/perfil" element={
-                        <ProtectedRoute><ProfilePage /></ProtectedRoute>
+
+                    {/* ═══ GESTION (STAFF) ROUTES ═══ */}
+                    <Route path="/gestion" element={<GestionLoginRedirect />} />
+                    <Route path="/gestion/registro" element={<GestionRegisterRedirect />} />
+                    <Route path="/gestion/confirmar" element={<ConfirmPage />} />
+                    <Route path="/gestion/mapa" element={
+                        <ProtectedRoute><MapPage /></ProtectedRoute>
                     } />
-                    <Route path="/pendientes" element={
+                    <Route path="/gestion/pendientes" element={
                         <ProtectedRoute requiredRole="REFERENTE"><PendingBarriersPage /></ProtectedRoute>
                     } />
+                    <Route path="/gestion/admin" element={
+                        <ProtectedRoute requiredRole="ADMIN"><AdminPage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/perfil" element={
+                        <ProtectedRoute><ProfilePage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/reportar" element={
+                        <ProtectedRoute><ReportPage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/barreras" element={
+                        <ProtectedRoute><BarrerasListPage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/proyectos" element={
+                        <ProtectedRoute><ProyectosListPage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/barrera/:id" element={
+                        <ProtectedRoute><BarrierDetailPage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/proyecto/:id" element={
+                        <ProtectedRoute><ProjectDetailPage /></ProtectedRoute>
+                    } />
+
+                    {/* Legacy routes → redirect */}
+                    <Route path="/login" element={<Navigate to="/gestion" replace />} />
+                    <Route path="/registro" element={<Navigate to="/gestion/registro" replace />} />
+                    <Route path="/confirmar" element={<Navigate to="/gestion/confirmar" replace />} />
+                    <Route path="/pendientes" element={<Navigate to="/gestion/pendientes" replace />} />
+                    <Route path="/admin" element={<Navigate to="/gestion/admin" replace />} />
+                    <Route path="/perfil" element={<Navigate to="/gestion/perfil" replace />} />
                 </Routes>
             </main>
             <Footer />

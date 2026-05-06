@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { CATEGORIES, PROJECT_STATUSES } from '../../data/seedData';
 import 'leaflet/dist/leaflet.css';
 
@@ -66,6 +66,8 @@ function MapBounds({ barriers }) {
 
 export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerClick, compact = false }) {
     const center = [-33.5432, -56.8998]; // Trinidad, Flores
+    const location = useLocation();
+    const prefix = location.pathname.startsWith('/gestion') ? '/gestion' : '';
 
     const filteredBarriers = barriers.filter(b => b.isPublic);
 
@@ -107,7 +109,7 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
                                 {barrier.address}
                             </p>
                             <Link
-                                to={`/barrera/${barrier.id}`}
+                                to={`${prefix}/barrera/${barrier.id}`}
                                 className="btn btn-primary btn-sm"
                                 style={{ fontSize: '11px' }}
                             >

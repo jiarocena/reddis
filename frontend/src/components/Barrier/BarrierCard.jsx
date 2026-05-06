@@ -1,13 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MapPin, Clock, AlertTriangle, Users, ArrowRight } from 'lucide-react';
 import { CATEGORIES, PROJECT_STATUSES } from '../../data/seedData';
 
 export default function BarrierCard({ barrier, compact = false }) {
     const category = CATEGORIES[barrier.category];
     const status = PROJECT_STATUSES[barrier.status];
+    const location = useLocation();
+    const isGestion = location.pathname.startsWith('/gestion');
+    const linkTo = isGestion ? `/gestion/barrera/${barrier.id}` : `/barrera/${barrier.id}`;
 
     return (
-        <Link to={`/barrera/${barrier.id}`} style={{ textDecoration: 'none' }}>
+        <Link to={linkTo} style={{ textDecoration: 'none' }}>
             <div className="barrier-card">
                 <div className="barrier-card-header">
                     <h4>{barrier.title}</h4>

@@ -27,6 +27,9 @@ public class Barrera {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "photo_base64", columnDefinition = "TEXT")
+    private String photoBase64;
+
     // estructural / individual
     @NotBlank
     @Column(nullable = false, length = 30)

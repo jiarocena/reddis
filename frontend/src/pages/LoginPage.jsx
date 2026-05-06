@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-export default function LoginPage() {
+export default function LoginPage({ redirectTo = '/gestion/mapa' }) {
     const { login } = useAuth();
     const { showToast } = useData();
     const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function LoginPage() {
         try {
             await login(email, password);
             showToast('¡Sesión iniciada!', 'success');
-            navigate('/');
+            navigate(redirectTo);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
                 <p className="auth-footer">
                     ¿No tenés cuenta?{' '}
-                    <Link to="/registro">Registrate</Link>
+                    <Link to="/gestion/registro">Registrate</Link>
                 </p>
 
                 <div className="auth-demo-accounts">

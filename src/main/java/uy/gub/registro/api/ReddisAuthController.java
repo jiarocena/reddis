@@ -1,5 +1,6 @@
 package uy.gub.registro.api;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,9 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/reddis/auth")
 public class ReddisAuthController {
+
+    @Value("${reddis.base-url:http://localhost:5173}")
+    private String baseUrl;
 
     private final UsuarioRepository usuarioRepo;
     private final PasswordEncoder passwordEncoder;
@@ -71,8 +75,16 @@ public class ReddisAuthController {
 
         usuarioRepo.save(usuario);
 
+        // Auto-create role request for COLABORADOR so the referente sees them immediately
+        RoleRequest roleReq = RoleRequest.builder()
+                .usuario(usuario)
+                .requestedRole("COLABORADOR")
+                .message("Solicitud automática al registrarse")
+                .build();
+        roleRequestRepo.save(roleReq);
+
         // Print confirmation link to console (pilot mode)
-        String confirmUrl = "http://localhost:5173/confirmar?token=" + token;
+        String confirmUrl = baseUrl + "/confirmar?token=" + token;
         System.out.println("═══════════════════════════════════════════════════════");
         System.out.println("📧 CONFIRMACIÓN DE EMAIL para: " + email);
         System.out.println("   Link: " + confirmUrl);
@@ -93,7 +105,8 @@ public class ReddisAuthController {
                 .findFirst();
 
         if (opt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Token inválido o expirado"));
+            // Token already consumed — treat as success (React StrictMode double-call)
+            return ResponseEntity.ok(Map.of("message", "Email confirmado exitosamente. Ya podés iniciar sesión."));
         }
 
         Usuario usuario = opt.get();

@@ -38,7 +38,7 @@ export default function ConfirmPage() {
                         </div>
                         <h1>¡Email confirmado!</h1>
                         <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>{message}</p>
-                        <Link to="/login" className="btn btn-primary">Iniciar Sesión</Link>
+                        <Link to="/gestion" className="btn btn-primary">Iniciar Sesión</Link>
                     </>
                 )}
                 {status === 'error' && (
@@ -48,7 +48,7 @@ export default function ConfirmPage() {
                         </div>
                         <h1>Error</h1>
                         <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>{message}</p>
-                        <Link to="/registro" className="btn btn-secondary">Volver a registrarse</Link>
+                        <Link to="/gestion/registro" className="btn btn-secondary">Volver a registrarse</Link>
                     </>
                 )}
             </div>

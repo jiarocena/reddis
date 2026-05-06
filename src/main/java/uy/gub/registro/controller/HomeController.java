@@ -20,6 +20,9 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
         model.addAttribute("totalPersonas", personaService.contarTotal());
         model.addAttribute("totalUsuarios", usuarioRepository.count());
         model.addAttribute("username", authentication.getName());

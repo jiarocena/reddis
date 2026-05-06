@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import InteractiveMap from '../components/Map/InteractiveMap';
 import Timeline from '../components/Project/Timeline';
 import { CATEGORIES, PROJECT_STATUSES } from '../data/seedData';
@@ -10,6 +11,11 @@ export default function BarrierDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { barriers, projects, createProject, loading } = useData();
+    const { isAuthenticated, hasRole } = useAuth();
+    const location = useLocation();
+    const isGestion = location.pathname.startsWith('/gestion');
+    const prefix = isGestion ? '/gestion' : '';
+
     const [showClaimModal, setShowClaimModal] = useState(false);
     const [claimData, setClaimData] = useState({
         title: '',
@@ -23,6 +29,9 @@ export default function BarrierDetailPage() {
     const barrier = barriers.find(b => String(b.id) === String(id));
     const project = projects.find(p => String(p.barrierId) === String(id));
 
+    // Can work on this barrier: must be in gestion mode + logged in + correct role
+    const canWork = isGestion && isAuthenticated && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
+
     if (loading) {
         return (
             <div className="barrier-detail" style={{ textAlign: 'center', padding: 'var(--space-16) 0' }}>
@@ -35,7 +44,7 @@ export default function BarrierDetailPage() {
         return (
             <div className="barrier-detail" style={{ textAlign: 'center', padding: 'var(--space-16) 0' }}>
                 <h2>Barrera no encontrada</h2>
-                <Link to="/mapa" className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }}>
+                <Link to={`${prefix}/mapa`} className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }}>
                     Volver al mapa
                 </Link>
             </div>
@@ -54,13 +63,13 @@ export default function BarrierDetailPage() {
         const newProject = await createProject(barrier.id, projectData);
         setShowClaimModal(false);
         if (newProject) {
-            navigate(`/proyecto/${newProject.id}`);
+            navigate(`${prefix}/proyecto/${newProject.id}`);
         }
     };
 
     return (
         <div className="barrier-detail animate-fadeIn">
-            <Link to="/mapa" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginBottom: 'var(--space-6)' }}>
+            <Link to={`${prefix}/mapa`} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginBottom: 'var(--space-6)' }}>
                 <ArrowLeft size={16} /> Volver al mapa
             </Link>
 
@@ -77,6 +86,41 @@ export default function BarrierDetailPage() {
                 </div>
                 <h1>{barrier.title}</h1>
             </div>
+
+            {/* ═══ PROJECT / CLAIM — AT THE TOP for staff ═══ */}
+            {project ? (
+                <div className="card" style={{ background: 'var(--primary-50)', borderColor: 'var(--primary-200)', marginBottom: 'var(--space-6)' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', color: 'var(--primary-700)' }}>
+                        <Handshake size={20} /> Proyecto en curso
+                    </h3>
+                    <p style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-4)', fontSize: 'var(--font-sm)' }}>
+                        {project.title}
+                    </p>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
+                        <span className={`badge badge-${project.status}`}>
+                            {PROJECT_STATUSES[project.status]?.label}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)' }}>
+                            {project.collaborators.length} colaboradores
+                        </span>
+                    </div>
+                    <Link to={`${prefix}/proyecto/${project.id}`} className="btn btn-primary btn-sm">
+                        Ver proyecto <ChevronRight size={14} />
+                    </Link>
+                </div>
+            ) : canWork ? (
+                <div className="card" style={{ textAlign: 'center', padding: 'var(--space-6)', marginBottom: 'var(--space-6)', background: 'var(--accent-50)', borderColor: 'var(--accent-200)' }}>
+                    <h3 style={{ marginBottom: 'var(--space-2)', color: 'var(--gray-800)', fontSize: 'var(--font-base)' }}>
+                        Esta barrera aún no tiene un proyecto asociado
+                    </h3>
+                    <p style={{ color: 'var(--gray-500)', marginBottom: 'var(--space-4)', fontSize: 'var(--font-sm)' }}>
+                        ¿Tu institución u organización puede trabajar en esta barrera?
+                    </p>
+                    <button className="btn btn-accent" onClick={() => setShowClaimModal(true)}>
+                        <Handshake size={18} /> Trabajar en esto
+                    </button>
+                </div>
+            ) : null}
 
             {/* Info Grid */}
             <div className="barrier-detail-info">
@@ -106,45 +150,20 @@ export default function BarrierDetailPage() {
                 <p style={{ color: 'var(--gray-600)', lineHeight: 1.8 }}>{barrier.description}</p>
             </div>
 
+            {/* Photo */}
+            {barrier.photoBase64 && (
+                <div style={{ marginBottom: 'var(--space-8)' }}>
+                    <h3 style={{ fontSize: 'var(--font-lg)', marginBottom: 'var(--space-3)', color: 'var(--gray-800)' }}>
+                        Foto
+                    </h3>
+                    <img src={barrier.photoBase64} alt="Foto de la barrera" style={{ maxWidth: '100%', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-md)' }} />
+                </div>
+            )}
+
             {/* Map */}
             <div style={{ marginBottom: 'var(--space-8)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', height: '250px', boxShadow: 'var(--shadow-md)' }}>
                 <InteractiveMap barriers={[barrier]} compact />
             </div>
-
-            {/* Project Link or Claim Button */}
-            {project ? (
-                <div className="card" style={{ background: 'var(--primary-50)', borderColor: 'var(--primary-200)' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', color: 'var(--primary-700)' }}>
-                        <Handshake size={20} /> Proyecto en curso
-                    </h3>
-                    <p style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-4)', fontSize: 'var(--font-sm)' }}>
-                        {project.title}
-                    </p>
-                    <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
-                        <span className={`badge badge-${project.status}`}>
-                            {PROJECT_STATUSES[project.status]?.label}
-                        </span>
-                        <span style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)' }}>
-                            {project.collaborators.length} colaboradores
-                        </span>
-                    </div>
-                    <Link to={`/proyecto/${project.id}`} className="btn btn-primary btn-sm">
-                        Ver proyecto <ChevronRight size={14} />
-                    </Link>
-                </div>
-            ) : (
-                <div className="card" style={{ textAlign: 'center', padding: 'var(--space-10)' }}>
-                    <h3 style={{ marginBottom: 'var(--space-3)', color: 'var(--gray-800)' }}>
-                        Esta barrera aún no tiene un proyecto asociado
-                    </h3>
-                    <p style={{ color: 'var(--gray-500)', marginBottom: 'var(--space-6)', fontSize: 'var(--font-sm)' }}>
-                        ¿Tu institución u organización puede trabajar en esta barrera?
-                    </p>
-                    <button className="btn btn-accent btn-lg" onClick={() => setShowClaimModal(true)}>
-                        <Handshake size={18} /> Trabajar en esto
-                    </button>
-                </div>
-            )}
 
             {/* Claim Modal */}
             {showClaimModal && (

@@ -60,6 +60,7 @@ public class BarreraRestController {
         Barrera barrera = Barrera.builder()
                 .title((String) body.get("title"))
                 .description((String) body.get("description"))
+                .photoBase64((String) body.get("photoBase64"))
                 .type((String) body.getOrDefault("type", "estructural"))
                 .category((String) body.getOrDefault("category", "fisica"))
                 .address((String) body.get("address"))
@@ -67,7 +68,7 @@ public class BarreraRestController {
                 .urgency((String) body.getOrDefault("urgency", "media"))
                 .reportedBy((String) body.get("reportedBy"))
                 .isPublic(body.get("isPublic") == null || (Boolean) body.get("isPublic"))
-                .approved(false) // NEW: requires referente approval
+                .approved(false) // requires referente approval
                 .build();
 
         // Link to authenticated user
@@ -131,6 +132,7 @@ public class BarreraRestController {
         m.put("isPublic", b.getIsPublic());
         m.put("approved", b.getApproved());
         m.put("date", b.getCreatedAt() != null ? b.getCreatedAt().toLocalDate().toString() : null);
+        if (b.getPhotoBase64() != null) m.put("photoBase64", b.getPhotoBase64());
 
         Map<String, Object> loc = new LinkedHashMap<>();
         loc.put("lat", b.getLat() != null ? b.getLat().doubleValue() : null);

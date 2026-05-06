@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import InteractiveMap from '../components/Map/InteractiveMap';
 import BarrierCard from '../components/Barrier/BarrierCard';
@@ -9,6 +9,8 @@ import { Filter, X, Search } from 'lucide-react';
 export default function MapPage() {
     const { barriers } = useData();
     const navigate = useNavigate();
+    const location = useLocation();
+    const isGestion = location.pathname.startsWith('/gestion');
     const [selectedCategory, setSelectedCategory] = useState('todas');
     const [selectedStatus, setSelectedStatus] = useState('todos');
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +18,8 @@ export default function MapPage() {
 
     const filteredBarriers = barriers.filter(b => {
         if (!b.isPublic) return false;
+        // In public mode, only show approved barriers
+        if (!isGestion && b.approved === false) return false;
         if (selectedCategory !== 'todas' && b.category !== selectedCategory) return false;
         if (selectedStatus !== 'todos' && b.status !== selectedStatus) return false;
         if (searchTerm && !b.title.toLowerCase().includes(searchTerm.toLowerCase()) &&

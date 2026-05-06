@@ -1,37 +1,82 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { CATEGORIES } from '../data/seedData';
-import { ArrowLeft, ArrowRight, CheckCircle, MapPin, AlertTriangle, Users, Building } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, MapPin, AlertTriangle, Users, Building, Camera, X, Map } from 'lucide-react';
+import LocationPicker from '../components/Map/LocationPicker';
 
 export default function ReportPage() {
     const { addBarrier } = useData();
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showMap, setShowMap] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState(null);
+    const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
         type: '',
         category: '',
         title: '',
         description: '',
         address: '',
-        location: { lat: -33.5432, lng: -56.8998 },
+        location: { lat: null, lng: null },
         affectedPeople: '',
         urgency: 'media',
         reportedBy: '',
         isPublic: true,
+        photoBase64: null,
     });
+
+    function compressImage(file, maxWidth = 800) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let { width, height } = img;
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handlePhotoChange(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const compressed = await compressImage(file);
+        setPhotoPreview(compressed);
+        updateField('photoBase64', compressed);
+    }
+
+    function removePhoto() {
+        setPhotoPreview(null);
+        updateField('photoBase64', null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = () => {
-        const barrier = addBarrier(formData);
-        setShowSuccess(true);
-        setTimeout(() => {
-            navigate(`/barrera/${barrier.id}`);
-        }, 2500);
+    const handleSubmit = async () => {
+        const barrier = await addBarrier(formData);
+        if (barrier) {
+            setShowSuccess(true);
+            setTimeout(() => {
+                navigate('/');
+            }, 5000);
+        }
     };
 
     const canProceed = () => {
@@ -147,12 +192,56 @@ export default function ReportPage() {
                             <MapPin size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
                             Ubicación / Dirección *
                         </label>
+                        <div className="input-with-button">
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Ej: Calle 18 de Julio esq. Rivera, Trinidad"
+                                value={formData.address}
+                                onChange={(e) => updateField('address', e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-secondary btn-sm map-btn"
+                                onClick={() => setShowMap(true)}
+                                title="Seleccionar en el mapa"
+                            >
+                                <Map size={16} /> Mapa
+                            </button>
+                        </div>
+                        {formData.location?.lat && (
+                            <small className="coords-display">
+                                📍 Coordenadas: {formData.location.lat.toFixed(5)}, {formData.location.lng.toFixed(5)}
+                            </small>
+                        )}
+                    </div>
+
+                    {/* Photo Capture */}
+                    <div className="form-group">
+                        <label className="form-label">
+                            <Camera size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                            Foto de la barrera
+                        </label>
+                        {photoPreview ? (
+                            <div className="photo-preview">
+                                <img src={photoPreview} alt="Vista previa" />
+                                <button className="photo-remove-btn" onClick={removePhoto}>
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="photo-upload-area" onClick={() => fileInputRef.current?.click()}>
+                                <Camera size={32} />
+                                <p>Tocá para sacar una foto o elegir de la galería</p>
+                            </div>
+                        )}
                         <input
-                            type="text"
-                            className="form-input"
-                            placeholder="Ej: Calle 18 de Julio esq. Rivera, Trinidad"
-                            value={formData.address}
-                            onChange={(e) => updateField('address', e.target.value)}
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handlePhotoChange}
+                            style={{ display: 'none' }}
                         />
                     </div>
 
@@ -262,10 +351,25 @@ export default function ReportPage() {
                         <div className="success-icon">
                             <CheckCircle size={36} />
                         </div>
-                        <h2>¡Barrera reportada!</h2>
-                        <p>Tu reporte ha sido registrado exitosamente. Será visible en el mapa y se notificará a los actores relevantes.</p>
+                        <h2>¡Reporte recibido!</h2>
+                        <p style={{ marginBottom: '0.5rem' }}>
+                            Tu barrera ha sido registrada exitosamente.
+                        </p>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--gray-500)' }}>
+                            Será analizada por un referente departamental y, una vez evaluada, se publicará en el mapa.
+                            ¡Gracias por contribuir a la inclusión!
+                        </p>
                     </div>
                 </div>
+            )}
+            {/* Map Picker Modal */}
+            {showMap && (
+                <LocationPicker
+                    location={formData.location}
+                    onLocationChange={(loc) => updateField('location', loc)}
+                    onAddressChange={(addr) => updateField('address', addr)}
+                    onClose={() => setShowMap(false)}
+                />
             )}
         </div>
     );

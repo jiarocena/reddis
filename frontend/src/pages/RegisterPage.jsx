@@ -58,7 +58,7 @@ export default function RegisterPage() {
                             </a>
                         </div>
                     )}
-                    <Link to="/login" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+                    <Link to="/gestion" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
                         Ir a iniciar sesión
                     </Link>
                 </div>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
 
                 <p className="auth-footer">
                     ¿Ya tenés cuenta?{' '}
-                    <Link to="/login">Iniciá sesión</Link>
+                    <Link to="/gestion">Iniciá sesión</Link>
                 </p>
             </div>
         </div>

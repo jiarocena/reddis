@@ -93,7 +93,7 @@ public class ReddisService {
     }
 
     @Transactional
-    public Proyecto actualizarStatusProyecto(Long id, String status) {
+    public Proyecto actualizarStatusProyecto(Long id, String status, String authorName) {
         Proyecto p = proyectoRepository.findById(id).orElseThrow();
         p.setStatus(status);
 
@@ -113,6 +113,7 @@ public class ReddisService {
                 .text("Estado cambiado a: " + status)
                 .completed(true)
                 .proyecto(p)
+                .authorName(authorName)
                 .build();
         timelineEntryRepository.save(entry);
 

@@ -28,4 +28,7 @@ public class Colaborador {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proyecto_id", nullable = false)
     private Proyecto proyecto;
+
+    @Column(name = "user_id")
+    private Long userId;
 }

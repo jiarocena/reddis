@@ -34,6 +34,17 @@ async function request(path, options = {}) {
     return response.json();
 }
 
+// Public request — never sends auth token
+async function publicRequest(path) {
+    const url = `${API_BASE}${path}`;
+    const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || `API error: ${response.status}`);
+    }
+    return response.json();
+}
+
 // ═══════════════ AUTH ═══════════════
 
 export async function registerUser(nombre, email, password) {
@@ -100,8 +111,14 @@ export async function fetchAllUsers() {
 
 // ═══════════════ BARRERAS ═══════════════
 
+// Fetches barriers WITH auth (for staff views)
 export async function fetchBarreras() {
     return request('/barreras');
+}
+
+// Fetches barriers WITHOUT auth (public map — only approved)
+export async function fetchBarrerasPublic() {
+    return publicRequest('/barreras');
 }
 
 export async function fetchBarrera(id) {
@@ -153,10 +170,9 @@ export async function addTimelineEntry(proyectoId, entry) {
     });
 }
 
-export async function addColaborador(proyectoId, colaborador) {
+export async function joinProyecto(proyectoId) {
     return request(`/proyectos/${proyectoId}/colaboradores`, {
         method: 'POST',
-        body: JSON.stringify(colaborador),
     });
 }
 

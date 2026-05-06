@@ -64,8 +64,8 @@ public class SecurityConfig {
                         // --- REDDIS Admin (REFERENTE or ADMIN) ---
                         .requestMatchers("/api/reddis/admin/**").hasAnyRole("REFERENTE", "ADMIN")
 
-                        // --- REDDIS Write operations (any authenticated REDDIS user) ---
-                        .requestMatchers(HttpMethod.POST, "/api/reddis/barreras").authenticated()
+                        // --- REDDIS Write operations ---
+                        .requestMatchers(HttpMethod.POST, "/api/reddis/barreras").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reddis/proyectos")
                         .hasAnyRole("COLABORADOR", "REFERENTE", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reddis/proyectos/*/colaboradores")

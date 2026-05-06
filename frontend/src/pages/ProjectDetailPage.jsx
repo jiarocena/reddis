@@ -1,19 +1,34 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import Timeline from '../components/Project/Timeline';
 import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
-import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, HelpCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, HelpCircle, UserPlus } from 'lucide-react';
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
     const { projects, barriers, updateProjectStatus, addTimelineEntry, addCollaborator, loading } = useData();
+    const { isAuthenticated, user, hasRole } = useAuth();
+    const location = useLocation();
+    const isGestion = location.pathname.startsWith('/gestion');
+    const prefix = isGestion ? '/gestion' : '';
+
     const [newEntry, setNewEntry] = useState('');
-    const [showAddCollab, setShowAddCollab] = useState(false);
-    const [newCollab, setNewCollab] = useState({ name: '', role: '' });
+    const [showJoinConfirm, setShowJoinConfirm] = useState(false);
+    const [joining, setJoining] = useState(false);
 
     const project = projects.find(p => String(p.id) === String(id));
     const barrier = project ? barriers.find(b => String(b.id) === String(project.barrierId)) : null;
+
+    // Can interact: must be in gestion + logged in + COLABORADOR/REFERENTE/ADMIN
+    const canInteract = isGestion && isAuthenticated && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
+
+    // Is already a collaborator on this project
+    const isCollaborator = canInteract && project?.collaborators?.some(c => c.userId === user?.id);
+
+    // Can join: can interact + not already joined
+    const canJoin = canInteract && !isCollaborator;
 
     if (loading) return (
         <div className="project-panel" style={{ textAlign: 'center', padding: '4rem 0' }}>
@@ -24,7 +39,7 @@ export default function ProjectDetailPage() {
     if (!project) return (
         <div className="project-panel" style={{ textAlign: 'center', padding: '4rem 0' }}>
             <h2>Proyecto no encontrado</h2>
-            <Link to="/mapa" className="btn btn-primary" style={{ marginTop: '1rem' }}>Volver al mapa</Link>
+            <Link to={`${prefix}/mapa`} className="btn btn-primary" style={{ marginTop: '1rem' }}>Volver al mapa</Link>
         </div>
     );
 
@@ -37,19 +52,16 @@ export default function ProjectDetailPage() {
         setNewEntry('');
     };
 
-    const handleAddCollab = () => {
-        if (!newCollab.name) return;
-        addCollaborator(project.id, {
-            name: newCollab.name, role: newCollab.role,
-            initials: newCollab.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase(),
-        });
-        setNewCollab({ name: '', role: '' });
-        setShowAddCollab(false);
+    const handleJoin = async () => {
+        setJoining(true);
+        await addCollaborator(project.id);
+        setJoining(false);
+        setShowJoinConfirm(false);
     };
 
     return (
         <div className="project-panel animate-fadeIn">
-            <Link to={barrier ? `/barrera/${barrier.id}` : '/mapa'} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <Link to={barrier ? `${prefix}/barrera/${barrier.id}` : `${prefix}/mapa`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
                 <ArrowLeft size={16} /> Volver
             </Link>
 
@@ -79,10 +91,19 @@ export default function ProjectDetailPage() {
                 ))}
             </div>
 
-            {project.status !== 'finalizado' && (
+            {/* Status change buttons — only for collaborators of this project */}
+            {isCollaborator && project.status !== 'finalizado' && (
                 <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-                    {project.status === 'iniciando' && <button className="btn btn-primary btn-sm" onClick={() => updateProjectStatus(project.id, 'en-proceso')}>Marcar "En Proceso"</button>}
-                    {project.status === 'en-proceso' && <button className="btn btn-success btn-sm" onClick={() => updateProjectStatus(project.id, 'finalizado')}><CheckCircle size={14} /> Finalizar</button>}
+                    {project.status === 'iniciando' && (
+                        <button className="btn btn-primary btn-sm" onClick={() => updateProjectStatus(project.id, 'en-proceso')}>
+                            Marcar "En Proceso"
+                        </button>
+                    )}
+                    {project.status === 'en-proceso' && (
+                        <button className="btn btn-success btn-sm" onClick={() => updateProjectStatus(project.id, 'finalizado')}>
+                            <CheckCircle size={14} /> Finalizar
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -116,17 +137,35 @@ export default function ProjectDetailPage() {
             <div className="collaborators-section">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} /> Colaboradores ({project.collaborators.length})</h3>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setShowAddCollab(!showAddCollab)}><Plus size={14} /> Sumarse</button>
+                    {canJoin && !showJoinConfirm && (
+                        <button className="btn btn-accent btn-sm" onClick={() => setShowJoinConfirm(true)}>
+                            <UserPlus size={14} /> Sumarme
+                        </button>
+                    )}
+                    {isCollaborator && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Ya sos parte</span>
+                    )}
                 </div>
-                {showAddCollab && (
-                    <div className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'end' }}>
-                            <input className="form-input" placeholder="Nombre" value={newCollab.name} onChange={e => setNewCollab(p => ({ ...p, name: e.target.value }))} style={{ flex: 1 }} />
-                            <input className="form-input" placeholder="Rol" value={newCollab.role} onChange={e => setNewCollab(p => ({ ...p, role: e.target.value }))} style={{ flex: 1 }} />
-                            <button className="btn btn-success btn-sm" onClick={handleAddCollab}>Agregar</button>
+
+                {showJoinConfirm && (
+                    <div className="card" style={{ marginBottom: '1rem', padding: '1.25rem', background: 'var(--accent-50)', borderColor: 'var(--accent-200)', textAlign: 'center' }}>
+                        <p style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--gray-800)' }}>
+                            ¿Confirmás ser colaborador de este proyecto?
+                        </p>
+                        <p style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--gray-500)' }}>
+                            Te registrarás como: <strong>{user?.nombre || user?.email}</strong>
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowJoinConfirm(false)} disabled={joining}>
+                                Cancelar
+                            </button>
+                            <button className="btn btn-success btn-sm" onClick={handleJoin} disabled={joining}>
+                                {joining ? 'Registrando...' : '✓ Confirmar'}
+                            </button>
                         </div>
                     </div>
                 )}
+
                 <div className="collaborator-list">
                     {project.collaborators.map((c, i) => (
                         <div key={i} className="collaborator-item">
@@ -141,7 +180,9 @@ export default function ProjectDetailPage() {
             <div style={{ marginBottom: '2rem' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}><Clock size={18} /> Registro de Avances</h3>
                 <Timeline entries={project.timeline} />
-                {project.status !== 'finalizado' && (
+
+                {/* Only collaborators of this project can add entries */}
+                {isCollaborator && project.status !== 'finalizado' && (
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '2rem' }}>
                         <input className="form-input" placeholder="Registrar avance..." value={newEntry} onChange={e => setNewEntry(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddEntry()} />
                         <button className="btn btn-primary btn-sm" onClick={handleAddEntry}><Plus size={14} /></button>
