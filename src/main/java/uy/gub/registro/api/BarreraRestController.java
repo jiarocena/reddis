@@ -6,7 +6,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import uy.gub.registro.config.JwtUtil;
 import uy.gub.registro.model.Barrera;
+import uy.gub.registro.model.Departamento;
 import uy.gub.registro.model.Usuario;
+import uy.gub.registro.repository.DepartamentoRepository;
 import uy.gub.registro.repository.UsuarioRepository;
 import uy.gub.registro.service.ReddisService;
 
@@ -19,11 +21,14 @@ public class BarreraRestController {
 
     private final ReddisService reddisService;
     private final UsuarioRepository usuarioRepo;
+    private final DepartamentoRepository departamentoRepo;
     private final JwtUtil jwtUtil;
 
-    public BarreraRestController(ReddisService reddisService, UsuarioRepository usuarioRepo, JwtUtil jwtUtil) {
+    public BarreraRestController(ReddisService reddisService, UsuarioRepository usuarioRepo,
+            DepartamentoRepository departamentoRepo, JwtUtil jwtUtil) {
         this.reddisService = reddisService;
         this.usuarioRepo = usuarioRepo;
+        this.departamentoRepo = departamentoRepo;
         this.jwtUtil = jwtUtil;
     }
 
@@ -69,7 +74,19 @@ public class BarreraRestController {
                 .reportedBy((String) body.get("reportedBy"))
                 .isPublic(body.get("isPublic") == null || (Boolean) body.get("isPublic"))
                 .approved(false) // requires referente approval
+                .localidad((String) body.get("localidad"))
                 .build();
+
+        // Link to department
+        String deptoName = (String) body.get("departamento");
+        if (deptoName != null && !deptoName.isBlank()) {
+            Departamento depto = departamentoRepo.findAll().stream()
+                    .filter(d -> d.getNombre().equalsIgnoreCase(deptoName.trim()))
+                    .findFirst()
+                    .orElseGet(() -> departamentoRepo.save(
+                            Departamento.builder().nombre(deptoName.trim()).build()));
+            barrera.setDepartamento(depto);
+        }
 
         // Link to authenticated user
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -104,6 +121,18 @@ public class BarreraRestController {
         return reddisService.obtenerEstadisticas();
     }
 
+    @GetMapping("/departamentos")
+    public List<Map<String, Object>> listarDepartamentos() {
+        return departamentoRepo.findAll().stream()
+                .map(d -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", d.getId());
+                    m.put("nombre", d.getNombre());
+                    m.put("codigo", d.getCodigo());
+                    return m;
+                }).toList();
+    }
+
     // ---- helpers ----
 
     private boolean isReferenteOrAdmin(String authHeader) {
@@ -132,6 +161,8 @@ public class BarreraRestController {
         m.put("isPublic", b.getIsPublic());
         m.put("approved", b.getApproved());
         m.put("date", b.getCreatedAt() != null ? b.getCreatedAt().toLocalDate().toString() : null);
+        m.put("departamento", b.getDepartamento() != null ? b.getDepartamento().getNombre() : null);
+        m.put("localidad", b.getLocalidad());
         if (b.getPhotoBase64() != null) m.put("photoBase64", b.getPhotoBase64());
 
         Map<String, Object> loc = new LinkedHashMap<>();

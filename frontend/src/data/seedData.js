@@ -280,3 +280,25 @@ export const INSTITUTIONS = [
     'ANEP', 'ASSE', 'Intendencia de Flores', 'MIDES', 'INADIS',
     'BPS', 'ANTEL', 'MTSS', 'OSC Local', 'Empresa privada', 'Otro'
 ];
+
+export const DEPARTAMENTOS = [
+    { nombre: 'Artigas', center: [-30.4, -56.47], zoom: 10 },
+    { nombre: 'Canelones', center: [-34.52, -56.28], zoom: 10 },
+    { nombre: 'Cerro Largo', center: [-32.37, -54.18], zoom: 10 },
+    { nombre: 'Colonia', center: [-34.15, -57.77], zoom: 10 },
+    { nombre: 'Durazno', center: [-33.38, -56.52], zoom: 10 },
+    { nombre: 'Flores', center: [-33.54, -56.90], zoom: 12 },
+    { nombre: 'Florida', center: [-34.10, -56.21], zoom: 10 },
+    { nombre: 'Lavalleja', center: [-34.37, -55.23], zoom: 10 },
+    { nombre: 'Maldonado', center: [-34.65, -54.95], zoom: 10 },
+    { nombre: 'Montevideo', center: [-34.88, -56.18], zoom: 12 },
+    { nombre: 'Paysandú', center: [-32.32, -58.07], zoom: 10 },
+    { nombre: 'Río Negro', center: [-33.12, -57.35], zoom: 10 },
+    { nombre: 'Rivera', center: [-30.90, -55.55], zoom: 10 },
+    { nombre: 'Rocha', center: [-34.08, -53.77], zoom: 10 },
+    { nombre: 'Salto', center: [-31.39, -57.97], zoom: 10 },
+    { nombre: 'San José', center: [-34.34, -56.71], zoom: 10 },
+    { nombre: 'Soriano', center: [-33.51, -57.75], zoom: 10 },
+    { nombre: 'Tacuarembó', center: [-31.72, -55.98], zoom: 10 },
+    { nombre: 'Treinta y Tres', center: [-33.23, -54.38], zoom: 10 },
+];

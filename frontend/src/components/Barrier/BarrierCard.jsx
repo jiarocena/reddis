@@ -40,6 +40,11 @@ export default function BarrierCard({ barrier, compact = false }) {
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <MapPin size={12} /> {barrier.address}
                     </span>
+                    {barrier.departamento && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary-500)' }}>
+                            📍 {barrier.departamento}{barrier.localidad ? ` — ${barrier.localidad}` : ''}
+                        </span>
+                    )}
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={12} /> {barrier.date}
                     </span>

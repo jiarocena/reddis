@@ -91,7 +91,26 @@ public class DataInitializer {
                                         System.out.println(">>> REDDIS: " + fixed + " barreras con proyecto aprobadas automáticamente");
                                 }
 
+                                // Ensure all barriers have departamento and localidad set
+                                Departamento floresMigrate = departamentoRepo.findAll().stream()
+                                        .filter(d -> "Flores".equalsIgnoreCase(d.getNombre()))
+                                        .findFirst()
+                                        .orElseGet(() -> departamentoRepo.save(
+                                                        Departamento.builder().nombre("Flores").codigo("FS").build()));
+                                long migrated = barreraRepo.findAll().stream()
+                                        .filter(b -> b.getDepartamento() == null || b.getLocalidad() == null)
+                                        .peek(b -> {
+                                                if (b.getDepartamento() == null) b.setDepartamento(floresMigrate);
+                                                if (b.getLocalidad() == null) b.setLocalidad("Trinidad");
+                                        })
+                                        .map(barreraRepo::save)
+                                        .count();
+                                if (migrated > 0) {
+                                        System.out.println(">>> REDDIS: " + migrated + " barreras migradas con departamento/localidad");
+                                }
+
                                 // Auto-create role requests for USUARIO accounts that don't have one
+
                                 usuarioRepo.findAll().stream()
                                         .filter(u -> "USUARIO".equalsIgnoreCase(u.getRol()))
                                         .filter(u -> !roleRequestRepo.existsByUsuarioIdAndRequestedRole(u.getId(), "COLABORADOR"))
@@ -130,6 +149,7 @@ public class DataInitializer {
                                         .reportedBy("Madre de estudiante").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 11, 15, 10, 0)).build());
 
                         Barrera b2 = barreraRepo.save(Barrera.builder()
@@ -144,6 +164,7 @@ public class DataInitializer {
                                         .reportedBy("Asociación de Sordos de Flores").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 10, 28, 14, 0)).build());
 
                         Barrera b3 = barreraRepo.save(Barrera.builder()
@@ -158,6 +179,7 @@ public class DataInitializer {
                                         .reportedBy("Vecino del centro").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 9, 5, 9, 30)).build());
 
                         Barrera b4 = barreraRepo.save(Barrera.builder()
@@ -172,6 +194,7 @@ public class DataInitializer {
                                         .reportedBy("Usuario de silla de ruedas").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 12, 1, 16, 0)).build());
 
                         Barrera b5 = barreraRepo.save(Barrera.builder()
@@ -186,6 +209,7 @@ public class DataInitializer {
                                         .reportedBy("Asistente a evento").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 11, 20, 11, 0)).build());
 
                         Barrera b6 = barreraRepo.save(Barrera.builder()
@@ -200,6 +224,7 @@ public class DataInitializer {
                                         .reportedBy("Trabajador social").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 12, 10, 8, 45)).build());
 
                         Barrera b7 = barreraRepo.save(Barrera.builder()
@@ -214,6 +239,7 @@ public class DataInitializer {
                                         .reportedBy("Familiar de persona ciega").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 12, 15, 10, 30)).build());
 
                         Barrera b8 = barreraRepo.save(Barrera.builder()
@@ -228,6 +254,7 @@ public class DataInitializer {
                                         .reportedBy("Deportista").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 6, 15, 14, 0)).build());
 
                         Barrera b9 = barreraRepo.save(Barrera.builder()
@@ -242,6 +269,7 @@ public class DataInitializer {
                                         .reportedBy("Estudiante").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 12, 20, 9, 0)).build());
 
                         Barrera b10 = barreraRepo.save(Barrera.builder()
@@ -256,6 +284,7 @@ public class DataInitializer {
                                         .reportedBy("CODICEN Flores").isPublic(true)
                                         .approved(true)
                                         .departamento(flores)
+                                        .localidad("Trinidad")
                                         .createdAt(LocalDateTime.of(2025, 11, 1, 12, 0)).build());
 
                         // ═══ 4 PROJECTS ═══

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import { CATEGORIES } from '../data/seedData';
+import { CATEGORIES, DEPARTAMENTOS } from '../data/seedData';
 import { ArrowLeft, ArrowRight, CheckCircle, MapPin, AlertTriangle, Users, Building, Camera, X, Map } from 'lucide-react';
 import LocationPicker from '../components/Map/LocationPicker';
 
@@ -25,6 +25,8 @@ export default function ReportPage() {
         reportedBy: '',
         isPublic: true,
         photoBase64: null,
+        departamento: '',
+        localidad: '',
     });
 
     function compressImage(file, maxWidth = 800) {
@@ -83,7 +85,7 @@ export default function ReportPage() {
         switch (step) {
             case 1: return formData.type !== '';
             case 2: return formData.category !== '';
-            case 3: return formData.title && formData.description && formData.address;
+            case 3: return formData.title && formData.description && formData.address && formData.departamento;
             default: return true;
         }
     };
@@ -185,6 +187,32 @@ export default function ReportPage() {
                             onChange={(e) => updateField('description', e.target.value)}
                             rows={4}
                         />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+                        <div className="form-group">
+                            <label className="form-label">Departamento *</label>
+                            <select
+                                className="form-select"
+                                value={formData.departamento}
+                                onChange={(e) => updateField('departamento', e.target.value)}
+                            >
+                                <option value="">Seleccionar departamento</option>
+                                {DEPARTAMENTOS.map(d => (
+                                    <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Localidad</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Ej: Trinidad, Ismael Cortinas..."
+                                value={formData.localidad}
+                                onChange={(e) => updateField('localidad', e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     <div className="form-group">

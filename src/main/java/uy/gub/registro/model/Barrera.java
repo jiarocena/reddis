@@ -50,6 +50,9 @@ public class Barrera {
     @Column(length = 300)
     private String address;
 
+    @Column(length = 100)
+    private String localidad;
+
     @Column(name = "affected_people", length = 300)
     private String affectedPeople;
 

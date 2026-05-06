@@ -64,8 +64,18 @@ function MapBounds({ barriers }) {
     return null;
 }
 
-export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerClick, compact = false }) {
-    const center = [-33.5432, -56.8998]; // Trinidad, Flores
+function MapCenterController({ center, zoom }) {
+    const map = useMap();
+    useEffect(() => {
+        if (center && zoom) {
+            map.flyTo(center, zoom, { duration: 1.2 });
+        }
+    }, [center, zoom, map]);
+    return null;
+}
+
+export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerClick, compact = false, externalCenter = null, externalZoom = null }) {
+    const defaultCenter = [-33.5432, -56.8998]; // Trinidad, Flores
     const location = useLocation();
     const prefix = location.pathname.startsWith('/gestion') ? '/gestion' : '';
 
@@ -73,7 +83,7 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
 
     return (
         <MapContainer
-            center={center}
+            center={defaultCenter}
             zoom={12}
             style={{ width: '100%', height: '100%', minHeight: compact ? '300px' : '500px' }}
             scrollWheelZoom={true}
@@ -83,6 +93,7 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <MapBounds barriers={filteredBarriers} />
+            <MapCenterController center={externalCenter} zoom={externalZoom} />
             {filteredBarriers.map(barrier => (
                 <Marker
                     key={barrier.id}
@@ -105,9 +116,14 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
                                     {PROJECT_STATUSES[barrier.status]?.label || barrier.status}
                                 </span>
                             </div>
-                            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px' }}>
+                            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px' }}>
                                 {barrier.address}
                             </p>
+                            {barrier.departamento && (
+                                <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 8px' }}>
+                                    📍 {barrier.departamento}{barrier.localidad ? ` — ${barrier.localidad}` : ''}
+                                </p>
+                            )}
                             <Link
                                 to={`${prefix}/barrera/${barrier.id}`}
                                 className="btn btn-primary btn-sm"
@@ -122,3 +138,4 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
         </MapContainer>
     );
 }
+
