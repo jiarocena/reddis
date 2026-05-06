@@ -31,7 +31,7 @@ public class HomeController {
     }
 
     // Root "/" now forwards to React SPA (index.html served from static/)
-    @GetMapping({"/", "/mapa", "/reportar", "/acerca", "/barrera/**", "/proyecto/**",
+    @GetMapping({"/", "/mapa", "/barreras", "/reportar", "/acerca", "/barrera/**", "/proyecto/**",
                  "/gestion", "/gestion/**", "/confirmar", "/perfil", "/pendientes", "/admin"})
     public String reactForward() {
         return "forward:/index.html";

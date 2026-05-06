@@ -1,13 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import InteractiveMap from '../components/Map/InteractiveMap';
-import BarrierCard from '../components/Barrier/BarrierCard';
-import { MapPin, PlusCircle, TrendingUp, Users, CheckCircle, AlertTriangle, ArrowRight, Zap, Eye, BookOpen } from 'lucide-react';
+import { PlusCircle, MapPin, Users, CheckCircle, AlertTriangle, Zap, Eye, BookOpen } from 'lucide-react';
 
 export default function HomePage() {
-    const { barriers, stats } = useData();
-
-    const recentBarriers = barriers.slice(0, 4);
+    const { stats } = useData();
 
     return (
         <div>
@@ -136,67 +132,6 @@ export default function HomePage() {
                             </div>
                         ))}
                     </div>
-                </div>
-            </section>
-
-            {/* Recent Barriers */}
-            <section className="section" style={{ background: 'var(--gray-100)' }}>
-                <div className="container">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-8)' }}>
-                        <div>
-                            <h2 style={{ fontSize: 'var(--font-2xl)', color: 'var(--gray-900)' }}>
-                                Últimas barreras reportadas
-                            </h2>
-                            <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)' }}>
-                                Departamento de Flores
-                            </p>
-                        </div>
-                        <Link to="/mapa" className="btn btn-secondary">
-                            Ver todas <ArrowRight size={16} />
-                        </Link>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-4)' }}>
-                        {recentBarriers.map(barrier => (
-                            <BarrierCard key={barrier.id} barrier={barrier} />
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Map Preview */}
-            <section className="section">
-                <div className="container text-center">
-                    <h2 style={{ fontSize: 'var(--font-2xl)', color: 'var(--gray-900)', marginBottom: 'var(--space-3)' }}>
-                        Mapa de Barreras — Flores
-                    </h2>
-                    <p style={{ color: 'var(--gray-500)', marginBottom: 'var(--space-8)', maxWidth: '500px', margin: '0 auto var(--space-8)' }}>
-                        Visualiza las barreras reportadas y los proyectos en curso en el departamento
-                    </p>
-                    <div style={{ borderRadius: 'var(--radius-2xl)', overflow: 'hidden', boxShadow: 'var(--shadow-xl)', height: '400px' }}>
-                        <InteractiveMap barriers={barriers} compact />
-                    </div>
-                    <Link to="/mapa" className="btn btn-primary btn-lg" style={{ marginTop: 'var(--space-6)' }}>
-                        <MapPin size={18} /> Explorar mapa completo
-                    </Link>
-                </div>
-            </section>
-
-            {/* CTA */}
-            <section style={{
-                background: 'linear-gradient(135deg, var(--primary-800), var(--primary-600))',
-                color: 'var(--white)', padding: 'var(--space-16) 0', textAlign: 'center'
-            }}>
-                <div className="container">
-                    <h2 style={{ fontSize: 'var(--font-3xl)', marginBottom: 'var(--space-4)', fontWeight: 800 }}>
-                        ¿Conocés una barrera?
-                    </h2>
-                    <p style={{ fontSize: 'var(--font-lg)', opacity: 0.8, marginBottom: 'var(--space-8)', maxWidth: '500px', margin: '0 auto var(--space-8)' }}>
-                        Tu denuncia es el primer paso para eliminarla. Reportá ahora y contribuí a construir un Flores más inclusivo.
-                    </p>
-                    <Link to="/reportar" className="btn btn-accent btn-lg">
-                        <PlusCircle size={20} /> Reportar Barrera
-                    </Link>
                 </div>
             </section>
         </div>

@@ -2,8 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Layout/Navbar';
+import TopBar from './components/Layout/TopBar';
+import BottomNav from './components/Layout/BottomNav';
 import Footer from './components/Layout/Footer';
 import HomePage from './pages/HomePage';
+import BarrerasPage from './pages/BarrerasPage';
 import MapPage from './pages/MapPage';
 import ReportPage from './pages/ReportPage';
 import BarrierDetailPage from './pages/BarrierDetailPage';
@@ -65,14 +68,21 @@ function GestionRegisterRedirect() {
 function AppContent() {
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
+    const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
 
     return (
         <>
-            <Navbar mode={isGestion ? 'gestion' : 'public'} />
-            <main style={{ flex: 1 }}>
+            {/* Gestion mode: keep the old Navbar */}
+            {isGestion && <Navbar mode="gestion" />}
+
+            {/* Public mode: TopBar (except on detail pages) */}
+            {!isGestion && !isDetailPage && <TopBar />}
+
+            <main className={`app-main ${!isGestion ? 'has-bottom-nav' : ''}`}>
                 <Routes>
                     {/* ═══ PUBLIC ROUTES ═══ */}
                     <Route path="/" element={<HomePage />} />
+                    <Route path="/barreras" element={<BarrerasPage />} />
                     <Route path="/mapa" element={<MapPage />} />
                     <Route path="/reportar" element={<ReportPage />} />
                     <Route path="/barrera/:id" element={<BarrierDetailPage />} />
@@ -120,7 +130,13 @@ function AppContent() {
                     <Route path="/perfil" element={<Navigate to="/gestion/perfil" replace />} />
                 </Routes>
             </main>
-            <Footer />
+
+            {/* Bottom nav for public mode only */}
+            <BottomNav />
+
+            {/* Footer only on gestion */}
+            {isGestion && <Footer />}
+
             <Toast />
         </>
     );

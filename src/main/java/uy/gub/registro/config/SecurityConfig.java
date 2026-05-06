@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/assets/**").permitAll()
 
                         // --- React SPA: client-side routes ---
-                        .requestMatchers("/mapa", "/reportar", "/acerca").permitAll()
+                        .requestMatchers("/mapa", "/barreras", "/reportar", "/acerca").permitAll()
                         .requestMatchers("/barrera/**", "/proyecto/**").permitAll()
                         .requestMatchers("/gestion", "/gestion/**").permitAll()
                         .requestMatchers("/confirmar").permitAll()
