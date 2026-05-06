@@ -18,8 +18,9 @@ public class HomeController {
         this.usuarioRepository = usuarioRepository;
     }
 
-    @GetMapping("/")
-    public String home(Model model, Authentication authentication) {
+    // Thymeleaf dashboard (only for authenticated Thymeleaf sessions)
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
@@ -27,5 +28,12 @@ public class HomeController {
         model.addAttribute("totalUsuarios", usuarioRepository.count());
         model.addAttribute("username", authentication.getName());
         return "home";
+    }
+
+    // Root "/" now forwards to React SPA (index.html served from static/)
+    @GetMapping({"/", "/mapa", "/reportar", "/acerca", "/barrera/**", "/proyecto/**",
+                 "/gestion", "/gestion/**", "/confirmar", "/perfil", "/pendientes", "/admin"})
+    public String reactForward() {
+        return "forward:/index.html";
     }
 }

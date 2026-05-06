@@ -47,7 +47,8 @@ public class SecurityConfig {
                         // --- React SPA: client-side routes ---
                         .requestMatchers("/mapa", "/reportar", "/acerca").permitAll()
                         .requestMatchers("/barrera/**", "/proyecto/**").permitAll()
-                        .requestMatchers("/login", "/registro", "/confirmar").permitAll()
+                        .requestMatchers("/gestion", "/gestion/**").permitAll()
+                        .requestMatchers("/confirmar").permitAll()
                         .requestMatchers("/perfil", "/pendientes", "/admin").permitAll()
 
                         // --- Static / Thymeleaf ---
@@ -77,6 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/reddis/role-requests").authenticated()
 
                         // --- Existing Thymeleaf app ---
+                        .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
@@ -84,10 +86,10 @@ public class SecurityConfig {
                 // Add JWT filter for REDDIS API
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // Form login for Thymeleaf (doesn't affect API)
+                // Form login for Thymeleaf (redirects to /dashboard, not /)
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .defaultSuccessUrl("/dashboard", true)
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
