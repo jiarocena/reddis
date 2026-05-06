@@ -22,12 +22,18 @@ export default function TopBar() {
     return (
         <header className="top-bar">
             <div className="top-bar-inner">
-                <div className="top-bar-icon">
-                    <Icon size={20} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="top-bar-icon">
+                        <Icon size={20} />
+                    </div>
+                    <div>
+                        <h1 className="top-bar-title">{page.title}</h1>
+                        <p className="top-bar-subtitle">{page.subtitle}</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="top-bar-title">{page.title}</h1>
-                    <p className="top-bar-subtitle">{page.subtitle}</p>
+                <div className="top-bar-logo">
+                    <span className="top-bar-logo-yellow">Comunidad</span>
+                    <span className="top-bar-logo-white">sin barreras</span>
                 </div>
             </div>
         </header>

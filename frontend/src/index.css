@@ -57,7 +57,7 @@
   --white: #ffffff;
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-xs: 0.75rem;
   --font-sm: 0.875rem;
   --font-base: 1rem;
@@ -2827,6 +2827,7 @@ select {
 .top-bar-inner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   max-width: 1200px;
   margin: 0 auto;
@@ -2856,6 +2857,29 @@ select {
   opacity: 0.75;
   margin: 0;
   line-height: 1.3;
+}
+
+.top-bar-logo {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.top-bar-logo-yellow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--accent-400);
+}
+
+.top-bar-logo-white {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: lowercase;
 }
 
 /* =============================================
