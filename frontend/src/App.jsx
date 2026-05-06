@@ -88,6 +88,7 @@ function AppContent() {
                     <Route path="/barrera/:id" element={<BarrierDetailPage />} />
                     <Route path="/proyecto/:id" element={<ProjectDetailPage />} />
                     <Route path="/acerca" element={<AboutPage />} />
+                    <Route path="/participar" element={<LoginPage redirectTo="/gestion/mapa" />} />
 
                     {/* ═══ GESTION (STAFF) ROUTES ═══ */}
                     <Route path="/gestion" element={<GestionLoginRedirect />} />

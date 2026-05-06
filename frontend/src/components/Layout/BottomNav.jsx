@@ -22,7 +22,7 @@ export default function BottomNav() {
                 <AlertTriangle size={20} />
                 <span>Reportar</span>
             </NavLink>
-            <NavLink to="/gestion" className="bottom-nav-item">
+            <NavLink to="/participar" className="bottom-nav-item">
                 <Users size={20} />
                 <span>Participar</span>
             </NavLink>
