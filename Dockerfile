@@ -36,4 +36,4 @@ EXPOSE 8080
 
 ENV SPRING_PROFILES_ACTIVE=prod
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "app.jar"]
