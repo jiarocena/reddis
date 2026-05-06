@@ -20,11 +20,11 @@ export default function HomePage() {
                             Un ciclo virtuoso de denuncia, acción, seguimiento y aprendizaje colectivo.
                         </p>
                         <div className="hero-actions">
-                            <Link to="/reportar" className="btn btn-primary btn-lg">
-                                <PlusCircle size={20} /> Reportar Barrera
-                            </Link>
-                            <Link to="/barreras" className="btn btn-secondary btn-lg">
+                            <Link to="/barreras" className="btn btn-primary btn-lg">
                                 <MapPin size={20} /> Explorar Mapa
+                            </Link>
+                            <Link to="/reportar" className="btn btn-secondary btn-lg">
+                                <PlusCircle size={20} /> Reportar Barrera
                             </Link>
                         </div>
                     </div>
