@@ -14,7 +14,7 @@ export default function ReportPage() {
     const [photoPreview, setPhotoPreview] = useState(null);
     const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
-        type: '',
+        type: 'estructural',
         category: '',
         title: '',
         description: '',
@@ -83,14 +83,13 @@ export default function ReportPage() {
 
     const canProceed = () => {
         switch (step) {
-            case 1: return formData.type !== '';
-            case 2: return formData.category !== '';
-            case 3: return formData.title && formData.description && formData.address && formData.departamento;
+            case 1: return formData.category !== '';
+            case 2: return formData.title && formData.description && formData.address && formData.departamento;
             default: return true;
         }
     };
 
-    const totalSteps = formData.type === 'individual' ? 4 : 3;
+    const totalSteps = 2;
 
     return (
         <div className="report-page">
@@ -99,7 +98,7 @@ export default function ReportPage() {
 
             {/* Progress Steps */}
             <div className="form-steps">
-                {['Tipo', 'Categoría', 'Detalle', ...(formData.type === 'individual' ? ['Privacidad'] : [])].map((label, i) => (
+                {['Categoría', 'Detalle'].map((label, i) => (
                     <div key={i} className={`form-step ${step === i + 1 ? 'active' : ''} ${step > i + 1 ? 'completed' : ''}`}>
                         <div className="form-step-number">
                             {step > i + 1 ? <CheckCircle size={14} /> : i + 1}
@@ -109,35 +108,8 @@ export default function ReportPage() {
                 ))}
             </div>
 
-            {/* Step 1: Type */}
+            {/* Step 1: Category */}
             {step === 1 && (
-                <div className="animate-fadeIn">
-                    <h3 style={{ marginBottom: 'var(--space-4)', color: 'var(--gray-800)' }}>
-                        ¿Qué tipo de barrera querés reportar?
-                    </h3>
-                    <div className="type-selector">
-                        <div
-                            className={`type-option ${formData.type === 'estructural' ? 'selected' : ''}`}
-                            onClick={() => updateField('type', 'estructural')}
-                        >
-                            <div className="type-option-icon">🏛️</div>
-                            <h3>Estructural</h3>
-                            <p>Vinculada a un lugar o institución (edificio, servicio, espacio público)</p>
-                        </div>
-                        <div
-                            className={`type-option ${formData.type === 'individual' ? 'selected' : ''}`}
-                            onClick={() => updateField('type', 'individual')}
-                        >
-                            <div className="type-option-icon">👤</div>
-                            <h3>Necesidad Individual</h3>
-                            <p>Vinculada a una persona específica (ayuda técnica, empleo, rehabilitación)</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Step 2: Category */}
-            {step === 2 && (
                 <div className="animate-fadeIn">
                     <h3 style={{ marginBottom: 'var(--space-4)', color: 'var(--gray-800)' }}>
                         ¿Qué tipo de barrera es?
@@ -160,8 +132,8 @@ export default function ReportPage() {
                 </div>
             )}
 
-            {/* Step 3: Details */}
-            {step === 3 && (
+            {/* Step 2: Details */}
+            {step === 2 && (
                 <div className="animate-fadeIn">
                     <h3 style={{ marginBottom: 'var(--space-4)', color: 'var(--gray-800)' }}>
                         Describí la barrera
@@ -307,38 +279,6 @@ export default function ReportPage() {
                             value={formData.reportedBy}
                             onChange={(e) => updateField('reportedBy', e.target.value)}
                         />
-                    </div>
-                </div>
-            )}
-
-            {/* Step 4: Privacy (individual only) */}
-            {step === 4 && formData.type === 'individual' && (
-                <div className="animate-fadeIn">
-                    <h3 style={{ marginBottom: 'var(--space-4)', color: 'var(--gray-800)' }}>
-                        Privacidad
-                    </h3>
-                    <p style={{ color: 'var(--gray-500)', marginBottom: 'var(--space-6)', fontSize: 'var(--font-sm)' }}>
-                        Como esta es una necesidad individual, podés elegir si la publicación aparece en el mapa
-                        público o queda solo para gestión interna.
-                    </p>
-
-                    <div className="type-selector">
-                        <div
-                            className={`type-option ${formData.isPublic ? 'selected' : ''}`}
-                            onClick={() => updateField('isPublic', true)}
-                        >
-                            <div className="type-option-icon">🌐</div>
-                            <h3>Publicar en el mapa</h3>
-                            <p>La barrera será visible públicamente (solo con los datos que autorices)</p>
-                        </div>
-                        <div
-                            className={`type-option ${!formData.isPublic ? 'selected' : ''}`}
-                            onClick={() => updateField('isPublic', false)}
-                        >
-                            <div className="type-option-icon">🔒</div>
-                            <h3>Gestión interna</h3>
-                            <p>Solo la referente departamental de MIDES podrá ver este reporte</p>
-                        </div>
                     </div>
                 </div>
             )}
