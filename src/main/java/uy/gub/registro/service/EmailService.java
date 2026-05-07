@@ -23,6 +23,8 @@ public class EmailService {
     }
 
     public void sendConfirmationEmail(String toEmail, String nombre, String confirmUrl) {
+        System.out.println("📧 MAIL CONFIG → enabled=" + mailEnabled + ", from=" + fromEmail);
+
         if (!mailEnabled || fromEmail.isBlank()) {
             System.out.println("📧 [MODO LOCAL] Email de confirmación para " + toEmail);
             System.out.println("   Link: " + confirmUrl);
