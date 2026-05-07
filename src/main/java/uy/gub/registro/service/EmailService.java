@@ -3,11 +3,14 @@ package uy.gub.registro.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
 
 @Service
+@EnableAsync
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -22,6 +25,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    @Async
     public void sendConfirmationEmail(String toEmail, String nombre, String confirmUrl) {
         System.out.println("📧 MAIL CONFIG → enabled=" + mailEnabled + ", from=" + fromEmail);
 
