@@ -200,4 +200,26 @@ public class ReddisAdminController {
 
         return ResponseEntity.ok(Map.of("message", "Email confirmado para " + u.getNombreCompleto()));
     }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        var opt = usuarioRepo.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Usuario u = opt.get();
+        // Don't allow deleting system accounts
+        if ("ADMIN".equals(u.getRol()) || "REFERENTE".equals(u.getRol())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se puede eliminar cuentas de sistema"));
+        }
+
+        // Delete associated role requests
+        roleRequestRepo.findAll().stream()
+                .filter(r -> r.getUsuario().getId().equals(id))
+                .forEach(roleRequestRepo::delete);
+
+        usuarioRepo.delete(u);
+        System.out.println("🗑️ USUARIO ELIMINADO: " + u.getEmail());
+
+        return ResponseEntity.ok(Map.of("message", "Usuario eliminado: " + u.getEmail()));
+    }
 }
