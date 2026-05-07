@@ -9,6 +9,7 @@ import uy.gub.registro.model.RoleRequest;
 import uy.gub.registro.model.Usuario;
 import uy.gub.registro.repository.RoleRequestRepository;
 import uy.gub.registro.repository.UsuarioRepository;
+import uy.gub.registro.service.EmailService;
 
 import java.security.Principal;
 import java.util.*;
@@ -24,13 +25,15 @@ public class ReddisAuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RoleRequestRepository roleRequestRepo;
+    private final EmailService emailService;
 
     public ReddisAuthController(UsuarioRepository usuarioRepo, PasswordEncoder passwordEncoder,
-            JwtUtil jwtUtil, RoleRequestRepository roleRequestRepo) {
+            JwtUtil jwtUtil, RoleRequestRepository roleRequestRepo, EmailService emailService) {
         this.usuarioRepo = usuarioRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.roleRequestRepo = roleRequestRepo;
+        this.emailService = emailService;
     }
 
     // ═══════ REGISTER ═══════
@@ -83,16 +86,12 @@ public class ReddisAuthController {
                 .build();
         roleRequestRepo.save(roleReq);
 
-        // Print confirmation link to console (pilot mode)
+        // Send confirmation email
         String confirmUrl = baseUrl + "/confirmar?token=" + token;
-        System.out.println("═══════════════════════════════════════════════════════");
-        System.out.println("📧 CONFIRMACIÓN DE EMAIL para: " + email);
-        System.out.println("   Link: " + confirmUrl);
-        System.out.println("═══════════════════════════════════════════════════════");
+        emailService.sendConfirmationEmail(email, nombre, confirmUrl);
 
         return ResponseEntity.ok(Map.of(
-                "message", "Registro exitoso. Revisá tu email para confirmar la cuenta.",
-                "confirmUrl", confirmUrl // for dev convenience
+                "message", "Registro exitoso. Revisá tu email para confirmar la cuenta."
         ));
     }
 
