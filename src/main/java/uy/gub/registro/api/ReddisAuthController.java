@@ -95,6 +95,36 @@ public class ReddisAuthController {
         ));
     }
 
+    // ═══════ MAIL DIAGNOSTIC (temporary) ═══════
+
+    @GetMapping("/mail-test")
+    public ResponseEntity<?> mailTest(@RequestParam(required = false) String to) {
+        Map<String, Object> info = new LinkedHashMap<>();
+        try {
+            java.lang.reflect.Field enabledField = emailService.getClass().getDeclaredField("mailEnabled");
+            enabledField.setAccessible(true);
+            info.put("mailEnabled", enabledField.get(emailService));
+
+            java.lang.reflect.Field fromField = emailService.getClass().getDeclaredField("fromEmail");
+            fromField.setAccessible(true);
+            String from = (String) fromField.get(emailService);
+            info.put("fromEmail", from != null && from.length() > 3 ? from.substring(0, 3) + "***" : "(empty)");
+        } catch (Exception e) {
+            info.put("configError", e.getMessage());
+        }
+
+        if (to != null && !to.isBlank()) {
+            try {
+                emailService.sendTestEmail(to);
+                info.put("testSend", "Intentando enviar a " + to);
+            } catch (Exception e) {
+                info.put("sendError", e.getMessage());
+            }
+        }
+
+        return ResponseEntity.ok(info);
+    }
+
     // ═══════ CONFIRM EMAIL ═══════
 
     @GetMapping("/confirm")

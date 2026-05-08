@@ -80,7 +80,30 @@ public class EmailService {
 
         } catch (Exception e) {
             System.err.println("❌ Error enviando email a " + toEmail + ": " + e.getMessage());
-            // Don't fail registration if email fails
+            e.printStackTrace();
+        }
+    }
+
+    // Synchronous test method for diagnostics
+    public void sendTestEmail(String toEmail) {
+        System.out.println("🔧 TEST MAIL → enabled=" + mailEnabled + ", from=" + fromEmail);
+
+        if (!mailEnabled) throw new RuntimeException("MAIL_ENABLED is false");
+        if (fromEmail == null || fromEmail.isBlank()) throw new RuntimeException("MAIL_USERNAME is empty");
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromEmail, "REDDIS Test");
+            helper.setTo(toEmail);
+            helper.setSubject("Test REDDIS - Prueba de email");
+            helper.setText("Si recibís esto, el email funciona correctamente. — REDDIS");
+            mailSender.send(message);
+            System.out.println("✅ TEST EMAIL enviado a: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("❌ TEST EMAIL falló: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error SMTP: " + e.getMessage());
         }
     }
 }
