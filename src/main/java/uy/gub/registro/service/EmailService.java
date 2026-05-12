@@ -3,14 +3,11 @@ package uy.gub.registro.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
 
 @Service
-@EnableAsync
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -25,14 +22,23 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    @Async
-    public void sendConfirmationEmail(String toEmail, String nombre, String confirmUrl) {
+    /**
+     * Send confirmation email SYNCHRONOUSLY so registration can report failures.
+     * Returns "OK" on success, or an error description on failure.
+     */
+    public String sendConfirmationEmail(String toEmail, String nombre, String confirmUrl) {
         System.out.println("📧 MAIL CONFIG → enabled=" + mailEnabled + ", from=" + fromEmail);
 
-        if (!mailEnabled || fromEmail.isBlank()) {
-            System.out.println("📧 [MODO LOCAL] Email de confirmación para " + toEmail);
-            System.out.println("   Link: " + confirmUrl);
-            return;
+        if (!mailEnabled) {
+            String msg = "MAIL_ENABLED=false → email no enviado a " + toEmail;
+            System.out.println("⚠️ " + msg);
+            System.out.println("   Link de confirmación: " + confirmUrl);
+            return "DISABLED: " + msg;
+        }
+        if (fromEmail == null || fromEmail.isBlank()) {
+            String msg = "MAIL_USERNAME vacío → email no enviado a " + toEmail;
+            System.out.println("⚠️ " + msg);
+            return "NO_SENDER: " + msg;
         }
 
         try {
@@ -77,11 +83,25 @@ public class EmailService {
             mailSender.send(message);
 
             System.out.println("✅ Email de confirmación enviado a: " + toEmail);
+            return "OK";
 
         } catch (Exception e) {
-            System.err.println("❌ Error enviando email a " + toEmail + ": " + e.getMessage());
+            System.err.println("❌ Error enviando email a " + toEmail);
+            System.err.println("   Causa: " + e.getClass().getSimpleName() + " → " + e.getMessage());
+            if (e.getCause() != null) {
+                System.err.println("   Causa raíz: " + e.getCause().getMessage());
+            }
             e.printStackTrace();
+            return "SMTP_ERROR: " + e.getMessage();
         }
+    }
+
+    public boolean isEnabled() {
+        return mailEnabled;
+    }
+
+    public String getFromEmail() {
+        return fromEmail;
     }
 
     // Synchronous test method for diagnostics

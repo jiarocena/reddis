@@ -86,13 +86,24 @@ public class ReddisAuthController {
                 .build();
         roleRequestRepo.save(roleReq);
 
-        // Send confirmation email
+        // Send confirmation email (synchronous — so we know if it fails)
         String confirmUrl = baseUrl + "/confirmar?token=" + token;
-        emailService.sendConfirmationEmail(email, nombre, confirmUrl);
+        String mailResult = emailService.sendConfirmationEmail(email, nombre, confirmUrl);
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Registro exitoso. Revisá tu email para confirmar la cuenta."
-        ));
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("message", "Registro exitoso.");
+
+        if ("OK".equals(mailResult)) {
+            response.put("emailSent", true);
+            response.put("detail", "Revisá tu email para confirmar la cuenta.");
+        } else {
+            response.put("emailSent", false);
+            response.put("detail", "Tu cuenta fue creada pero hubo un problema enviando el email de confirmación. Contactá al administrador.");
+            response.put("mailError", mailResult);
+            System.err.println("⚠️ REGISTRO COMPLETO PERO EMAIL FALLÓ para " + email + ": " + mailResult);
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     // ═══════ MAIL DIAGNOSTIC (temporary) ═══════
@@ -129,12 +140,10 @@ public class ReddisAuthController {
 
     @GetMapping("/confirm")
     public ResponseEntity<?> confirmEmail(@RequestParam String token) {
-        Optional<Usuario> opt = usuarioRepo.findAll().stream()
-                .filter(u -> token.equals(u.getConfirmationToken()))
-                .findFirst();
+        Optional<Usuario> opt = usuarioRepo.findByConfirmationToken(token);
 
         if (opt.isEmpty()) {
-            // Token already consumed — treat as success (React StrictMode double-call)
+            // Token already consumed or invalid — treat as success (React StrictMode double-call)
             return ResponseEntity.ok(Map.of("message", "Email confirmado exitosamente. Ya podés iniciar sesión."));
         }
 
