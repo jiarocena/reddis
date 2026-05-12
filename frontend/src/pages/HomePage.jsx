@@ -17,7 +17,7 @@ export default function HomePage() {
                         </h1>
                         <p>
                             REDDIS conecta a quienes identifican barreras con quienes pueden resolverlas.
-                            Un ciclo virtuoso de denuncia, acción, seguimiento y aprendizaje colectivo.
+                            Un ciclo virtuoso de identificación, acción, seguimiento y aprendizaje colectivo.
                         </p>
                         <div className="hero-actions">
                             <Link to="/barreras" className="btn btn-primary btn-lg">
@@ -113,7 +113,7 @@ export default function HomePage() {
                     </p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-6)' }}>
                         {[
-                            { icon: <Zap size={24} />, title: 'Incentiva la denuncia', desc: 'Hay claridad de que será atendida' },
+                            { icon: <Zap size={24} />, title: 'Incentiva la identificación de la barrera', desc: 'Hay claridad de que será atendida' },
                             { icon: <Users size={24} />, title: 'Facilita la articulación', desc: 'Conecta necesidades con capacidades' },
                             { icon: <Eye size={24} />, title: 'Promueve transparencia', desc: 'Todo el proceso es visible' },
                             { icon: <BookOpen size={24} />, title: 'Acumula conocimiento', desc: 'Los casos resueltos son referencia' }

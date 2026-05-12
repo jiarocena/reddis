@@ -9,7 +9,8 @@ export default function RegisterPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [confirmUrl, setConfirmUrl] = useState('');
+    const [emailSent, setEmailSent] = useState(true);
+    const [mailError, setMailError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,7 +29,8 @@ export default function RegisterPage() {
         try {
             const data = await register(form.nombre, form.email, form.password);
             setSuccess(true);
-            if (data.confirmUrl) setConfirmUrl(data.confirmUrl);
+            setEmailSent(data.emailSent !== false);
+            if (data.mailError) setMailError(data.mailError);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -40,23 +42,32 @@ export default function RegisterPage() {
         return (
             <div className="auth-page animate-fadeIn">
                 <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div className="auth-icon" style={{ background: 'var(--success-bg)' }}>
-                        <CheckCircle size={28} color="var(--success)" />
+                    <div className="auth-icon" style={{ background: emailSent ? 'var(--success-bg)' : '#fef3c7' }}>
+                        <CheckCircle size={28} color={emailSent ? 'var(--success)' : '#d97706'} />
                     </div>
-                    <h1>¡Registro exitoso!</h1>
-                    <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>
-                        Enviamos un email de confirmación a <strong>{form.email}</strong>.
-                        Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta.
-                    </p>
-                    {confirmUrl && (
-                        <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--gray-50)', borderRadius: '0.75rem', fontSize: '0.8rem' }}>
-                            <p style={{ color: 'var(--gray-500)', marginBottom: '0.5rem' }}>
-                                <strong>Modo piloto</strong> — Link de confirmación:
+                    <h1>{emailSent ? '¡Registro exitoso!' : 'Cuenta creada'}</h1>
+                    {emailSent ? (
+                        <>
+                            <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>
+                                Enviamos un email de confirmación a <strong>{form.email}</strong>.
+                                Revisá tu bandeja de entrada (y la carpeta de spam) y hacé clic en el enlace para activar tu cuenta.
                             </p>
-                            <a href={confirmUrl} style={{ wordBreak: 'break-all', color: 'var(--primary-600)' }}>
-                                {confirmUrl}
-                            </a>
-                        </div>
+                            <p style={{ color: 'var(--gray-400)', fontSize: '0.85rem', margin: '0.5rem 0 1.5rem' }}>
+                                Si no lo recibís en unos minutos, revisá tu carpeta de correo no deseado.
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>
+                                Tu cuenta fue creada pero no pudimos enviar el email de confirmación.
+                                Contactá al administrador para activar tu cuenta.
+                            </p>
+                            {mailError && (
+                                <p style={{ color: '#dc2626', fontSize: '0.8rem', padding: '0.75rem', background: '#fef2f2', borderRadius: '0.5rem', margin: '0.5rem 0' }}>
+                                    Error: {mailError}
+                                </p>
+                            )}
+                        </>
                     )}
                     <Link to="/gestion" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
                         Ir a iniciar sesión

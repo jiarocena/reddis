@@ -73,14 +73,8 @@ export default function LoginPage({ redirectTo = '/gestion/mapa' }) {
                     <Link to="/gestion/registro">Registrate</Link>
                 </p>
 
-                <div className="auth-demo-accounts">
-                    <p style={{ fontSize: '0.75rem', color: 'var(--gray-400)', marginBottom: '0.5rem' }}>Cuentas de prueba:</p>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--gray-400)', lineHeight: 1.8 }}>
-                        <div><strong>Admin:</strong> admin@sistema.gub.uy / admin123</div>
-                        <div><strong>Referente:</strong> referente.flores@inadis.gub.uy / referente123</div>
-                        <div><strong>Colaborador:</strong> colaborador@test.com / colab123</div>
-                    </div>
-                </div>
+
+
             </div>
         </div>
     );
