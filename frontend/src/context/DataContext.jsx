@@ -88,7 +88,15 @@ export function DataProvider({ children }) {
                 return saved;
             } catch (err) {
                 console.error('Error creando barrera:', err);
-                showToast('Error al reportar barrera', 'error');
+                // Show specific error messages
+                const msg = err.message || '';
+                if (msg.includes('límite') || msg.includes('429')) {
+                    showToast('Alcanzaste el límite de 3 reportes por día.', 'error');
+                } else if (msg.includes('401') || msg.includes('403') || msg.includes('Unauthorized')) {
+                    showToast('Debés iniciar sesión para reportar.', 'error');
+                } else {
+                    showToast(msg || 'Error al reportar barrera', 'error');
+                }
                 return null;
             }
         } else {

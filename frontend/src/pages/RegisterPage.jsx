@@ -97,6 +97,13 @@ export default function RegisterPage() {
                             placeholder="Repetí la contraseña" />
                     </div>
 
+                    {/* Honeypot anti-bot — invisible to humans */}
+                    <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }} aria-hidden="true">
+                        <input type="text" name="website" tabIndex={-1} autoComplete="off"
+                            value={form.website || ''}
+                            onChange={e => setForm(p => ({ ...p, website: e.target.value }))} />
+                    </div>
+
                     <button className="btn btn-primary btn-lg" type="submit"
                         disabled={loading} style={{ width: '100%', marginTop: 'var(--space-4)' }}>
                         {loading ? 'Registrando...' : 'Crear Cuenta'}

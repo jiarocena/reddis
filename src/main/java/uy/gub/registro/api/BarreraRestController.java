@@ -62,6 +62,38 @@ public class BarreraRestController {
     @PostMapping("/barreras")
     public ResponseEntity<Map<String, Object>> crear(@RequestBody Map<String, Object> body,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        // ── Honeypot anti-bot: if "website" field has any value, it's a bot
+        String honeypot = (String) body.get("website");
+        if (honeypot != null && !honeypot.isBlank()) {
+            System.out.println("🤖 BOT DETECTADO — honeypot field filled: " + honeypot);
+            // Return fake success to not alert the bot
+            Map<String, Object> fake = new LinkedHashMap<>();
+            fake.put("id", -1);
+            fake.put("title", body.get("title"));
+            return ResponseEntity.ok(fake);
+        }
+
+        // ── Rate limiting: max 3 barriers per day per user
+        Long userId = null;
+        Usuario user = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                userId = jwtUtil.getUserId(authHeader.substring(7));
+                user = usuarioRepo.findById(userId).orElse(null);
+            } catch (Exception ignored) {}
+        }
+
+        if (userId != null) {
+            java.time.LocalDateTime since = java.time.LocalDateTime.now().minusHours(24);
+            long todayCount = reddisService.countBarrerasByUserSince(userId, since);
+            if (todayCount >= 3) {
+                System.out.println("⚠️ RATE LIMIT: usuario #" + userId + " ya reportó " + todayCount + " barreras hoy");
+                return ResponseEntity.status(429)
+                        .body(Map.of("error", "Alcanzaste el límite de 3 reportes por día. Intentá mañana."));
+            }
+        }
+
         Barrera barrera = Barrera.builder()
                 .title((String) body.get("title"))
                 .description((String) body.get("description"))
@@ -89,16 +121,9 @@ public class BarreraRestController {
         }
 
         // Link to authenticated user
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            try {
-                Long userId = jwtUtil.getUserId(authHeader.substring(7));
-                Usuario user = usuarioRepo.findById(userId).orElse(null);
-                if (user != null) {
-                    barrera.setReportedByUser(user);
-                    barrera.setReportedBy(user.getNombreCompleto());
-                }
-            } catch (Exception ignored) {
-            }
+        if (user != null) {
+            barrera.setReportedByUser(user);
+            barrera.setReportedBy(user.getNombreCompleto());
         }
 
         // Parse location

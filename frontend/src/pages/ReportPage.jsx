@@ -337,6 +337,13 @@ export default function ReportPage() {
                             onChange={(e) => updateField('reportedBy', e.target.value)}
                         />
                     </div>
+
+                    {/* Honeypot anti-bot — invisible to humans */}
+                    <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }} aria-hidden="true">
+                        <input type="text" name="website" tabIndex={-1} autoComplete="off"
+                            value={formData.website || ''}
+                            onChange={(e) => updateField('website', e.target.value)} />
+                    </div>
                 </div>
             )}
 

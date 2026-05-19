@@ -40,6 +40,14 @@ public class ReddisAuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
+        // ── Honeypot anti-bot check
+        String honeypot = body.get("website");
+        if (honeypot != null && !honeypot.isBlank()) {
+            System.out.println("🤖 BOT DETECTADO en registro — honeypot: " + honeypot);
+            // Return fake success
+            return ResponseEntity.ok(Map.of("message", "Registro exitoso."));
+        }
+
         String email = body.get("email");
         String password = body.get("password");
         String nombre = body.get("nombre");

@@ -45,6 +45,10 @@ public class ReddisService {
         return barreraRepository.save(barrera);
     }
 
+    public long countBarrerasByUserSince(Long userId, java.time.LocalDateTime since) {
+        return barreraRepository.countByReportedByUserIdAndCreatedAtAfter(userId, since);
+    }
+
     @Transactional
     public Barrera actualizarStatusBarrera(Long id, String status) {
         Barrera b = barreraRepository.findById(id).orElseThrow();
