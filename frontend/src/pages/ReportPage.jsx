@@ -86,9 +86,6 @@ export default function ReportPage() {
         const barrier = await addBarrier(formData);
         if (barrier) {
             setShowSuccess(true);
-            setTimeout(() => {
-                navigate('/');
-            }, 5000);
         }
     };
 
@@ -391,6 +388,10 @@ export default function ReportPage() {
                             Será analizada por un referente departamental y, una vez evaluada, se publicará en el mapa.
                             ¡Gracias por contribuir a la inclusión!
                         </p>
+                        <button className="btn btn-primary btn-lg" onClick={() => navigate('/')}
+                            style={{ marginTop: 'var(--space-6)', width: '100%' }}>
+                            Aceptar
+                        </button>
                     </div>
                 </div>
             )}
