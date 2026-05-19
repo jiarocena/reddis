@@ -50,18 +50,18 @@ function ProtectedRoute({ children, requiredRole }) {
     return children;
 }
 
-// After login, redirect to /gestion/mapa
+// After login, redirect to /
 function GestionLoginRedirect() {
     const { isAuthenticated, loading } = useAuth();
     if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
-    if (isAuthenticated) return <Navigate to="/gestion/mapa" replace />;
-    return <LoginPage redirectTo="/gestion/mapa" />;
+    if (isAuthenticated) return <Navigate to="/" replace />;
+    return <LoginPage redirectTo="/" />;
 }
 
 function GestionRegisterRedirect() {
     const { isAuthenticated, loading } = useAuth();
     if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
-    if (isAuthenticated) return <Navigate to="/gestion/mapa" replace />;
+    if (isAuthenticated) return <Navigate to="/" replace />;
     return <RegisterPage />;
 }
 

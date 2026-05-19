@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import InteractiveMap from '../components/Map/InteractiveMap';
 import BarrierCard from '../components/Barrier/BarrierCard';
 import { CATEGORIES, PROJECT_STATUSES, DEPARTAMENTOS } from '../data/seedData';
@@ -8,16 +9,36 @@ import { Filter, X, Search, MapPin } from 'lucide-react';
 
 export default function MapPage() {
     const { barriers } = useData();
+    const { user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
+
+    // If user is logged in, default to their department
+    const userDepto = user?.departamento || null;
+    const userDeptoData = userDepto ? DEPARTAMENTOS.find(d => d.nombre === userDepto) : null;
+
     const [selectedCategory, setSelectedCategory] = useState('todas');
     const [selectedStatus, setSelectedStatus] = useState('todos');
-    const [selectedDepartamento, setSelectedDepartamento] = useState('todos');
+    const [selectedDepartamento, setSelectedDepartamento] = useState(userDepto || 'todos');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedBarrierId, setSelectedBarrierId] = useState(null);
-    const [mapCenter, setMapCenter] = useState(null);
-    const [mapZoom, setMapZoom] = useState(null);
+    const [mapCenter, setMapCenter] = useState(userDeptoData ? userDeptoData.center : null);
+    const [mapZoom, setMapZoom] = useState(userDeptoData ? userDeptoData.zoom : null);
+    const [initializedForUser, setInitializedForUser] = useState(false);
+
+    // Auto-center on user's department when user loads
+    useEffect(() => {
+        if (user?.departamento && !initializedForUser) {
+            const depto = DEPARTAMENTOS.find(d => d.nombre === user.departamento);
+            if (depto) {
+                setSelectedDepartamento(user.departamento);
+                setMapCenter(depto.center);
+                setMapZoom(depto.zoom);
+                setInitializedForUser(true);
+            }
+        }
+    }, [user, initializedForUser]);
 
     const filteredBarriers = barriers.filter(b => {
         if (!b.isPublic) return false;

@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import { PlusCircle, MapPin, Users, CheckCircle, AlertTriangle, Zap, Eye, BookOpen } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { PlusCircle, MapPin, Users, CheckCircle, AlertTriangle, Zap, Eye, BookOpen, User } from 'lucide-react';
 
 export default function HomePage() {
     const { stats } = useData();
+    const { user, isAuthenticated } = useAuth();
 
     return (
         <div>
@@ -11,6 +13,18 @@ export default function HomePage() {
             <section className="hero">
                 <div className="container">
                     <div className="hero-content animate-fadeInUp">
+                        {isAuthenticated && user?.departamento && (
+                            <div style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                                background: 'rgba(251, 191, 36, 0.15)', border: '1px solid rgba(251, 191, 36, 0.3)',
+                                padding: '8px 16px', borderRadius: 'var(--radius-full)',
+                                fontSize: 'var(--font-sm)', color: '#fbbf24', marginBottom: 'var(--space-4)',
+                                backdropFilter: 'blur(8px)'
+                            }}>
+                                <User size={14} />
+                                {user.nombre} — {user.departamento}
+                            </div>
+                        )}
                         <h1>
                             <span className="highlight">Comunidad</span><br />
                             sin barreras

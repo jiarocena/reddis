@@ -36,8 +36,14 @@ export function AuthProvider({ children }) {
         return data.user;
     }, []);
 
-    const register = useCallback(async (nombre, email, password) => {
-        const data = await api.registerUser(nombre, email, password);
+    const register = useCallback(async (nombre, email, password, departamento) => {
+        const data = await api.registerUser(nombre, email, password, departamento);
+        // Auto-login if the backend returns a token
+        if (data.token) {
+            localStorage.setItem('reddis_token', data.token);
+            setToken(data.token);
+            setUser(data.user);
+        }
         return data;
     }, []);
 

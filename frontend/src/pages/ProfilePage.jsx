@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { User, Mail, Shield, Send, CheckCircle, Clock } from 'lucide-react';
+import { User, Mail, Shield, Send, CheckCircle, Clock, MapPin } from 'lucide-react';
 
 const ROLE_LABELS = {
     ADMIN: { label: 'Administrador', color: '#dc2626', bg: '#fee2e2' },
@@ -54,7 +54,7 @@ export default function ProfilePage() {
                     </div>
                     {user.departamento && (
                         <div className="profile-item">
-                            <User size={16} /> <span>Departamento: {user.departamento}</span>
+                            <MapPin size={16} /> <span>Departamento: <strong>{user.departamento}</strong></span>
                         </div>
                     )}
                 </div>

@@ -1,18 +1,24 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { CATEGORIES, DEPARTAMENTOS } from '../data/seedData';
-import { ArrowLeft, ArrowRight, CheckCircle, MapPin, AlertTriangle, Users, Building, Camera, X, Map } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, MapPin, AlertTriangle, Users, Building, Camera, X, Map, LogIn } from 'lucide-react';
 import LocationPicker from '../components/Map/LocationPicker';
 
 export default function ReportPage() {
     const { addBarrier } = useData();
+    const { user, isAuthenticated, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [showSuccess, setShowSuccess] = useState(false);
     const [showMap, setShowMap] = useState(false);
     const [photoPreview, setPhotoPreview] = useState(null);
     const fileInputRef = useRef(null);
+
+    // User's department (locked)
+    const userDepto = user?.departamento || '';
+
     const [formData, setFormData] = useState({
         type: 'estructural',
         category: '',
@@ -25,9 +31,14 @@ export default function ReportPage() {
         reportedBy: '',
         isPublic: true,
         photoBase64: null,
-        departamento: '',
+        departamento: userDepto,
         localidad: '',
     });
+
+    // Keep departamento synced with user
+    if (formData.departamento !== userDepto && userDepto) {
+        setFormData(prev => ({ ...prev, departamento: userDepto }));
+    }
 
     function compressImage(file, maxWidth = 800) {
         return new Promise((resolve) => {
@@ -91,10 +102,56 @@ export default function ReportPage() {
 
     const totalSteps = 2;
 
+    // Auth loading
+    if (authLoading) {
+        return (
+            <div className="report-page" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+                <p style={{ color: 'var(--gray-400)' }}>Cargando...</p>
+            </div>
+        );
+    }
+
+    // Not authenticated — show login/register prompt
+    if (!isAuthenticated) {
+        return (
+            <div className="auth-page animate-fadeIn">
+                <div className="auth-card" style={{ textAlign: 'center' }}>
+                    <div className="auth-icon" style={{ background: '#fef3c7' }}>
+                        <AlertTriangle size={28} color="#d97706" />
+                    </div>
+                    <h1>Ingresá para reportar</h1>
+                    <p style={{ color: 'var(--gray-500)', margin: '1rem 0 1.5rem' }}>
+                        Para reportar una barrera necesitás tener una cuenta.
+                        Así podemos asociar tu reporte a tu departamento.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                        <Link to="/gestion" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
+                            <LogIn size={18} /> Iniciar Sesión
+                        </Link>
+                        <Link to="/gestion/registro" className="btn btn-secondary btn-lg" style={{ width: '100%' }}>
+                            Crear Cuenta
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="report-page">
             <h1>Reportar una Barrera</h1>
             <p className="subtitle">Tu reporte es el primer paso hacia la solución. Completá el formulario para registrar la barrera.</p>
+
+            {/* Department badge */}
+            <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: 'var(--primary-50)', color: 'var(--primary-700)',
+                padding: '6px 14px', borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--font-sm)', fontWeight: 600, marginBottom: 'var(--space-4)'
+            }}>
+                <MapPin size={14} />
+                Reportando en: {userDepto}
+            </div>
 
             {/* Progress Steps */}
             <div className="form-steps">
@@ -163,17 +220,17 @@ export default function ReportPage() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
                         <div className="form-group">
-                            <label className="form-label">Departamento *</label>
-                            <select
-                                className="form-select"
-                                value={formData.departamento}
-                                onChange={(e) => updateField('departamento', e.target.value)}
-                            >
-                                <option value="">Seleccionar departamento</option>
-                                {DEPARTAMENTOS.map(d => (
-                                    <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
-                                ))}
-                            </select>
+                            <label className="form-label">Departamento</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={userDepto}
+                                disabled
+                                style={{ background: 'var(--gray-100)', color: 'var(--gray-500)', cursor: 'not-allowed' }}
+                            />
+                            <small style={{ color: 'var(--gray-400)', fontSize: '0.7rem' }}>
+                                Asignado según tu cuenta
+                            </small>
                         </div>
                         <div className="form-group">
                             <label className="form-label">Localidad</label>

@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserPlus, Mail, Lock, User, CheckCircle } from 'lucide-react';
+import { useData } from '../context/DataContext';
+import { DEPARTAMENTOS } from '../data/seedData';
+import { UserPlus, Mail, Lock, User, MapPin, CheckCircle } from 'lucide-react';
 
 export default function RegisterPage() {
-    const { register } = useAuth();
-    const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmPassword: '' });
+    const { register, isAuthenticated } = useAuth();
+    const { showToast } = useData();
+    const navigate = useNavigate();
+    const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmPassword: '', departamento: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [emailSent, setEmailSent] = useState(true);
-    const [mailError, setMailError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,58 +25,23 @@ export default function RegisterPage() {
             setError('La contraseña debe tener al menos 6 caracteres');
             return;
         }
+        if (!form.departamento) {
+            setError('Debés seleccionar un departamento');
+            return;
+        }
 
         setLoading(true);
         try {
-            const data = await register(form.nombre, form.email, form.password);
-            setSuccess(true);
-            setEmailSent(data.emailSent !== false);
-            if (data.mailError) setMailError(data.mailError);
+            await register(form.nombre, form.email, form.password, form.departamento);
+            showToast('¡Registro exitoso! Ya podés usar la plataforma.', 'success');
+            // Auto-login happens in AuthContext, redirect to map
+            navigate('/reportar');
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
-
-    if (success) {
-        return (
-            <div className="auth-page animate-fadeIn">
-                <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div className="auth-icon" style={{ background: emailSent ? 'var(--success-bg)' : '#fef3c7' }}>
-                        <CheckCircle size={28} color={emailSent ? 'var(--success)' : '#d97706'} />
-                    </div>
-                    <h1>{emailSent ? '¡Registro exitoso!' : 'Cuenta creada'}</h1>
-                    {emailSent ? (
-                        <>
-                            <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>
-                                Enviamos un email de confirmación a <strong>{form.email}</strong>.
-                                Revisá tu bandeja de entrada (y la carpeta de spam) y hacé clic en el enlace para activar tu cuenta.
-                            </p>
-                            <p style={{ color: 'var(--gray-400)', fontSize: '0.85rem', margin: '0.5rem 0 1.5rem' }}>
-                                Si no lo recibís en unos minutos, revisá tu carpeta de correo no deseado.
-                            </p>
-                        </>
-                    ) : (
-                        <>
-                            <p style={{ color: 'var(--gray-500)', margin: '1rem 0' }}>
-                                Tu cuenta fue creada pero no pudimos enviar el email de confirmación.
-                                Contactá al administrador para activar tu cuenta.
-                            </p>
-                            {mailError && (
-                                <p style={{ color: '#dc2626', fontSize: '0.8rem', padding: '0.75rem', background: '#fef2f2', borderRadius: '0.5rem', margin: '0.5rem 0' }}>
-                                    Error: {mailError}
-                                </p>
-                            )}
-                        </>
-                    )}
-                    <Link to="/gestion" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-                        Ir a iniciar sesión
-                    </Link>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="auth-page animate-fadeIn">
@@ -101,6 +67,20 @@ export default function RegisterPage() {
                         <input className="form-input" type="email" required value={form.email}
                             onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                             placeholder="tu@email.com" />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label"><MapPin size={14} /> Departamento</label>
+                        <select className="form-select" required value={form.departamento}
+                            onChange={e => setForm(p => ({ ...p, departamento: e.target.value }))}>
+                            <option value="">Seleccioná tu departamento</option>
+                            {DEPARTAMENTOS.map(d => (
+                                <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
+                            ))}
+                        </select>
+                        <small style={{ color: 'var(--gray-400)', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>
+                            Solo podrás reportar barreras en tu departamento
+                        </small>
                     </div>
 
                     <div className="form-group">

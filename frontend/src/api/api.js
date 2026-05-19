@@ -47,10 +47,10 @@ async function publicRequest(path) {
 
 // ═══════════════ AUTH ═══════════════
 
-export async function registerUser(nombre, email, password) {
+export async function registerUser(nombre, email, password, departamento) {
     return request('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ nombre, email, password }),
+        body: JSON.stringify({ nombre, email, password, departamento }),
     });
 }
 
