@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { CATEGORIES, PROJECT_STATUSES } from '../data/seedData';
 import { List, Search, MapPin, AlertTriangle, Filter, ChevronRight } from 'lucide-react';
 
 export default function BarrerasListPage() {
     const { barriers } = useData();
+    const { user } = useAuth();
+    const userDepto = user?.departamento || null;
     const [search, setSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('todas');
     const [statusFilter, setStatusFilter] = useState('todos');
 
     const filtered = barriers.filter(b => {
+        // Filter by user's department if logged in
+        if (userDepto && b.departamento !== userDepto) return false;
         if (categoryFilter !== 'todas' && b.category !== categoryFilter) return false;
         if (statusFilter !== 'todos' && b.status !== statusFilter) return false;
         if (search) {

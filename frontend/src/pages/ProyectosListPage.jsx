@@ -1,15 +1,23 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
 import { Briefcase, Search, ChevronRight, Users, Clock, CheckCircle, HelpCircle, Target } from 'lucide-react';
 
 export default function ProyectosListPage() {
     const { projects, barriers } = useData();
+    const { user } = useAuth();
+    const userDepto = user?.departamento || null;
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('todos');
 
     const filtered = projects.filter(p => {
+        // Filter by user's department if logged in
+        if (userDepto) {
+            const barrier = barriers.find(b => String(b.id) === String(p.barrierId));
+            if (barrier && barrier.departamento !== userDepto) return false;
+        }
         if (statusFilter !== 'todos' && p.status !== statusFilter) return false;
         if (search) {
             const q = search.toLowerCase();

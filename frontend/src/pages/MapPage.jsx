@@ -44,9 +44,11 @@ export default function MapPage() {
         if (!b.isPublic) return false;
         // In public mode, only show approved barriers
         if (!isGestion && b.approved === false) return false;
+        // If user is logged in, always filter by their department
+        if (userDepto && b.departamento !== userDepto) return false;
         if (selectedCategory !== 'todas' && b.category !== selectedCategory) return false;
         if (selectedStatus !== 'todos' && b.status !== selectedStatus) return false;
-        if (selectedDepartamento !== 'todos' && b.departamento !== selectedDepartamento) return false;
+        if (!userDepto && selectedDepartamento !== 'todos' && b.departamento !== selectedDepartamento) return false;
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             const matchTitle = b.title?.toLowerCase().includes(term);
@@ -105,17 +107,30 @@ export default function MapPage() {
                         <MapPin size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
                         Departamento
                     </label>
-                    <select
-                        className="form-select"
-                        value={selectedDepartamento}
-                        onChange={(e) => handleDepartamentoChange(e.target.value)}
-                        style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
-                    >
-                        <option value="todos">Todos los departamentos</option>
-                        {DEPARTAMENTOS.map(d => (
-                            <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
-                        ))}
-                    </select>
+                    {userDepto ? (
+                        <>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={userDepto}
+                                disabled
+                                style={{ background: 'var(--gray-100)', color: 'var(--gray-500)', cursor: 'not-allowed', fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
+                            />
+                            <small style={{ color: 'var(--gray-400)', fontSize: '0.7rem' }}>Filtrado por tu departamento</small>
+                        </>
+                    ) : (
+                        <select
+                            className="form-select"
+                            value={selectedDepartamento}
+                            onChange={(e) => handleDepartamentoChange(e.target.value)}
+                            style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
+                        >
+                            <option value="todos">Todos los departamentos</option>
+                            {DEPARTAMENTOS.map(d => (
+                                <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
+                            ))}
+                        </select>
+                    )}
                 </div>
 
                 {/* Category Filters */}
