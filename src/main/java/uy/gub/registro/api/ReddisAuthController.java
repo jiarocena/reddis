@@ -43,6 +43,7 @@ public class ReddisAuthController {
         String email = body.get("email");
         String password = body.get("password");
         String nombre = body.get("nombre");
+        String departamento = body.get("departamento");
 
         if (email == null || password == null || nombre == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Faltan campos obligatorios"));
@@ -50,6 +51,10 @@ public class ReddisAuthController {
 
         if (password.length() < 6) {
             return ResponseEntity.badRequest().body(Map.of("error", "La contraseña debe tener al menos 6 caracteres"));
+        }
+
+        if (departamento == null || departamento.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Debés seleccionar un departamento"));
         }
 
         // Check email not taken
@@ -63,8 +68,6 @@ public class ReddisAuthController {
             username = username + "_" + new Random().nextInt(1000);
         }
 
-        String token = UUID.randomUUID().toString();
-
         Usuario usuario = Usuario.builder()
                 .username(username)
                 .email(email)
@@ -72,8 +75,8 @@ public class ReddisAuthController {
                 .nombreCompleto(nombre)
                 .rol("USUARIO")
                 .activo(true)
-                .emailConfirmed(false)
-                .confirmationToken(token)
+                .emailConfirmed(true) // Auto-confirm — no email verification needed
+                .departamento(departamento.trim())
                 .build();
 
         usuarioRepo.save(usuario);
@@ -86,22 +89,15 @@ public class ReddisAuthController {
                 .build();
         roleRequestRepo.save(roleReq);
 
-        // Send confirmation email (synchronous — so we know if it fails)
-        String confirmUrl = baseUrl + "/confirmar?token=" + token;
-        String mailResult = emailService.sendConfirmationEmail(email, nombre, confirmUrl);
+        // Auto-login: generate JWT so user can start immediately
+        String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), usuario.getId());
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("message", "Registro exitoso.");
+        response.put("message", "¡Registro exitoso! Ya podés usar la plataforma.");
+        response.put("token", jwt);
+        response.put("user", userToMap(usuario));
 
-        if ("OK".equals(mailResult)) {
-            response.put("emailSent", true);
-            response.put("detail", "Revisá tu email para confirmar la cuenta.");
-        } else {
-            response.put("emailSent", false);
-            response.put("detail", "Tu cuenta fue creada pero hubo un problema enviando el email de confirmación. Contactá al administrador.");
-            response.put("mailError", mailResult);
-            System.err.println("⚠️ REGISTRO COMPLETO PERO EMAIL FALLÓ para " + email + ": " + mailResult);
-        }
+        System.out.println("✅ NUEVO USUARIO registrado: " + nombre + " (" + email + ") — Depto: " + departamento);
 
         return ResponseEntity.ok(response);
     }
