@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { Network, Home, MapPin, AlertTriangle, Users, Info } from 'lucide-react';
+import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/': { title: 'REDDIS', subtitle: 'Red Digital de Inclusión Social', icon: Network },
@@ -7,16 +7,30 @@ const PAGE_TITLES = {
     '/reportar': { title: 'Reportar Barrera', subtitle: 'Identificá una barrera de accesibilidad', icon: AlertTriangle },
     '/participar': { title: 'Participar', subtitle: 'Participar o colaborar en un proyecto', icon: Users },
     '/acerca': { title: 'Acerca de REDDIS', subtitle: 'Información del proyecto', icon: Info },
+    '/gestion': { title: 'Iniciar Sesión', subtitle: 'Accedé a tu cuenta REDDIS', icon: LogIn },
+    '/gestion/registro': { title: 'Crear Cuenta', subtitle: 'Registrate para reportar y colaborar', icon: UserPlus },
+    '/gestion/confirmar': { title: 'Confirmar Cuenta', subtitle: 'Verificá tu dirección de correo', icon: Info },
 };
 
 export default function TopBar() {
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
 
-    // Don't show on gestion routes or detail routes
+    // Don't show on gestion routes
     if (isGestion) return null;
 
-    const page = PAGE_TITLES[location.pathname] || PAGE_TITLES['/'];
+    let page = PAGE_TITLES[location.pathname];
+
+    if (!page) {
+        if (location.pathname.startsWith('/barrera/')) {
+            page = { title: 'Barrera reportada', subtitle: 'Detalle de la barrera de accesibilidad', icon: AlertTriangle };
+        } else if (location.pathname.startsWith('/proyecto/')) {
+            page = { title: 'Proyecto de resolución', subtitle: 'Detalle del proyecto colaborativo', icon: Users };
+        } else {
+            page = PAGE_TITLES['/'];
+        }
+    }
+
     const Icon = page.icon;
 
     return (

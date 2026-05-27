@@ -67,18 +67,22 @@ function GestionRegisterRedirect() {
 
 function AppContent() {
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
     const isGestion = location.pathname.startsWith('/gestion');
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
+
+    // Show administrative layout only if user is on a /gestion path AND is authenticated
+    const showGestionLayout = isGestion && isAuthenticated;
 
     return (
         <>
             {/* Gestion mode: keep the old Navbar */}
-            {isGestion && <Navbar mode="gestion" />}
+            {showGestionLayout && <Navbar mode="gestion" />}
 
-            {/* Public mode: TopBar (except on detail pages) */}
-            {!isGestion && !isDetailPage && <TopBar />}
+            {/* Public mode: TopBar */}
+            {!showGestionLayout && <TopBar />}
 
-            <main className={`app-main ${!isGestion ? 'has-bottom-nav' : ''}`}>
+            <main className={`app-main ${!showGestionLayout ? 'has-bottom-nav' : ''}`}>
                 <Routes>
                     {/* ═══ PUBLIC ROUTES ═══ */}
                     <Route path="/" element={<HomePage />} />

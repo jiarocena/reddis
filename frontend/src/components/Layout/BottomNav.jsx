@@ -7,8 +7,8 @@ export default function BottomNav() {
     const { isAuthenticated } = useAuth();
     const isGestion = location.pathname.startsWith('/gestion');
 
-    // Don't show on gestion routes (they have their own navigation)
-    if (isGestion) return null;
+    // Don't show on gestion routes once authenticated (they have their own navigation)
+    if (isGestion && isAuthenticated) return null;
 
     return (
         <nav className="bottom-nav">
