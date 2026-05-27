@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
-import { MapPin, Navigation, X } from 'lucide-react';
+import { MapPin, Navigation, X, AlertTriangle } from 'lucide-react';
 import L from 'leaflet';
+import { DEPARTAMENTOS } from '../../data/seedData';
 
 // Custom marker icon for the selected point
 const selectedIcon = new L.Icon({
@@ -28,76 +29,119 @@ function FlyTo({ position }) {
     const map = useMap();
     useEffect(() => {
         if (position) {
-            map.flyTo(position, 16, { duration: 1.5 });
+            map.flyTo(position, 14, { duration: 1.5 });
         }
     }, [position, map]);
     return null;
 }
 
-export default function LocationPicker({ location, onLocationChange, onAddressChange, onClose }) {
+export default function LocationPicker({ location, userDepartamento, onLocationChange, onAddressChange, onClose }) {
     const [marker, setMarker] = useState(
         location?.lat && location?.lng ? [location.lat, location.lng] : null
     );
     const [flyTarget, setFlyTarget] = useState(null);
     const [locating, setLocating] = useState(false);
     const [reverseAddress, setReverseAddress] = useState('');
+    const [isLocationValid, setIsLocationValid] = useState(true);
+    const [isValidating, setIsValidating] = useState(false);
 
-    // Default center: Trinidad, Flores
-    const defaultCenter = [-33.5415, -56.8965];
+    // Get user's department center
+    const deptoData = DEPARTAMENTOS.find(d => d.nombre === userDepartamento);
+    const defaultCenter = deptoData ? deptoData.center : [-33.5415, -56.8965]; // fallback to Flores
     const center = marker || defaultCenter;
 
-    // Try to get user location on mount
+    // Try to get user location on mount, matching user department checks
     useEffect(() => {
-        handleGeolocate();
+        if (location?.lat && location?.lng) {
+            setFlyTarget([location.lat, location.lng]);
+        } else {
+            handleGeolocate();
+        }
     }, []);
 
     function handleGeolocate() {
-        if (!navigator.geolocation) return;
+        if (!navigator.geolocation) {
+            // Default center if no geolocation
+            setFlyTarget(defaultCenter);
+            return;
+        }
         setLocating(true);
         navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setFlyTarget([latlng.lat, latlng.lng]);
+            async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+
+                let isInside = false;
+                try {
+                    // Quick high-level reverse geocode to verify department
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`,
+                        { headers: { 'Accept-Language': 'es' } }
+                    );
+                    const data = await res.json();
+                    const addressStr = JSON.stringify(data.address || {}).toLowerCase();
+                    const deptoNameLower = userDepartamento?.toLowerCase() || '';
+                    isInside = addressStr.includes(deptoNameLower);
+                } catch {
+                    // Fallback to false if Nominatim fails
+                }
+
+                if (isInside) {
+                    setFlyTarget([lat, lng]);
+                } else {
+                    // GPS is outside department, center on the user's department center instead
+                    setFlyTarget(defaultCenter);
+                }
                 setLocating(false);
             },
             () => {
+                setFlyTarget(defaultCenter);
                 setLocating(false);
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: true, timeout: 8000 }
         );
     }
 
-    async function reverseGeocode(lat, lng) {
+    async function handleLocationSelect(latlng) {
+        setIsValidating(true);
+        setIsLocationValid(true);
+
+        const pos = [latlng.lat, latlng.lng];
+        setMarker(pos);
+        onLocationChange({ lat: latlng.lat, lng: latlng.lng });
+
         try {
             const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`,
                 { headers: { 'Accept-Language': 'es' } }
             );
             const data = await res.json();
             if (data.display_name) {
                 setReverseAddress(data.display_name);
-                return data.display_name;
+                onAddressChange(data.display_name);
+            }
+
+            // Enforce department boundary check
+            const addressStr = JSON.stringify(data.address || {}).toLowerCase();
+            const deptoNameLower = userDepartamento?.toLowerCase() || '';
+
+            if (userDepartamento && !addressStr.includes(deptoNameLower)) {
+                setIsLocationValid(false);
+            } else {
+                setIsLocationValid(true);
             }
         } catch {
-            // Nominatim might be down
-        }
-        return null;
-    }
-
-    async function handleLocationSelect(latlng) {
-        const pos = [latlng.lat, latlng.lng];
-        setMarker(pos);
-        onLocationChange({ lat: latlng.lat, lng: latlng.lng });
-
-        // Reverse geocode
-        const address = await reverseGeocode(latlng.lat, latlng.lng);
-        if (address) {
-            onAddressChange(address);
+            // Safe fallback: allow if API fails
+            setIsLocationValid(true);
+        } finally {
+            setIsValidating(false);
         }
     }
 
     function handleConfirm() {
-        onClose();
+        if (isLocationValid) {
+            onClose();
+        }
     }
 
     return (
@@ -111,13 +155,13 @@ export default function LocationPicker({ location, onLocationChange, onAddressCh
                 </div>
 
                 <p className="location-picker-hint">
-                    Tocá en el mapa para marcar la ubicación exacta de la barrera
+                    Tocá en el mapa para marcar la ubicación exacta de la barrera dentro del departamento de <strong>{userDepartamento || 'tu cuenta'}</strong>.
                 </p>
 
                 <div className="location-picker-map">
                     <MapContainer
                         center={center}
-                        zoom={14}
+                        zoom={13}
                         style={{ height: '100%', width: '100%', borderRadius: '8px' }}
                         zoomControl={true}
                     >
@@ -130,6 +174,25 @@ export default function LocationPicker({ location, onLocationChange, onAddressCh
                         {marker && <Marker position={marker} icon={selectedIcon} />}
                     </MapContainer>
                 </div>
+
+                {/* Validation Warning Container */}
+                {!isLocationValid && (
+                    <div style={{
+                        color: 'var(--danger-500)',
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        padding: '10px 14px',
+                        borderRadius: 'var(--radius-lg)',
+                        fontSize: 'var(--font-sm)',
+                        marginTop: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <AlertTriangle size={16} />
+                        <span>La ubicación debe estar dentro de tu departamento asignado (<strong>{userDepartamento}</strong>).</span>
+                    </div>
+                )}
 
                 <div className="location-picker-controls">
                     <button
@@ -150,10 +213,10 @@ export default function LocationPicker({ location, onLocationChange, onAddressCh
                     <button
                         className="btn btn-primary btn-sm"
                         onClick={handleConfirm}
-                        disabled={!marker}
-                        style={{ opacity: marker ? 1 : 0.5 }}
+                        disabled={!marker || !isLocationValid || isValidating}
+                        style={{ opacity: (marker && isLocationValid && !isValidating) ? 1 : 0.5 }}
                     >
-                        <MapPin size={14} /> Confirmar ubicación
+                        <MapPin size={14} /> {isValidating ? 'Validando...' : 'Confirmar ubicación'}
                     </button>
                 </div>
 

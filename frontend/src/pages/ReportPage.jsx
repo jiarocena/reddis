@@ -399,6 +399,7 @@ export default function ReportPage() {
             {showMap && (
                 <LocationPicker
                     location={formData.location}
+                    userDepartamento={userDepto}
                     onLocationChange={(loc) => updateField('location', loc)}
                     onAddressChange={(addr) => updateField('address', addr)}
                     onClose={() => setShowMap(false)}
