@@ -14,10 +14,6 @@ const PAGE_TITLES = {
 
 export default function TopBar() {
     const location = useLocation();
-    const isGestion = location.pathname.startsWith('/gestion');
-
-    // Don't show on gestion routes
-    if (isGestion) return null;
 
     let page = PAGE_TITLES[location.pathname];
 
