@@ -21,14 +21,14 @@ export default function ProjectDetailPage() {
     const project = projects.find(p => String(p.id) === String(id));
     const barrier = project ? barriers.find(b => String(b.id) === String(project.barrierId)) : null;
 
-    // Can interact: must be in gestion + logged in + COLABORADOR/REFERENTE/ADMIN
-    const canInteract = isGestion && isAuthenticated && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
+    // Can interact (update status, add timeline): must be logged in + COLABORADOR/REFERENTE/ADMIN
+    const canInteract = isAuthenticated && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
 
     // Is already a collaborator on this project
-    const isCollaborator = canInteract && project?.collaborators?.some(c => c.userId === user?.id);
+    const isCollaborator = isAuthenticated && project?.collaborators?.some(c => c.userId === user?.id);
 
-    // Can join: can interact + not already joined
-    const canJoin = canInteract && !isCollaborator;
+    // Can join: logged in + not already joined
+    const canJoin = isAuthenticated && !isCollaborator;
 
     if (loading) return (
         <div className="project-panel" style={{ textAlign: 'center', padding: '4rem 0' }}>

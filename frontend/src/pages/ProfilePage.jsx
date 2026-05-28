@@ -15,7 +15,9 @@ export default function ProfilePage() {
     const { showToast } = useData();
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
-    const [requested, setRequested] = useState(user?.hasPendingRoleRequest || false);
+    const [requested, setRequested] = useState(
+        user?.hasPendingRoleRequest === true || user?.hasPendingRoleRequest === 'true'
+    );
 
     if (!user) return null;
 

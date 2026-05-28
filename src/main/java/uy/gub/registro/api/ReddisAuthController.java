@@ -89,14 +89,6 @@ public class ReddisAuthController {
 
         usuarioRepo.save(usuario);
 
-        // Auto-create role request for COLABORADOR so the referente sees them immediately
-        RoleRequest roleReq = RoleRequest.builder()
-                .usuario(usuario)
-                .requestedRole("COLABORADOR")
-                .message("Solicitud automática al registrarse")
-                .build();
-        roleRequestRepo.save(roleReq);
-
         // Auto-login: generate JWT so user can start immediately
         String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), usuario.getId());
 

@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, User } from 'lucide-react';
+import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, User, Handshake } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/': { title: 'REDDIS', subtitle: 'Red Digital de Inclusión Social', icon: Network },
@@ -11,6 +11,7 @@ const PAGE_TITLES = {
     '/gestion/registro': { title: 'Crear Cuenta', subtitle: 'Registrate para reportar y colaborar', icon: UserPlus },
     '/gestion/confirmar': { title: 'Confirmar Cuenta', subtitle: 'Verificá tu dirección de correo', icon: Info },
     '/gestion/perfil': { title: 'Mi Cuenta', subtitle: 'Detalles de tu cuenta REDDIS', icon: User },
+    '/gestion/proyectos': { title: 'Proyectos Colaborativos', subtitle: 'Sumate a colaborar en proyectos activos', icon: Handshake },
 };
 
 export default function TopBar() {
