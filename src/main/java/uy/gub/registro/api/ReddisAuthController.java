@@ -185,7 +185,20 @@ public class ReddisAuthController {
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("token", jwt);
-        response.put("user", userToMap(usuario));
+        
+        Map<String, Object> userMap = userToMap(usuario);
+        List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(usuario.getId());
+        Optional<RoleRequest> pendingOpt = requests.stream()
+                .filter(r -> "PENDIENTE".equals(r.getStatus()) && "COLABORADOR".equals(r.getRequestedRole()))
+                .findFirst();
+        if (pendingOpt.isPresent()) {
+            userMap.put("hasPendingRoleRequest", true);
+            userMap.put("pendingRoleRequestMessage", pendingOpt.get().getMessage());
+        } else {
+            userMap.put("hasPendingRoleRequest", false);
+            userMap.put("pendingRoleRequestMessage", null);
+        }
+        response.put("user", userMap);
 
         return ResponseEntity.ok(response);
     }
@@ -213,9 +226,17 @@ public class ReddisAuthController {
         Map<String, Object> data = userToMap(u);
 
         // Include pending role request status
-        boolean hasPendingRequest = roleRequestRepo.existsByUsuarioIdAndStatusAndRequestedRole(
-                u.getId(), "PENDIENTE", "COLABORADOR");
-        data.put("hasPendingRoleRequest", hasPendingRequest);
+        List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(u.getId());
+        Optional<RoleRequest> pendingOpt = requests.stream()
+                .filter(r -> "PENDIENTE".equals(r.getStatus()) && "COLABORADOR".equals(r.getRequestedRole()))
+                .findFirst();
+        if (pendingOpt.isPresent()) {
+            data.put("hasPendingRoleRequest", true);
+            data.put("pendingRoleRequestMessage", pendingOpt.get().getMessage());
+        } else {
+            data.put("hasPendingRoleRequest", false);
+            data.put("pendingRoleRequestMessage", null);
+        }
 
         return ResponseEntity.ok(data);
     }

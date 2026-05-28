@@ -30,10 +30,20 @@ export default function ProjectDetailPage() {
     const isUsuarioComun = user?.rol === 'USUARIO';
     const hasPending = user?.hasPendingRoleRequest;
 
+    // Check if the pending request is specifically for this project
+    const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
+        const msg = user?.pendingRoleRequestMessage || '';
+        const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
+        if (match) {
+            return String(match[1]) === String(project.id);
+        }
+        return project?.title && msg.includes(project.title);
+    })();
+
     // Can join directly as collaborator: has role COLABORADOR/REFERENTE/ADMIN and not already joined
     const canJoinDirectly = isAuthenticated && !isCollaborator && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
     
-    // Can apply (postularse): is usuario comun, doesn't have pending request
+    // Can apply (postularse): is usuario comun, doesn't have pending request at all
     const canApply = isAuthenticated && isUsuarioComun && !hasPending;
 
     if (loading) return (
@@ -62,7 +72,7 @@ export default function ProjectDetailPage() {
         setJoining(true);
         if (isUsuarioComun) {
             try {
-                await requestCollaboratorRole(`Postulación para colaborar en el proyecto: ${project.title}`);
+                await requestCollaboratorRole(`[PROYECTO_ID:${project.id}] Postulación para colaborar en el proyecto: ${project.title}`);
                 showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
                 setShowJoinConfirm(false);
             } catch (err) {
@@ -167,14 +177,19 @@ export default function ProjectDetailPage() {
                     {isCollaborator && (
                         <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Ya sos parte</span>
                     )}
-                    {isAuthenticated && isUsuarioComun && hasPending && (
+                    {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
                         <span style={{ fontSize: '0.85rem', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Clock size={14} /> Postulación Pendiente
                         </span>
                     )}
+                    {isAuthenticated && isUsuarioComun && hasPending && !hasPendingForThisProject && (
+                        <span style={{ fontSize: '0.85rem', color: 'var(--gray-500)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={14} /> Postulación en otro proyecto
+                        </span>
+                    )}
                 </div>
 
-                {isAuthenticated && isUsuarioComun && hasPending && (
+                {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
                     <div style={{
                         marginBottom: '1rem',
                         padding: '0.75rem 1rem',
@@ -184,7 +199,21 @@ export default function ProjectDetailPage() {
                         fontSize: '0.875rem',
                         color: '#b45309'
                     }}>
-                        📝 Tu postulación para colaborar está pendiente de aprobación por un referente departamental.
+                        📝 Tu postulación para colaborar en este proyecto está pendiente de aprobación por un referente departamental.
+                    </div>
+                )}
+
+                {isAuthenticated && isUsuarioComun && hasPending && !hasPendingForThisProject && (
+                    <div style={{
+                        marginBottom: '1rem',
+                        padding: '0.75rem 1rem',
+                        background: '#f3f4f6',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: '0.875rem',
+                        color: 'var(--gray-600)'
+                    }}>
+                        ⚠️ Ya tenés una postulación pendiente para otro proyecto. Solo podés tener una postulación activa a la vez.
                     </div>
                 )}
 

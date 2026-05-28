@@ -41,25 +41,37 @@ export default function ProyectosListPage() {
                 </p>
             </div>
 
-            {isUsuarioComun && hasPending && (
-                <div style={{
-                    padding: '1rem',
-                    background: '#fffbeb',
-                    border: '1px solid #fef3c7',
-                    borderRadius: '0.75rem',
-                    marginBottom: '1.5rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px'
-                }}>
-                    <h4 style={{ color: '#b45309', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
-                        <Clock size={16} /> Postulación a Colaborador Pendiente
-                    </h4>
-                    <p style={{ color: '#d97706', margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>
-                        Tu solicitud para convertirte en Colaborador del sistema está siendo evaluada por un referente departamental. Una vez aprobada, podrás sumarte activamente a los proyectos.
-                    </p>
-                </div>
-            )}
+            {isUsuarioComun && hasPending && (() => {
+                const msg = user?.pendingRoleRequestMessage || '';
+                const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
+                let targetProjectName = "un proyecto";
+                if (match) {
+                    const targetProj = projects.find(proj => String(proj.id) === String(match[1]));
+                    if (targetProj) targetProjectName = `"${targetProj.title}"`;
+                } else {
+                    const found = projects.find(proj => msg.includes(proj.title));
+                    if (found) targetProjectName = `"${found.title}"`;
+                }
+                return (
+                    <div style={{
+                        padding: '1rem',
+                        background: '#fffbeb',
+                        border: '1px solid #fef3c7',
+                        borderRadius: '0.75rem',
+                        marginBottom: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px'
+                    }}>
+                        <h4 style={{ color: '#b45309', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                            <Clock size={16} /> Postulación Pendiente
+                        </h4>
+                        <p style={{ color: '#d97706', margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>
+                            Tu solicitud para colaborar en el proyecto <strong>{targetProjectName}</strong> está siendo evaluada por un referente departamental. Una vez aprobada, podrás participar activamente.
+                        </p>
+                    </div>
+                );
+            })()}
 
             {isUsuarioComun && !hasPending && (
                 <div style={{
@@ -145,7 +157,14 @@ export default function ProyectosListPage() {
                                         {p.needsHelp && (
                                             <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita ayuda</span>
                                         )}
-                                        {isUsuarioComun && hasPending && (
+                                        {isUsuarioComun && hasPending && (() => {
+                                            const msg = user?.pendingRoleRequestMessage || '';
+                                            const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
+                                            if (match) {
+                                                return String(match[1]) === String(p.id);
+                                            }
+                                            return p.title && msg.includes(p.title);
+                                        })() && (
                                             <span className="badge" style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <Clock size={10} /> Postulación Pendiente
                                             </span>
