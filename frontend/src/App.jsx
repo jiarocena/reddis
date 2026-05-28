@@ -67,12 +67,12 @@ function GestionRegisterRedirect() {
 
 function AppContent() {
     const location = useLocation();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, hasRole } = useAuth();
     const isGestion = location.pathname.startsWith('/gestion');
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
 
-    // Show administrative layout only if user is on a /gestion path AND is authenticated
-    const showGestionLayout = isGestion && isAuthenticated;
+    // Show administrative layout only if user is on a /gestion path AND is authenticated AND is at least a COLABORADOR
+    const showGestionLayout = isGestion && isAuthenticated && hasRole('COLABORADOR');
 
     return (
         <>

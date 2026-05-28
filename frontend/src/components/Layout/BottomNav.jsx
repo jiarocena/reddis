@@ -4,11 +4,12 @@ import { Home, MapPin, AlertTriangle, Users, LogIn } from 'lucide-react';
 
 export default function BottomNav() {
     const location = useLocation();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, hasRole } = useAuth();
     const isGestion = location.pathname.startsWith('/gestion');
 
-    // Don't show on gestion routes once authenticated (they have their own navigation)
-    if (isGestion && isAuthenticated) return null;
+    // Don't show on gestion routes once authenticated as at least a COLABORADOR
+    const showGestionLayout = isGestion && isAuthenticated && hasRole('COLABORADOR');
+    if (showGestionLayout) return null;
 
     return (
         <nav className="bottom-nav">
