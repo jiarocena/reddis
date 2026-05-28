@@ -29,6 +29,9 @@ export default function ProyectosListPage() {
         return true;
     });
 
+    const isUsuarioComun = user?.rol === 'USUARIO';
+    const hasPending = user?.hasPendingRoleRequest;
+
     return (
         <div className="pending-page animate-fadeIn">
             <div className="pending-header">
@@ -37,6 +40,46 @@ export default function ProyectosListPage() {
                     {filtered.length} proyecto{filtered.length !== 1 ? 's' : ''} · Barreras que se están trabajando
                 </p>
             </div>
+
+            {isUsuarioComun && hasPending && (
+                <div style={{
+                    padding: '1rem',
+                    background: '#fffbeb',
+                    border: '1px solid #fef3c7',
+                    borderRadius: '0.75rem',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                }}>
+                    <h4 style={{ color: '#b45309', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                        <Clock size={16} /> Postulación a Colaborador Pendiente
+                    </h4>
+                    <p style={{ color: '#d97706', margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>
+                        Tu solicitud para convertirte en Colaborador del sistema está siendo evaluada por un referente departamental. Una vez aprobada, podrás sumarte activamente a los proyectos.
+                    </p>
+                </div>
+            )}
+
+            {isUsuarioComun && !hasPending && (
+                <div style={{
+                    padding: '1rem',
+                    background: 'var(--accent-50)',
+                    border: '1px solid var(--accent-100)',
+                    borderRadius: '0.75rem',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                }}>
+                    <h4 style={{ color: 'var(--accent-700)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                        💡 ¿Querés colaborar en algún proyecto?
+                    </h4>
+                    <p style={{ color: 'var(--accent-600)', margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>
+                        Ingresá a cualquier proyecto de la lista que sea de tu interés y hacé clic en el botón <strong>"Postularme para colaborar"</strong> para enviar tu solicitud.
+                    </p>
+                </div>
+            )}
 
             {/* Search */}
             <div style={{ position: 'relative', marginBottom: 'var(--space-4)' }}>
@@ -101,6 +144,11 @@ export default function ProyectosListPage() {
                                         )}
                                         {p.needsHelp && (
                                             <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita ayuda</span>
+                                        )}
+                                        {isUsuarioComun && hasPending && (
+                                            <span className="badge" style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <Clock size={10} /> Postulación Pendiente
+                                            </span>
                                         )}
                                     </div>
                                 </div>

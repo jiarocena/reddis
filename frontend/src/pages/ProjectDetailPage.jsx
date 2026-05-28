@@ -8,8 +8,8 @@ import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, He
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
-    const { projects, barriers, updateProjectStatus, addTimelineEntry, addCollaborator, loading } = useData();
-    const { isAuthenticated, user, hasRole } = useAuth();
+    const { projects, barriers, updateProjectStatus, addTimelineEntry, addCollaborator, loading, showToast } = useData();
+    const { isAuthenticated, user, hasRole, requestCollaboratorRole } = useAuth();
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
     const prefix = isGestion ? '/gestion' : '';
@@ -27,8 +27,14 @@ export default function ProjectDetailPage() {
     // Is already a collaborator on this project
     const isCollaborator = isAuthenticated && project?.collaborators?.some(c => c.userId === user?.id);
 
-    // Can join: logged in + not already joined
-    const canJoin = isAuthenticated && !isCollaborator;
+    const isUsuarioComun = user?.rol === 'USUARIO';
+    const hasPending = user?.hasPendingRoleRequest;
+
+    // Can join directly as collaborator: has role COLABORADOR/REFERENTE/ADMIN and not already joined
+    const canJoinDirectly = isAuthenticated && !isCollaborator && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
+    
+    // Can apply (postularse): is usuario comun, doesn't have pending request
+    const canApply = isAuthenticated && isUsuarioComun && !hasPending;
 
     if (loading) return (
         <div className="project-panel" style={{ textAlign: 'center', padding: '4rem 0' }}>
@@ -54,14 +60,25 @@ export default function ProjectDetailPage() {
 
     const handleJoin = async () => {
         setJoining(true);
-        await addCollaborator(project.id);
+        if (isUsuarioComun) {
+            try {
+                await requestCollaboratorRole(`Postulación para colaborar en el proyecto: ${project.title}`);
+                showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
+                setShowJoinConfirm(false);
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'Error al enviar postulación', 'error');
+            }
+        } else {
+            await addCollaborator(project.id);
+            setShowJoinConfirm(false);
+        }
         setJoining(false);
-        setShowJoinConfirm(false);
     };
 
     return (
         <div className="project-panel animate-fadeIn">
-            <Link to={barrier ? `${prefix}/barrera/${barrier.id}` : `${prefix}/barreras`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <Link to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
                 <ArrowLeft size={16} /> Volver
             </Link>
 
@@ -137,30 +154,56 @@ export default function ProjectDetailPage() {
             <div className="collaborators-section">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} /> Colaboradores ({project.collaborators.length})</h3>
-                    {canJoin && !showJoinConfirm && (
+                    {canJoinDirectly && !showJoinConfirm && (
                         <button className="btn btn-accent btn-sm" onClick={() => setShowJoinConfirm(true)}>
                             <UserPlus size={14} /> Sumarme
+                        </button>
+                    )}
+                    {canApply && !showJoinConfirm && (
+                        <button className="btn btn-accent btn-sm" onClick={() => setShowJoinConfirm(true)}>
+                            <UserPlus size={14} /> Postularme para colaborar
                         </button>
                     )}
                     {isCollaborator && (
                         <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Ya sos parte</span>
                     )}
+                    {isAuthenticated && isUsuarioComun && hasPending && (
+                        <span style={{ fontSize: '0.85rem', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={14} /> Postulación Pendiente
+                        </span>
+                    )}
                 </div>
+
+                {isAuthenticated && isUsuarioComun && hasPending && (
+                    <div style={{
+                        marginBottom: '1rem',
+                        padding: '0.75rem 1rem',
+                        background: '#fffbeb',
+                        border: '1px solid #fef3c7',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: '0.875rem',
+                        color: '#b45309'
+                    }}>
+                        📝 Tu postulación para colaborar está pendiente de aprobación por un referente departamental.
+                    </div>
+                )}
 
                 {showJoinConfirm && (
                     <div className="card" style={{ marginBottom: '1rem', padding: '1.25rem', background: 'var(--accent-50)', borderColor: 'var(--accent-200)', textAlign: 'center' }}>
                         <p style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--gray-800)' }}>
-                            ¿Confirmás ser colaborador de este proyecto?
+                            {isUsuarioComun 
+                                ? '¿Confirmás tu postulación para ser colaborador en este proyecto?' 
+                                : '¿Confirmás ser colaborador de este proyecto?'}
                         </p>
                         <p style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--gray-500)' }}>
-                            Te registrarás como: <strong>{user?.nombre || user?.email}</strong>
+                            Te registrarás como: <strong>{user?.nombre || user?.email}</strong> {isUsuarioComun && '(Usuario Común)'}
                         </p>
                         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
                             <button className="btn btn-secondary btn-sm" onClick={() => setShowJoinConfirm(false)} disabled={joining}>
                                 Cancelar
                             </button>
                             <button className="btn btn-success btn-sm" onClick={handleJoin} disabled={joining}>
-                                {joining ? 'Registrando...' : '✓ Confirmar'}
+                                {joining ? (isUsuarioComun ? 'Enviando...' : 'Registrando...') : '✓ Confirmar'}
                             </button>
                         </div>
                     </div>
