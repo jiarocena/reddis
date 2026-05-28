@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Shield, MapPin } from 'lucide-react';
+import { Mail, Shield, MapPin, LogOut } from 'lucide-react';
 
 const ROLE_LABELS = {
     ADMIN: { label: 'Administrador', color: '#dc2626', bg: '#fee2e2' },
@@ -9,11 +10,17 @@ const ROLE_LABELS = {
 };
 
 export default function ProfilePage() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     if (!user) return null;
 
     const roleInfo = ROLE_LABELS[user.rol] || ROLE_LABELS.USUARIO;
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     return (
         <div className="profile-page animate-fadeIn">
@@ -39,6 +46,10 @@ export default function ProfilePage() {
                         </div>
                     )}
                 </div>
+
+                <button className="btn btn-secondary" onClick={handleLogout} style={{ marginTop: 'var(--space-6)', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                    <LogOut size={16} /> Cerrar Sesión
+                </button>
             </div>
         </div>
     );
