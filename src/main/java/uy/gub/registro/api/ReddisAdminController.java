@@ -120,10 +120,8 @@ public class ReddisAdminController {
         req.setReviewedAt(LocalDateTime.now());
         roleRequestRepo.save(req);
 
-        // Update the user's role
+        // Keep the user's system role as USUARIO (collaboration is project-based)
         Usuario user = req.getUsuario();
-        user.setRol(req.getRequestedRole());
-        usuarioRepo.save(user);
 
         // Dynamic project collaboration linking
         String message = req.getMessage() != null ? req.getMessage() : "";

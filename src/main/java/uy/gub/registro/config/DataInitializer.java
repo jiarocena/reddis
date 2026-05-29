@@ -110,6 +110,16 @@ public class DataInitializer {
                                         System.out.println(">>> REDDIS: " + migrated + " barreras migradas con departamento/localidad");
                                 }
 
+                                // Reset generic COLABORADOR roles back to USUARIO (so collaboration is solely project-based)
+                                usuarioRepo.findAll().stream()
+                                        .filter(u -> "COLABORADOR".equalsIgnoreCase(u.getRol()))
+                                        .filter(u -> !"colaborador@test.com".equalsIgnoreCase(u.getEmail()))
+                                        .forEach(u -> {
+                                                u.setRol("USUARIO");
+                                                usuarioRepo.save(u);
+                                                System.out.println(">>> REDDIS Migración: Rol de " + u.getNombreCompleto() + " restablecido de COLABORADOR a USUARIO");
+                                        });
+
                                 // Auto-create role requests for USUARIO accounts that don't have one
 
                                 usuarioRepo.findAll().stream()
