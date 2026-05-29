@@ -204,13 +204,48 @@ export default function ProyectosListPage() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '0.5rem',
-                                        justifyContent: 'space-between'
+                                        justifyContent: 'space-between',
+                                        marginBottom: (isUserCollaborator || (isUsuarioComun && hasPendingForThisProject)) ? '0.5rem' : '0'
                                     }}>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Clock size={12} />
                                             Último avance: {lastEntry.text?.substring(0, 60)}{lastEntry.text?.length > 60 ? '...' : ''}
                                         </span>
                                         <ChevronRight size={14} />
+                                    </div>
+                                )}
+
+                                {isUserCollaborator && (
+                                    <div style={{
+                                        padding: '0.5rem 0.75rem',
+                                        background: '#ecfdf5',
+                                        border: '1px solid #a7f3d0',
+                                        borderRadius: 'var(--radius-md)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        color: '#047857',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600
+                                    }}>
+                                        <CheckCircle size={14} /> Sos colaborador en este proyecto
+                                    </div>
+                                )}
+
+                                {isUsuarioComun && hasPendingForThisProject && (
+                                    <div style={{
+                                        padding: '0.5rem 0.75rem',
+                                        background: '#fffbeb',
+                                        border: '1px solid #fde68a',
+                                        borderRadius: 'var(--radius-md)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        color: '#b45309',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600
+                                    }}>
+                                        <Clock size={14} /> Solicitud de colaboración pendiente
                                     </div>
                                 )}
                             </div>
