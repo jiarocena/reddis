@@ -18,13 +18,17 @@ public class ReddisAdminController {
     private final RoleRequestRepository roleRequestRepo;
     private final UsuarioRepository usuarioRepo;
     private final JwtUtil jwtUtil;
+    private final ProyectoRepository proyectoRepo;
+    private final ColaboradorRepository colaboradorRepo;
 
     public ReddisAdminController(BarreraRepository barreraRepo, RoleRequestRepository roleRequestRepo,
-            UsuarioRepository usuarioRepo, JwtUtil jwtUtil) {
+            UsuarioRepository usuarioRepo, JwtUtil jwtUtil, ProyectoRepository proyectoRepo, ColaboradorRepository colaboradorRepo) {
         this.barreraRepo = barreraRepo;
         this.roleRequestRepo = roleRequestRepo;
         this.usuarioRepo = usuarioRepo;
         this.jwtUtil = jwtUtil;
+        this.proyectoRepo = proyectoRepo;
+        this.colaboradorRepo = colaboradorRepo;
     }
 
     // ═══════ PENDING BARRIERS ═══════
@@ -120,6 +124,44 @@ public class ReddisAdminController {
         Usuario user = req.getUsuario();
         user.setRol(req.getRequestedRole());
         usuarioRepo.save(user);
+
+        // Dynamic project collaboration linking
+        String message = req.getMessage() != null ? req.getMessage() : "";
+        if (message.contains("[PROYECTO_ID:")) {
+            try {
+                int start = message.indexOf("[PROYECTO_ID:") + 13;
+                int end = message.indexOf("]", start);
+                if (end > start) {
+                    Long projectId = Long.parseLong(message.substring(start, end));
+                    Optional<Proyecto> projOpt = proyectoRepo.findById(projectId);
+                    if (projOpt.isPresent()) {
+                        Proyecto proj = projOpt.get();
+                        
+                        // Check if not already a collaborator
+                        boolean alreadyCollab = proj.getCollaborators().stream()
+                                .anyMatch(c -> user.getId().equals(c.getUserId()));
+                        if (!alreadyCollab) {
+                            String name = user.getNombreCompleto();
+                            String initials = name.contains(" ")
+                                    ? ("" + name.split(" ")[0].charAt(0) + name.split(" ")[1].charAt(0)).toUpperCase()
+                                    : name.substring(0, Math.min(2, name.length())).toUpperCase();
+
+                            Colaborador col = Colaborador.builder()
+                                    .name(name)
+                                    .role("Colaborador")
+                                    .initials(initials)
+                                    .proyecto(proj)
+                                    .userId(user.getId())
+                                    .build();
+                            colaboradorRepo.save(col);
+                            System.out.println("👥 COLABORADOR ASOCIADO AUTOMÁTICAMENTE: " + name + " al proyecto #" + projectId);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error al asociar colaborador automáticamente al proyecto: " + e.getMessage());
+            }
+        }
 
         System.out.println("✅ ROL APROBADO: " + user.getNombreCompleto() + " → " + req.getRequestedRole());
 

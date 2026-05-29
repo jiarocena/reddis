@@ -259,9 +259,17 @@ public class ReddisAuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Ya tenés el rol de Colaborador o superior"));
         }
 
-        // Already has pending request?
-        if (roleRequestRepo.existsByUsuarioIdAndStatusAndRequestedRole(userId, "PENDIENTE", "COLABORADOR")) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ya tenés una solicitud pendiente"));
+        // Already has pending request? Update its message instead of rejecting it
+        List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(userId);
+        Optional<RoleRequest> pendingOpt = requests.stream()
+                .filter(r -> "PENDIENTE".equals(r.getStatus()) && "COLABORADOR".equals(r.getRequestedRole()))
+                .findFirst();
+        if (pendingOpt.isPresent()) {
+            RoleRequest req = pendingOpt.get();
+            req.setMessage(body.getOrDefault("message", ""));
+            roleRequestRepo.save(req);
+            System.out.println("📋 SOLICITUD DE ROL ACTUALIZADA: " + usuario.getNombreCompleto() + " → " + req.getMessage());
+            return ResponseEntity.ok(Map.of("message", "Solicitud de colaboración actualizada con éxito."));
         }
 
         RoleRequest req = RoleRequest.builder()

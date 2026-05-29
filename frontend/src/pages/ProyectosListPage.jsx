@@ -133,6 +133,17 @@ export default function ProyectosListPage() {
                     const lastEntry = p.timeline?.[p.timeline.length - 1];
                     const completedEntries = p.timeline?.filter(t => t.completed).length || 0;
 
+                    const isUserCollaborator = user && p.collaborators?.some(c => c.userId === user?.id);
+
+                    const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
+                        const msg = user?.pendingRoleRequestMessage || '';
+                        const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
+                        if (match) {
+                            return String(match[1]) === String(p.id);
+                        }
+                        return p.title && msg.includes(p.title);
+                    })();
+
                     return (
                         <Link key={p.id} to={`/gestion/proyecto/${p.id}`} style={{ textDecoration: 'none' }}>
                             <div className="pending-card">
@@ -149,24 +160,17 @@ export default function ProyectosListPage() {
                                         <span className={`badge badge-${p.status}`}>
                                             {PROJECT_STATUSES[p.status]?.label}
                                         </span>
-                                        {barrier && (
-                                            <span className={`badge badge-${barrier.category}`}>
-                                                {CATEGORIES[barrier.category]?.label}
-                                            </span>
-                                        )}
                                         {p.needsHelp && (
                                             <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita ayuda</span>
                                         )}
-                                        {isUsuarioComun && hasPending && (() => {
-                                            const msg = user?.pendingRoleRequestMessage || '';
-                                            const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
-                                            if (match) {
-                                                return String(match[1]) === String(p.id);
-                                            }
-                                            return p.title && msg.includes(p.title);
-                                        })() && (
+                                        {isUsuarioComun && hasPendingForThisProject && (
                                             <span className="badge" style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <Clock size={10} /> Postulación Pendiente
+                                            </span>
+                                        )}
+                                        {isUserCollaborator && (
+                                            <span className="badge" style={{ background: '#d1fae5', color: '#065f46', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <CheckCircle size={10} /> Colaborás aquí
                                             </span>
                                         )}
                                     </div>

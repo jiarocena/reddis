@@ -43,8 +43,8 @@ export default function ProjectDetailPage() {
     // Can join directly as collaborator: has role COLABORADOR/REFERENTE/ADMIN and not already joined
     const canJoinDirectly = isAuthenticated && !isCollaborator && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
     
-    // Can apply (postularse): is usuario comun, doesn't have pending request at all
-    const canApply = isAuthenticated && isUsuarioComun && !hasPending;
+    // Can apply (postularse): is usuario comun, doesn't have pending request for THIS project
+    const canApply = isAuthenticated && isUsuarioComun && !hasPendingForThisProject;
 
     if (loading) return (
         <div className="project-panel" style={{ textAlign: 'center', padding: '4rem 0' }}>
@@ -221,7 +221,9 @@ export default function ProjectDetailPage() {
                     <div className="card" style={{ marginBottom: '1rem', padding: '1.25rem', background: 'var(--accent-50)', borderColor: 'var(--accent-200)', textAlign: 'center' }}>
                         <p style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--gray-800)' }}>
                             {isUsuarioComun 
-                                ? '¿Confirmás tu postulación para ser colaborador en este proyecto?' 
+                                ? (hasPending 
+                                    ? '¿Confirmás tu postulación para colaborar en este proyecto? (Esto reemplazará tu solicitud activa en otro proyecto)' 
+                                    : '¿Confirmás tu postulación para ser colaborador en este proyecto?')
                                 : '¿Confirmás ser colaborador de este proyecto?'}
                         </p>
                         <p style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--gray-500)' }}>
