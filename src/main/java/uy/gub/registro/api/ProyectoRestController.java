@@ -6,6 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import uy.gub.registro.model.*;
 import uy.gub.registro.repository.UsuarioRepository;
+import uy.gub.registro.repository.RoleRequestRepository;
 import uy.gub.registro.service.ReddisService;
 
 import java.time.LocalDate;
@@ -18,10 +19,51 @@ public class ProyectoRestController {
 
     private final ReddisService reddisService;
     private final UsuarioRepository usuarioRepo;
+    private final RoleRequestRepository roleRequestRepo;
 
-    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo) {
+    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo, RoleRequestRepository roleRequestRepo) {
         this.reddisService = reddisService;
         this.usuarioRepo = usuarioRepo;
+        this.roleRequestRepo = roleRequestRepo;
+    }
+
+    @GetMapping("/diagnostico")
+    public ResponseEntity<?> diagnostico() {
+        Map<String, Object> diag = new LinkedHashMap<>();
+        
+        List<Map<String, Object>> users = usuarioRepo.findAll().stream().map(u -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", u.getId());
+            m.put("username", u.getUsername());
+            m.put("email", u.getEmail());
+            m.put("nombre", u.getNombreCompleto());
+            m.put("rol", u.getRol());
+            return m;
+        }).toList();
+        diag.put("usuarios", users);
+        
+        List<Map<String, Object>> requests = roleRequestRepo.findAll().stream().map(r -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", r.getId());
+            m.put("userId", r.getUsuario().getId());
+            m.put("userName", r.getUsuario().getNombreCompleto());
+            m.put("requestedRole", r.getRequestedRole());
+            m.put("status", r.getStatus());
+            m.put("message", r.getMessage());
+            return m;
+        }).toList();
+        diag.put("solicitudes_rol", requests);
+        
+        List<Map<String, Object>> projs = reddisService.listarProyectos().stream().map(p -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", p.getId());
+            m.put("title", p.getTitle());
+            m.put("collaborators", p.getCollaborators().stream().map(c -> c.getName() + " (userId: " + c.getUserId() + ")").toList());
+            return m;
+        }).toList();
+        diag.put("proyectos", projs);
+        
+        return ResponseEntity.ok(diag);
     }
 
     @GetMapping("/proyectos")
