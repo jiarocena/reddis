@@ -6,11 +6,43 @@ import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
 import { Briefcase, Search, ChevronRight, Users, Clock, CheckCircle, HelpCircle, Target } from 'lucide-react';
 
 export default function ProyectosListPage() {
-    const { projects, barriers } = useData();
-    const { user } = useAuth();
+    const { projects, barriers, addCollaborator, showToast } = useData();
+    const { user, requestCollaboratorRole, hasRole } = useAuth();
     const userDepto = user?.departamento || null;
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('todos');
+
+    const handlePostular = async (e, project) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const confirmed = window.confirm(`¿Confirmás tu postulación para colaborar en el proyecto: "${project.title}"?`);
+        if (!confirmed) return;
+        
+        try {
+            await requestCollaboratorRole(`[PROYECTO_ID:${project.id}] Postulación para colaborar en el proyecto: ${project.title}`);
+            showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
+        } catch (err) {
+            console.error(err);
+            showToast(err.message || 'Error al enviar postulación', 'error');
+        }
+    };
+
+    const handleSumarme = async (e, project) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const confirmed = window.confirm(`¿Confirmás sumarte como colaborador en el proyecto: "${project.title}"?`);
+        if (!confirmed) return;
+        
+        try {
+            await addCollaborator(project.id);
+            showToast(`Te sumaste al proyecto como colaborador`, 'success');
+        } catch (err) {
+            console.error(err);
+            showToast(err.message || 'Error al sumarse al proyecto', 'error');
+        }
+    };
 
     const filtered = projects.filter(p => {
         // Filter by user's department if logged in
@@ -136,12 +168,14 @@ export default function ProyectosListPage() {
                     const isUserCollaborator = user && p.collaborators?.some(c => c.userId === user?.id);
 
                     const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
-                        const msg = user?.pendingRoleRequestMessage || '';
-                        const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
-                        if (match) {
-                            return String(match[1]) === String(p.id);
-                        }
-                        return p.title && msg.includes(p.title);
+                        const msgs = user?.pendingRoleRequestMessages || (user?.pendingRoleRequestMessage ? [user.pendingRoleRequestMessage] : []);
+                        return msgs.some(msg => {
+                            const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
+                            if (match) {
+                                return String(match[1]) === String(p.id);
+                            }
+                            return p.title && msg.includes(p.title);
+                        });
                     })();
 
                     return (
@@ -247,6 +281,24 @@ export default function ProyectosListPage() {
                                     }}>
                                         <Clock size={14} /> Solicitud de colaboración pendiente
                                     </div>
+                                )}
+
+                                {!isUserCollaborator && !hasPendingForThisProject && (
+                                    <button
+                                        onClick={(e) => isUsuarioComun ? handlePostular(e, p) : handleSumarme(e, p)}
+                                        className="btn btn-accent btn-sm"
+                                        style={{
+                                            marginTop: '0.75rem',
+                                            width: '100%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                            padding: '0.5rem'
+                                        }}
+                                    >
+                                        <Users size={14} /> Ser colaborador
+                                    </button>
                                 )}
                             </div>
                         </Link>

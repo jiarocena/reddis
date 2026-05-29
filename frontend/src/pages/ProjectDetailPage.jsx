@@ -32,12 +32,14 @@ export default function ProjectDetailPage() {
 
     // Check if the pending request is specifically for this project
     const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
-        const msg = user?.pendingRoleRequestMessage || '';
-        const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
-        if (match) {
-            return String(match[1]) === String(project.id);
-        }
-        return project?.title && msg.includes(project.title);
+        const msgs = user?.pendingRoleRequestMessages || (user?.pendingRoleRequestMessage ? [user.pendingRoleRequestMessage] : []);
+        return msgs.some(msg => {
+            const match = msg.match(/\[PROYECTO_ID:(\d+)\]/);
+            if (match) {
+                return String(match[1]) === String(project.id);
+            }
+            return project?.title && msg.includes(project.title);
+        });
     })();
 
     // Can join directly as collaborator: has role COLABORADOR/REFERENTE/ADMIN and not already joined
@@ -182,11 +184,6 @@ export default function ProjectDetailPage() {
                             <Clock size={14} /> Postulación Pendiente
                         </span>
                     )}
-                    {isAuthenticated && isUsuarioComun && hasPending && !hasPendingForThisProject && (
-                        <span style={{ fontSize: '0.85rem', color: 'var(--gray-500)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Clock size={14} /> Postulación en otro proyecto
-                        </span>
-                    )}
                 </div>
 
                 {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
@@ -203,27 +200,11 @@ export default function ProjectDetailPage() {
                     </div>
                 )}
 
-                {isAuthenticated && isUsuarioComun && hasPending && !hasPendingForThisProject && (
-                    <div style={{
-                        marginBottom: '1rem',
-                        padding: '0.75rem 1rem',
-                        background: '#f3f4f6',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '0.875rem',
-                        color: 'var(--gray-600)'
-                    }}>
-                        ⚠️ Ya tenés una postulación pendiente para otro proyecto. Solo podés tener una postulación activa a la vez.
-                    </div>
-                )}
-
                 {showJoinConfirm && (
                     <div className="card" style={{ marginBottom: '1rem', padding: '1.25rem', background: 'var(--accent-50)', borderColor: 'var(--accent-200)', textAlign: 'center' }}>
                         <p style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--gray-800)' }}>
                             {isUsuarioComun 
-                                ? (hasPending 
-                                    ? '¿Confirmás tu postulación para colaborar en este proyecto? (Esto reemplazará tu solicitud activa en otro proyecto)' 
-                                    : '¿Confirmás tu postulación para ser colaborador en este proyecto?')
+                                ? '¿Confirmás tu postulación para colaborar en este proyecto?'
                                 : '¿Confirmás ser colaborador de este proyecto?'}
                         </p>
                         <p style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--gray-500)' }}>
