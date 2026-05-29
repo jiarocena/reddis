@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 public class DataInitializer {
@@ -121,6 +122,49 @@ public class DataInitializer {
                                                         .message("Solicitud automática (migración)")
                                                         .build());
                                                 System.out.println(">>> REDDIS: Solicitud de COLABORADOR creada para " + u.getNombreCompleto());
+                                        });
+
+                                // Retroactive migration for historically approved requests (e.g. Pepe)
+                                roleRequestRepo.findAll().stream()
+                                        .filter(req -> "APROBADA".equalsIgnoreCase(req.getStatus()))
+                                        .forEach(req -> {
+                                                String message = req.getMessage();
+                                                if (message != null && message.contains("[PROYECTO_ID:")) {
+                                                        try {
+                                                                int start = message.indexOf("[PROYECTO_ID:") + 13;
+                                                                int end = message.indexOf("]", start);
+                                                                if (end > start) {
+                                                                        Long projectId = Long.parseLong(message.substring(start, end));
+                                                                        Optional<Proyecto> projOpt = proyectoRepo.findById(projectId);
+                                                                        if (projOpt.isPresent()) {
+                                                                                Proyecto proj = projOpt.get();
+                                                                                Usuario u = req.getUsuario();
+                                                                                
+                                                                                // Check if not already a collaborator
+                                                                                boolean alreadyCollab = colaboradorRepo.findAll().stream()
+                                                                                        .anyMatch(c -> proj.getId().equals(c.getProyecto().getId()) && u.getId().equals(c.getUserId()));
+                                                                                if (!alreadyCollab) {
+                                                                                        String name = u.getNombreCompleto();
+                                                                                        String initials = name.contains(" ")
+                                                                                                ? ("" + name.split(" ")[0].charAt(0) + name.split(" ")[1].charAt(0)).toUpperCase()
+                                                                                                : name.substring(0, Math.min(2, name.length())).toUpperCase();
+
+                                                                                        Colaborador col = Colaborador.builder()
+                                                                                                .name(name)
+                                                                                                .role("Colaborador")
+                                                                                                .initials(initials)
+                                                                                                .proyecto(proj)
+                                                                                                .userId(u.getId())
+                                                                                                .build();
+                                                                                        colaboradorRepo.save(col);
+                                                                                        System.out.println(">>> REDDIS Migración: COLABORADOR retroactivamente asociado: " + name + " al proyecto #" + projectId);
+                                                                                }
+                                                                        }
+                                                                }
+                                                        } catch (Exception e) {
+                                                                System.err.println(">>> REDDIS Migración Error: " + e.getMessage());
+                                                        }
+                                                }
                                         });
 
                                 System.out.println(">>> REDDIS: datos ya existentes, saltando seed.");
