@@ -188,16 +188,14 @@ public class ReddisAuthController {
         
         Map<String, Object> userMap = userToMap(usuario);
         List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(usuario.getId());
-        Optional<RoleRequest> pendingOpt = requests.stream()
+        List<String> pendingMessages = requests.stream()
                 .filter(r -> "PENDIENTE".equals(r.getStatus()) && "COLABORADOR".equals(r.getRequestedRole()))
-                .findFirst();
-        if (pendingOpt.isPresent()) {
-            userMap.put("hasPendingRoleRequest", true);
-            userMap.put("pendingRoleRequestMessage", pendingOpt.get().getMessage());
-        } else {
-            userMap.put("hasPendingRoleRequest", false);
-            userMap.put("pendingRoleRequestMessage", null);
-        }
+                .map(RoleRequest::getMessage)
+                .filter(Objects::nonNull)
+                .toList();
+        userMap.put("hasPendingRoleRequest", !pendingMessages.isEmpty());
+        userMap.put("pendingRoleRequestMessages", pendingMessages);
+        userMap.put("pendingRoleRequestMessage", pendingMessages.isEmpty() ? null : pendingMessages.get(0));
         response.put("user", userMap);
 
         return ResponseEntity.ok(response);
@@ -225,18 +223,16 @@ public class ReddisAuthController {
         Usuario u = opt.get();
         Map<String, Object> data = userToMap(u);
 
-        // Include pending role request status
+        // Include all pending role requests messages
         List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(u.getId());
-        Optional<RoleRequest> pendingOpt = requests.stream()
+        List<String> pendingMessages = requests.stream()
                 .filter(r -> "PENDIENTE".equals(r.getStatus()) && "COLABORADOR".equals(r.getRequestedRole()))
-                .findFirst();
-        if (pendingOpt.isPresent()) {
-            data.put("hasPendingRoleRequest", true);
-            data.put("pendingRoleRequestMessage", pendingOpt.get().getMessage());
-        } else {
-            data.put("hasPendingRoleRequest", false);
-            data.put("pendingRoleRequestMessage", null);
-        }
+                .map(RoleRequest::getMessage)
+                .filter(Objects::nonNull)
+                .toList();
+        data.put("hasPendingRoleRequest", !pendingMessages.isEmpty());
+        data.put("pendingRoleRequestMessages", pendingMessages);
+        data.put("pendingRoleRequestMessage", pendingMessages.isEmpty() ? null : pendingMessages.get(0));
 
         return ResponseEntity.ok(data);
     }
@@ -259,23 +255,35 @@ public class ReddisAuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Ya tenés el rol de Colaborador o superior"));
         }
 
-        // Already has pending request? Update its message instead of rejecting it
+        String message = body.getOrDefault("message", "");
+        // Check if there is already a pending request for this exact project for this user
         List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(userId);
-        Optional<RoleRequest> pendingOpt = requests.stream()
-                .filter(r -> "PENDIENTE".equals(r.getStatus()) && "COLABORADOR".equals(r.getRequestedRole()))
-                .findFirst();
-        if (pendingOpt.isPresent()) {
-            RoleRequest req = pendingOpt.get();
-            req.setMessage(body.getOrDefault("message", ""));
-            roleRequestRepo.save(req);
-            System.out.println("📋 SOLICITUD DE ROL ACTUALIZADA: " + usuario.getNombreCompleto() + " → " + req.getMessage());
-            return ResponseEntity.ok(Map.of("message", "Solicitud de colaboración actualizada con éxito."));
+        boolean alreadyPendingThisProject = false;
+        
+        String projTag = "";
+        if (message.contains("[PROYECTO_ID:")) {
+            int start = message.indexOf("[PROYECTO_ID:");
+            int end = message.indexOf("]", start);
+            if (end > start) {
+                projTag = message.substring(start, end + 1); // e.g. "[PROYECTO_ID:2]"
+            }
+        }
+        
+        if (!projTag.isEmpty()) {
+            final String targetTag = projTag;
+            alreadyPendingThisProject = requests.stream()
+                .filter(r -> "PENDIENTE".equals(r.getStatus()))
+                .anyMatch(r -> r.getMessage() != null && r.getMessage().contains(targetTag));
+        }
+        
+        if (alreadyPendingThisProject) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ya tenés una postulación pendiente para este proyecto"));
         }
 
         RoleRequest req = RoleRequest.builder()
                 .usuario(usuario)
                 .requestedRole("COLABORADOR")
-                .message(body.getOrDefault("message", ""))
+                .message(message)
                 .build();
 
         roleRequestRepo.save(req);
