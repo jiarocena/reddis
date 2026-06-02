@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -67,9 +68,22 @@ function GestionRegisterRedirect() {
 
 function AppContent() {
     const location = useLocation();
-    const { isAuthenticated, hasRole } = useAuth();
+    const { isAuthenticated, hasRole, refreshUser } = useAuth();
+    const { refreshData } = useData();
     const isGestion = location.pathname.startsWith('/gestion');
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
+
+    // Poll backend every 8 seconds to automatically update role request approvals in real-time
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const interval = setInterval(() => {
+            refreshUser();
+            refreshData();
+        }, 8000);
+
+        return () => clearInterval(interval);
+    }, [isAuthenticated, refreshUser, refreshData]);
 
     // Show administrative layout only if user is on a /gestion path AND is authenticated AND is at least a COLABORADOR
     const showGestionLayout = isGestion && isAuthenticated && hasRole('COLABORADOR');
