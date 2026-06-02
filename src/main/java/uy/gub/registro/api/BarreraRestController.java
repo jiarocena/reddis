@@ -19,6 +19,9 @@ import java.util.*;
 @RequestMapping("/api/reddis")
 public class BarreraRestController {
 
+    // TODO: Temporalmente en true para facilitar pruebas. Cambiar a false para requerir aprobación manual de referentes.
+    private static final boolean AUTO_APPROVE_BARRIERS = true;
+
     private final ReddisService reddisService;
     private final UsuarioRepository usuarioRepo;
     private final DepartamentoRepository departamentoRepo;
@@ -105,7 +108,7 @@ public class BarreraRestController {
                 .urgency((String) body.getOrDefault("urgency", "media"))
                 .reportedBy((String) body.get("reportedBy"))
                 .isPublic(body.get("isPublic") == null || (Boolean) body.get("isPublic"))
-                .approved(false) // requires referente approval
+                .approved(AUTO_APPROVE_BARRIERS) // auto-approve if configured
                 .localidad((String) body.get("localidad"))
                 .build();
 
