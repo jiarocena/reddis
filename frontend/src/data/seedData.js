@@ -277,7 +277,7 @@ export const SEED_PROJECTS = [
 ];
 
 export const INSTITUTIONS = [
-    'ANEP', 'ASSE', 'Intendencia de Paysandú', 'MIDES', 'INADIS',
+    'ANEP', 'ASSE', 'Intendencia Departamental', 'MIDES', 'INADIS',
     'BPS', 'ANTEL', 'MTSS', 'OSC Local', 'Empresa privada', 'Otro'
 ];
 
@@ -287,6 +287,7 @@ export const DEPARTAMENTOS = [
     { nombre: 'Cerro Largo', center: [-32.37, -54.18], zoom: 10 },
     { nombre: 'Colonia', center: [-34.15, -57.77], zoom: 10 },
     { nombre: 'Durazno', center: [-33.38, -56.52], zoom: 10 },
+    { nombre: 'Flores', center: [-33.54, -56.90], zoom: 12 },
     { nombre: 'Florida', center: [-34.10, -56.21], zoom: 10 },
     { nombre: 'Lavalleja', center: [-34.37, -55.23], zoom: 10 },
     { nombre: 'Maldonado', center: [-34.65, -54.95], zoom: 10 },

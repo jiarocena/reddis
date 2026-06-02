@@ -47,7 +47,7 @@ export default function LocationPicker({ location, userDepartamento, onLocationC
 
     // Get user's department center
     const deptoData = DEPARTAMENTOS.find(d => d.nombre === userDepartamento);
-    const defaultCenter = deptoData ? deptoData.center : [-32.32, -58.07]; // fallback to Paysandú
+    const defaultCenter = deptoData ? deptoData.center : [-32.5228, -55.7658]; // fallback to Uruguay Center
     const center = marker || defaultCenter;
 
     // Try to get user location on mount, matching user department checks

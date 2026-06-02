@@ -23,11 +23,11 @@ export default function Footer() {
                     <div className="footer-links">
                         <h4>Contacto</h4>
                         <a href="#"><Mail size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />contacto@reddis.uy</a>
-                        <a href="#"><MapPin size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />Paysandú, Uruguay</a>
+                        <a href="#"><MapPin size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />Uruguay</a>
                     </div>
                 </div>
                 <div className="footer-bottom">
-                    <p>© 2026 REDDIS (piloto) — Red Digital de Inclusión Social. Experiencia piloto en Paysandú.</p>
+                    <p>© 2026 REDDIS (piloto) — Red Digital de Inclusión Social. Experiencia piloto.</p>
                 </div>
             </div>
         </footer>

@@ -22,7 +22,7 @@ export default function AboutPage() {
                     <h2><Target size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px' }} />Objetivo</h2>
                     <p>
                         Construir un sistema participativo de identificación, priorización y resolución de barreras a la inclusión
-                        de personas con discapacidad, comenzando con una experiencia piloto en el departamento de <strong>Paysandú</strong>.
+                        de personas con discapacidad, comenzando con una experiencia piloto en distintas localidades del país.
                     </p>
 
                     <h2><Network size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px' }} />Componentes</h2>

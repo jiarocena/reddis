@@ -75,7 +75,7 @@ function MapCenterController({ center, zoom }) {
 }
 
 export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerClick, compact = false, externalCenter = null, externalZoom = null }) {
-    const defaultCenter = [-32.32, -58.07]; // Paysandú
+    const defaultCenter = [-32.5228, -55.7658]; // Uruguay Center
     const location = useLocation();
     const prefix = location.pathname.startsWith('/gestion') ? '/gestion' : '';
 
@@ -84,7 +84,7 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
     return (
         <MapContainer
             center={defaultCenter}
-            zoom={12}
+            zoom={7}
             style={{ width: '100%', height: '100%', minHeight: compact ? '300px' : '500px' }}
             scrollWheelZoom={true}
         >
