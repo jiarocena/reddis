@@ -42,8 +42,8 @@ export function DataProvider({ children }) {
 
     // ═══════════════ LOAD DATA ═══════════════
 
-    const loadData = useCallback(async () => {
-        setLoading(true);
+    const loadData = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const isUp = await api.checkBackendHealth();
             setBackendAvailable(isUp);
@@ -69,7 +69,7 @@ export function DataProvider({ children }) {
             setBarriers([]);
             setProjects([]);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, []);
 

@@ -79,7 +79,7 @@ function AppContent() {
 
         const interval = setInterval(() => {
             refreshUser();
-            refreshData();
+            refreshData(true);
         }, 8000);
 
         return () => clearInterval(interval);
