@@ -130,8 +130,23 @@ public class ProyectoRestController {
             return ResponseEntity.badRequest().build();
 
         Usuario user = getCurrentUser();
-        String authorName = user != null ? user.getNombreCompleto() : null;
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
 
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isCollab = "REFERENTE".equalsIgnoreCase(user.getRol())
+                || "ADMIN".equalsIgnoreCase(user.getRol())
+                || proyecto.getCollaborators().stream().anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (!isCollab) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos para modificar este proyecto"));
+        }
+
+        String authorName = user.getNombreCompleto();
         Proyecto updated = reddisService.actualizarStatusProyecto(id, status, authorName);
         return ResponseEntity.ok(toMap(updated));
     }
@@ -139,8 +154,23 @@ public class ProyectoRestController {
     @PutMapping("/proyectos/{id}/finalizar")
     public ResponseEntity<?> finalizar(@PathVariable Long id, @RequestBody Map<String, String> body) {
         Usuario user = getCurrentUser();
-        String authorName = user != null ? user.getNombreCompleto() : null;
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
 
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isCollab = "REFERENTE".equalsIgnoreCase(user.getRol())
+                || "ADMIN".equalsIgnoreCase(user.getRol())
+                || proyecto.getCollaborators().stream().anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (!isCollab) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos para modificar este proyecto"));
+        }
+
+        String authorName = user.getNombreCompleto();
         reddisService.actualizarStatusProyecto(id, "finalizado", authorName);
         Proyecto updated = reddisService.actualizarProyectoFinalizado(id,
                 body.get("impact"), body.get("lessons"));
@@ -154,6 +184,18 @@ public class ProyectoRestController {
         Usuario user = getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isCollab = "REFERENTE".equalsIgnoreCase(user.getRol())
+                || "ADMIN".equalsIgnoreCase(user.getRol())
+                || proyecto.getCollaborators().stream().anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (!isCollab) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos para modificar este proyecto"));
         }
 
         TimelineEntry entry = TimelineEntry.builder()

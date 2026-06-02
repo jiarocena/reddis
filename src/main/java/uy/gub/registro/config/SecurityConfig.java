@@ -72,9 +72,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/reddis/proyectos/*/colaboradores")
                         .hasAnyRole("COLABORADOR", "REFERENTE", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reddis/proyectos/*/timeline")
-                        .hasAnyRole("COLABORADOR", "REFERENTE", "ADMIN")
+                        .authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/reddis/proyectos/**")
-                        .hasAnyRole("COLABORADOR", "REFERENTE", "ADMIN")
+                        .authenticated()
                         .requestMatchers("/api/reddis/role-requests").authenticated()
 
                         // --- Existing Thymeleaf app ---
