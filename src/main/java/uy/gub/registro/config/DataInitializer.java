@@ -46,21 +46,21 @@ public class DataInitializer {
             RoleRequestRepository roleRequestRepo,
             PasswordEncoder passwordEncoder) {
         return args -> {
-            System.out.println(">>> REDDIS: Reseteando base de datos por solicitud del usuario...");
+            System.out.println(">>> REDDIS: Iniciando comprobación de datos semilla...");
             
-            // 1. Delete all dependencies in correct order to avoid FK issues
+            // Se desactivó el borrado automático en cada inicio para no perder barreras registradas durante las pruebas.
+            // Para realizar una limpieza manual de la base de datos, reactivar temporalmente las líneas siguientes:
+            /*
             timelineRepo.deleteAll();
             colaboradorRepo.deleteAll();
             proyectoRepo.deleteAll();
             barreraRepo.deleteAll();
             roleRequestRepo.deleteAll();
-            
-            // 2. Delete all users except 'admin'
             usuarioRepo.findAll().stream()
                     .filter(u -> !"admin".equalsIgnoreCase(u.getUsername()))
                     .forEach(usuarioRepo::delete);
-            
             System.out.println(">>> REDDIS: Limpieza de base de datos completa.");
+            */
 
             // 3. Create Paysandú department
             Departamento paysandu = departamentoRepo.findAll().stream()
