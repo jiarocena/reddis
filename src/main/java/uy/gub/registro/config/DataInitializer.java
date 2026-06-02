@@ -114,6 +114,21 @@ public class DataInitializer {
                 usuarioRepo.save(jose);
                 System.out.println(">>> Referente José creado (jose@test.com / jose123)");
             }
+
+            if (usuarioRepo.findByEmail("juan@test.com").isEmpty()) {
+                Usuario juan = Usuario.builder()
+                        .username("juan")
+                        .password(passwordEncoder.encode("juan123"))
+                        .nombreCompleto("Juan")
+                        .email("juan@test.com")
+                        .rol("USUARIO")
+                        .departamento("Paysandú")
+                        .activo(true)
+                        .emailConfirmed(true)
+                        .build();
+                usuarioRepo.save(juan);
+                System.out.println(">>> Usuario general Juan creado (juan@test.com / juan123)");
+            }
             
             System.out.println(">>> REDDIS: Reseteo e inicialización de Paysandú completa.");
         };
