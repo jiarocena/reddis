@@ -16,9 +16,6 @@ export default function ProyectosListPage() {
         e.preventDefault();
         e.stopPropagation();
         
-        const confirmed = window.confirm(`¿Confirmás tu postulación para colaborar en el proyecto: "${project.title}"?`);
-        if (!confirmed) return;
-        
         try {
             await requestCollaboratorRole(`[PROYECTO_ID:${project.id}] Postulación para colaborar en el proyecto: ${project.title}`);
             showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
@@ -32,15 +29,10 @@ export default function ProyectosListPage() {
         e.preventDefault();
         e.stopPropagation();
         
-        const confirmed = window.confirm(`¿Confirmás sumarte como colaborador en el proyecto: "${project.title}"?`);
-        if (!confirmed) return;
-        
         try {
             await addCollaborator(project.id);
-            showToast(`Te sumaste al proyecto como colaborador`, 'success');
         } catch (err) {
             console.error(err);
-            showToast(err.message || 'Error al sumarse al proyecto', 'error');
         }
     };
 
