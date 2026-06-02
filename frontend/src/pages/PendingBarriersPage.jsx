@@ -13,11 +13,18 @@ export default function PendingBarriersPage() {
     const [tab, setTab] = useState('barriers');
 
     useEffect(() => {
-        loadData();
+        loadData(false);
+
+        // Poll every 8 seconds to update the lists in real-time
+        const interval = setInterval(() => {
+            loadData(true);
+        }, 8000);
+
+        return () => clearInterval(interval);
     }, []);
 
-    async function loadData() {
-        setLoading(true);
+    async function loadData(silent = false) {
+        if (!silent) setLoading(true);
         try {
             const [barriers, roles] = await Promise.all([
                 api.fetchPendingBarriers(),
@@ -26,9 +33,9 @@ export default function PendingBarriersPage() {
             setPendingBarriers(barriers);
             setRoleRequests(roles);
         } catch (err) {
-            showToast('Error cargando datos: ' + err.message, 'error');
+            if (!silent) showToast('Error cargando datos: ' + err.message, 'error');
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }
 
@@ -96,12 +103,12 @@ export default function PendingBarriersPage() {
             <div className="pending-tabs">
                 <button className={`tab-btn ${tab === 'barriers' ? 'active' : ''}`}
                     onClick={() => setTab('barriers')}>
-                    <MapPin size={16} /> Barreras pendientes
+                    <MapPin size={16} /> Solicitudes pendientes de identificación de barreras
                     {pendingBarriers.length > 0 && <span className="tab-badge">{pendingBarriers.length}</span>}
                 </button>
                 <button className={`tab-btn ${tab === 'roles' ? 'active' : ''}`}
                     onClick={() => setTab('roles')}>
-                    <Users size={16} /> Solicitudes de rol
+                    <Users size={16} /> Solicitudes pendientes de colaboración por proyectos
                     {roleRequests.length > 0 && <span className="tab-badge">{roleRequests.length}</span>}
                 </button>
             </div>
@@ -115,7 +122,7 @@ export default function PendingBarriersPage() {
                             {pendingBarriers.length === 0 ? (
                                 <div className="pending-empty">
                                     <CheckCircle size={40} color="var(--success)" />
-                                    <p>No hay barreras pendientes de aprobación</p>
+                                    <p>No hay solicitudes pendientes de identificación de barreras</p>
                                 </div>
                             ) : pendingBarriers.map(b => (
                                 <div key={b.id} className="pending-card">
@@ -152,7 +159,7 @@ export default function PendingBarriersPage() {
                             {roleRequests.length === 0 ? (
                                 <div className="pending-empty">
                                     <CheckCircle size={40} color="var(--success)" />
-                                    <p>No hay solicitudes de rol pendientes</p>
+                                    <p>No hay solicitudes pendientes de colaboración por proyectos</p>
                                 </div>
                             ) : roleRequests.map(r => (
                                 <div key={r.id} className="pending-card">
