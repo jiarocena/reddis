@@ -83,7 +83,7 @@ export function DataProvider({ children }) {
         if (backendAvailable) {
             try {
                 const saved = await api.createBarrera(barrierData);
-                setBarriers(prev => [saved, ...prev]);
+                await loadData();
                 showToast('¡Barrera reportada exitosamente!', 'success');
                 return saved;
             } catch (err) {
