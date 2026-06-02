@@ -14,7 +14,7 @@ export const BARRIER_TYPES = {
 };
 
 export const PROJECT_STATUSES = {
-    denuncia: { label: 'Denuncia', color: '#fbbf24' },
+    denuncia: { label: 'Identificada', color: '#fbbf24' },
     iniciando: { label: 'Iniciando', color: '#60a5fa' },
     'en-proceso': { label: 'En Proceso', color: '#3b82f6' },
     finalizado: { label: 'Finalizado', color: '#10b981' }

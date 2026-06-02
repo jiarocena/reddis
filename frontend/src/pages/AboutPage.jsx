@@ -11,7 +11,7 @@ export default function AboutPage() {
                     <p>
                         <strong>REDDIS (piloto)</strong> (Red Digital de Inclusión Social) es una plataforma digital colaborativa que busca
                         conectar a quienes identifican barreras con quienes pueden contribuir a eliminarlas, generando un ciclo
-                        virtuoso de denuncia, acción, seguimiento y aprendizaje colectivo.
+                        virtuoso de identificación, acción, seguimiento y aprendizaje colectivo.
                     </p>
 
                     <p>
