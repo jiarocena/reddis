@@ -145,7 +145,7 @@ export default function ProyectosListPage() {
                 </label>
                 <div className="map-filters">
                     <button className={`filter-btn ${statusFilter === 'todos' ? 'active' : ''}`} onClick={() => setStatusFilter('todos')}>Todos</button>
-                    {['iniciando', 'en-proceso', 'finalizado'].map(s => (
+                    {['denuncia', 'iniciando', 'en-proceso'].map(s => (
                         <button key={s} className={`filter-btn ${statusFilter === s ? 'active' : ''}`} onClick={() => setStatusFilter(s)}>
                             {PROJECT_STATUSES[s]?.label}
                         </button>

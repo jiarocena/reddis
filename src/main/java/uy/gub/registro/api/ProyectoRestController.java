@@ -68,7 +68,9 @@ public class ProyectoRestController {
 
     @GetMapping("/proyectos")
     public List<Map<String, Object>> listar() {
+        reddisService.ensureProyectosForPublicBarreras();
         return reddisService.listarProyectos().stream()
+                .filter(p -> !"finalizado".equals(p.getStatus()))
                 .map(this::toMap)
                 .toList();
     }
@@ -86,6 +88,24 @@ public class ProyectoRestController {
         Long barreraId = toLong(body.get("barrierId"));
         if (barreraId == null) {
             return ResponseEntity.badRequest().build();
+        }
+
+        // Check if project already exists for this barrier
+        Proyecto existing = reddisService.obtenerProyectoPorBarrera(barreraId);
+        if (existing != null) {
+            existing.setTitle((String) body.get("title"));
+            if (body.get("objective") != null) existing.setObjective((String) body.get("objective"));
+            if (body.get("leader") != null) existing.setLeader((String) body.get("leader"));
+            if (body.get("resources") != null) existing.setResources((String) body.get("resources"));
+            if (body.get("needsHelp") != null) existing.setNeedsHelp((Boolean) body.get("needsHelp"));
+            if (body.get("helpDescription") != null) existing.setHelpDescription((String) body.get("helpDescription"));
+            
+            // Set status to "iniciando" when claimed
+            existing.setStatus("iniciando");
+            reddisService.actualizarStatusBarrera(barreraId, "iniciando");
+            
+            Proyecto saved = reddisService.saveProyecto(existing);
+            return ResponseEntity.ok(toMap(saved));
         }
 
         Proyecto proyecto = Proyecto.builder()
