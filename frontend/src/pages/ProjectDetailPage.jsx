@@ -4,7 +4,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import Timeline from '../components/Project/Timeline';
 import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
-import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, HelpCircle, UserPlus } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, HelpCircle, UserPlus, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
@@ -17,6 +17,8 @@ export default function ProjectDetailPage() {
     const [newEntry, setNewEntry] = useState('');
     const [showJoinConfirm, setShowJoinConfirm] = useState(false);
     const [joining, setJoining] = useState(false);
+    const [collabsExpanded, setCollabsExpanded] = useState(true);
+    const [timelineExpanded, setTimelineExpanded] = useState(true);
 
     const project = projects.find(p => String(p.id) === String(id));
     const barrier = project ? barriers.find(b => String(b.id) === String(project.barrierId)) : null;
@@ -120,8 +122,8 @@ export default function ProjectDetailPage() {
                 ))}
             </div>
 
-            {/* Status change buttons — only for collaborators of this project */}
-            {isCollaborator && project.status !== 'finalizado' && (
+            {/* Status change buttons — for collaborators or staff (REFERENTE/ADMIN) of this project */}
+            {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
                 <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
                     {project.status === 'iniciando' && (
                         <button className="btn btn-primary btn-sm" onClick={() => updateProjectStatus(project.id, 'en-proceso')}>
@@ -137,13 +139,13 @@ export default function ProjectDetailPage() {
             )}
 
             {/* Info */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
                 <div>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '1rem' }}><Package size={16} /> Descripción</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Package size={16} /> Descripción</h3>
                     <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.description}</p>
                 </div>
                 <div>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '1rem' }}><Target size={16} /> Objetivo</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Target size={16} /> Objetivo</h3>
                     <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.objective || 'Sin definir'}</p>
                 </div>
             </div>
@@ -163,54 +165,79 @@ export default function ProjectDetailPage() {
             )}
 
             {/* Collaborators */}
-            <div className="collaborators-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} /> Colaboradores ({project.collaborators.length})</h3>
-                    {isCollaborator && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Ya sos parte</span>
-                    )}
-                    {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
-                        <span style={{ fontSize: '0.85rem', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Clock size={14} /> Postulación Pendiente
-                        </span>
-                    )}
-                </div>
-
-                {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
-                    <div style={{
-                        marginBottom: '1rem',
-                        padding: '0.75rem 1rem',
-                        background: '#fffbeb',
-                        border: '1px solid #fef3c7',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '0.875rem',
-                        color: '#b45309'
-                    }}>
-                        📝 Tu postulación para colaborar en este proyecto está pendiente de aprobación por un referente departamental.
+            <div className="collaborators-section" style={{ marginBottom: '2rem' }}>
+                <div 
+                    onClick={() => setCollabsExpanded(!collabsExpanded)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', cursor: 'pointer', userSelect: 'none' }}
+                >
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Users size={18} /> Colaboradores ({project.collaborators.length})
+                        {collabsExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
+                    </h3>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                        {isCollaborator && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Ya sos parte</span>
+                        )}
+                        {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
+                            <span style={{ fontSize: '0.85rem', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock size={14} /> Postulación Pendiente
+                            </span>
+                        )}
                     </div>
-                )}
-
-                <div className="collaborator-list">
-                    {project.collaborators.map((c, i) => (
-                        <div key={i} className="collaborator-item">
-                            <div className="collaborator-avatar">{c.initials}</div>
-                            <div className="collaborator-info"><h4>{c.name}</h4><span>{c.role}</span></div>
-                        </div>
-                    ))}
                 </div>
+
+                {collabsExpanded && (
+                    <>
+                        {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
+                            <div style={{
+                                marginBottom: '1rem',
+                                padding: '0.75rem 1rem',
+                                background: '#fffbeb',
+                                border: '1px solid #fef3c7',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '0.875rem',
+                                color: '#b45309'
+                            }}>
+                                📝 Tu postulación para colaborar en este proyecto está pendiente de aprobación por un referente departamental.
+                            </div>
+                        )}
+
+                        <div className="collaborator-list">
+                            {project.collaborators.map((c, i) => (
+                                <div key={i} className="collaborator-item">
+                                    <div className="collaborator-avatar">{c.initials}</div>
+                                    <div className="collaborator-info"><h4>{c.name}</h4><span>{c.role}</span></div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Timeline */}
             <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}><Clock size={18} /> Registro de Avances</h3>
-                <Timeline entries={project.timeline} />
+                <div 
+                    onClick={() => setTimelineExpanded(!timelineExpanded)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', cursor: 'pointer', userSelect: 'none' }}
+                >
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Clock size={18} /> Registro de Avances
+                        {timelineExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
+                    </h3>
+                </div>
 
-                {/* Only collaborators of this project can add entries */}
-                {isCollaborator && project.status !== 'finalizado' && (
-                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '2rem' }}>
-                        <input className="form-input" placeholder="Registrar avance..." value={newEntry} onChange={e => setNewEntry(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddEntry()} />
-                        <button className="btn btn-primary btn-sm" onClick={handleAddEntry}><Plus size={14} /></button>
-                    </div>
+                {timelineExpanded && (
+                    <>
+                        <Timeline entries={project.timeline} />
+
+                        {/* Only collaborators or staff (REFERENTE/ADMIN) of this project can add entries */}
+                        {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
+                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '2rem' }}>
+                                <input className="form-input" placeholder="Registrar avance..." value={newEntry} onChange={e => setNewEntry(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddEntry()} />
+                                <button className="btn btn-primary btn-sm" onClick={handleAddEntry}><Plus size={14} /></button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
