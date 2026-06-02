@@ -75,7 +75,7 @@ function MapCenterController({ center, zoom }) {
 }
 
 export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerClick, compact = false, externalCenter = null, externalZoom = null }) {
-    const defaultCenter = [-33.5432, -56.8998]; // Trinidad, Flores
+    const defaultCenter = [-32.32, -58.07]; // Paysandú
     const location = useLocation();
     const prefix = location.pathname.startsWith('/gestion') ? '/gestion' : '';
 

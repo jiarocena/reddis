@@ -188,7 +188,7 @@ export default function BarrierDetailPage() {
                             <label className="form-label">¿Quién lidera este proyecto? *</label>
                             <input
                                 className="form-input"
-                                placeholder="Ej: Lic. María García - OSC Inclusión Flores"
+                                placeholder="Ej: Lic. María García - OSC Inclusión Paysandú"
                                 value={claimData.leader}
                                 onChange={e => setClaimData(prev => ({ ...prev, leader: e.target.value }))}
                             />

@@ -8,7 +8,7 @@ export default function Footer() {
                 <div className="footer-grid">
                     <div className="footer-brand">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Network size={20} /> REDDIS
+                            <Network size={20} /> REDDIS (piloto)
                         </h3>
                         <p>
                             Red Digital de Inclusión Social. Plataforma colaborativa para identificar, priorizar y resolver barreras a la inclusión de personas con discapacidad.
@@ -23,11 +23,11 @@ export default function Footer() {
                     <div className="footer-links">
                         <h4>Contacto</h4>
                         <a href="#"><Mail size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />contacto@reddis.uy</a>
-                        <a href="#"><MapPin size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />Flores, Uruguay</a>
+                        <a href="#"><MapPin size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />Paysandú, Uruguay</a>
                     </div>
                 </div>
                 <div className="footer-bottom">
-                    <p>© 2026 REDDIS — Red Digital de Inclusión Social. Experiencia piloto en Flores.</p>
+                    <p>© 2026 REDDIS (piloto) — Red Digital de Inclusión Social. Experiencia piloto en Paysandú.</p>
                 </div>
             </div>
         </footer>

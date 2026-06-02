@@ -28,7 +28,7 @@ export default function Navbar({ mode = 'public' }) {
                     <div className="navbar-brand-icon">
                         <Network size={20} />
                     </div>
-                    REDDIS
+                    REDDIS (piloto)
                     {isGestion && <span className="navbar-mode-badge">Gestión</span>}
                 </Link>
 

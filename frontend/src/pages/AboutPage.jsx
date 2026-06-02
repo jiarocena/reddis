@@ -5,11 +5,11 @@ export default function AboutPage() {
     return (
         <div className="about-page">
             <div className="container">
-                <h1>Acerca de <span className="text-gradient">REDDIS</span></h1>
+                <h1>Acerca de <span className="text-gradient">REDDIS (piloto)</span></h1>
 
                 <div className="about-content">
                     <p>
-                        <strong>REDDIS</strong> (Red Digital de Inclusión Social) es una plataforma digital colaborativa que busca
+                        <strong>REDDIS (piloto)</strong> (Red Digital de Inclusión Social) es una plataforma digital colaborativa que busca
                         conectar a quienes identifican barreras con quienes pueden contribuir a eliminarlas, generando un ciclo
                         virtuoso de denuncia, acción, seguimiento y aprendizaje colectivo.
                     </p>
@@ -22,7 +22,7 @@ export default function AboutPage() {
                     <h2><Target size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px' }} />Objetivo</h2>
                     <p>
                         Construir un sistema participativo de identificación, priorización y resolución de barreras a la inclusión
-                        de personas con discapacidad, comenzando con una experiencia piloto en el departamento de <strong>Flores</strong>.
+                        de personas con discapacidad, comenzando con una experiencia piloto en el departamento de <strong>Paysandú</strong>.
                     </p>
 
                     <h2><Network size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px' }} />Componentes</h2>
