@@ -165,7 +165,7 @@ export default function PendingBarriersPage() {
                                     </p>
                                     {r.message && (
                                         <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', fontStyle: 'italic', marginBottom: '1rem' }}>
-                                            "{r.message}"
+                                            "{r.message.replace(/^\[PROYECTO_ID:\d+\]\s*/, '')}"
                                         </p>
                                     )}
                                     <div style={{ display: 'flex', gap: '0.75rem' }}>
