@@ -27,9 +27,6 @@ export default function BarrierCard({ barrier, compact = false }) {
                     <span className={`badge badge-${barrier.status}`}>
                         {status?.label}
                     </span>
-                    <span className={`badge badge-${barrier.type}`}>
-                        {barrier.type === 'estructural' ? '🏛️' : '👤'} {barrier.type === 'estructural' ? 'Estructural' : 'Individual'}
-                    </span>
                 </div>
                 {!compact && (
                     <p style={{ fontSize: '0.8rem', color: '#6b7280', lineHeight: 1.5, marginBottom: '8px' }}>

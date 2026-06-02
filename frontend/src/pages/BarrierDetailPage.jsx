@@ -77,9 +77,6 @@ export default function BarrierDetailPage() {
                 <div className="barrier-detail-badges">
                     <span className={`badge badge-${barrier.category}`}>{category?.label}</span>
                     <span className={`badge badge-${barrier.status}`}>{status?.label}</span>
-                    <span className={`badge badge-${barrier.type}`}>
-                        {barrier.type === 'estructural' ? '🏛️ Estructural' : '👤 Individual'}
-                    </span>
                     {barrier.urgency === 'alta' && (
                         <span className="badge badge-urgente"><AlertTriangle size={10} /> Urgente</span>
                     )}
