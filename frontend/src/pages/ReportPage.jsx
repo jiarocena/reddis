@@ -150,17 +150,7 @@ export default function ReportPage() {
                 Reportando en: {userDepto}
             </div>
 
-            {/* Progress Steps */}
-            <div className="form-steps">
-                {['Categoría', 'Detalle'].map((label, i) => (
-                    <div key={i} className={`form-step ${step === i + 1 ? 'active' : ''} ${step > i + 1 ? 'completed' : ''}`}>
-                        <div className="form-step-number">
-                            {step > i + 1 ? <CheckCircle size={14} /> : i + 1}
-                        </div>
-                        <span>{label}</span>
-                    </div>
-                ))}
-            </div>
+
 
             {/* Step 1: Category */}
             {step === 1 && (
@@ -234,7 +224,6 @@ export default function ReportPage() {
                             <input
                                 type="text"
                                 className="form-input"
-                                placeholder="Ej: Trinidad, Ismael Cortinas..."
                                 value={formData.localidad}
                                 onChange={(e) => updateField('localidad', e.target.value)}
                             />
@@ -242,17 +231,15 @@ export default function ReportPage() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">
-                            <MapPin size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-                            Ubicación / Dirección *
-                        </label>
+                        <label className="form-label">*</label>
                         <div className="input-with-button">
                             <input
                                 type="text"
                                 className="form-input"
-                                placeholder="Ej: Calle 18 de Julio esq. Rivera, Trinidad"
+                                placeholder="Seleccioná la ubicación en el mapa..."
                                 value={formData.address}
-                                onChange={(e) => updateField('address', e.target.value)}
+                                readOnly
+                                style={{ background: 'var(--gray-100)', color: 'var(--gray-500)', cursor: 'not-allowed' }}
                             />
                             <button
                                 type="button"
@@ -260,7 +247,7 @@ export default function ReportPage() {
                                 onClick={() => setShowMap(true)}
                                 title="Seleccionar en el mapa"
                             >
-                                <Map size={16} /> Mapa
+                                <Map size={16} /> Ubicación
                             </button>
                         </div>
                         {formData.location?.lat && (
@@ -299,41 +286,7 @@ export default function ReportPage() {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
-                        <div className="form-group">
-                            <label className="form-label">¿A quiénes afecta?</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Ej: Personas con movilidad reducida"
-                                value={formData.affectedPeople}
-                                onChange={(e) => updateField('affectedPeople', e.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Urgencia</label>
-                            <select
-                                className="form-select"
-                                value={formData.urgency}
-                                onChange={(e) => updateField('urgency', e.target.value)}
-                            >
-                                <option value="baja">Baja</option>
-                                <option value="media">Media</option>
-                                <option value="alta">Alta</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div className="form-group">
-                        <label className="form-label">¿Quién reporta?</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="Ej: Vecino del barrio, Familiar, Organización..."
-                            value={formData.reportedBy}
-                            onChange={(e) => updateField('reportedBy', e.target.value)}
-                        />
-                    </div>
 
                     {/* Honeypot anti-bot — invisible to humans */}
                     <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }} aria-hidden="true">

@@ -11,7 +11,7 @@ const PAGE_TITLES = {
     '/gestion/registro': { title: 'Crear Cuenta', subtitle: 'Registrate para reportar y colaborar', icon: UserPlus },
     '/gestion/confirmar': { title: 'Confirmar Cuenta', subtitle: 'Verificá tu dirección de correo', icon: Info },
     '/gestion/perfil': { title: 'Mi Cuenta', subtitle: 'Detalles de tu cuenta REDDIS', icon: User },
-    '/gestion/proyectos': { title: 'Proyectos Colaborativos', subtitle: 'Sumate a colaborar en proyectos activos', icon: Handshake },
+    '/gestion/proyectos': { title: 'Colaborar', subtitle: 'Sumate a colaborar en proyectos activos', icon: Handshake },
 };
 
 export default function TopBar() {
