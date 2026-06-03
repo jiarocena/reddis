@@ -95,6 +95,8 @@ public class ReddisAdminController {
             map.put("userEmail", r.getUsuario().getEmail());
             map.put("requestedRole", r.getRequestedRole());
             map.put("message", r.getMessage());
+            map.put("organization", r.getOrganization());
+            map.put("motive", r.getMotive());
             map.put("status", r.getStatus());
             map.put("createdAt", r.getCreatedAt().toString());
             return map;
@@ -150,6 +152,7 @@ public class ReddisAdminController {
                                     .initials(initials)
                                     .proyecto(proj)
                                     .userId(user.getId())
+                                    .organization(req.getOrganization())
                                     .build();
                             colaboradorRepo.save(col);
                             System.out.println("👥 COLABORADOR ASOCIADO AUTOMÁTICAMENTE: " + name + " al proyecto #" + projectId);

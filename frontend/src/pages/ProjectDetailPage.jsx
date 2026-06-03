@@ -152,6 +152,17 @@ export default function ProjectDetailPage() {
                         {project.needsHelp && <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita colaboración</span>}
                     </div>
                     <h1>{project.title}</h1>
+                    {(() => {
+                        const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
+                        if (orgs.length > 0) {
+                            return (
+                                <p style={{ color: 'var(--primary)', fontSize: '0.875rem', fontWeight: 600, margin: '0.25rem 0' }}>
+                                    Organizaciones participantes: {orgs.join(' / ')}
+                                </p>
+                            );
+                        }
+                        return null;
+                    })()}
                     <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem' }}>
                         Liderado por: <strong>{project.leader}</strong> · Inicio: {project.startDate}
                         {project.endDate && ` · Fin: ${project.endDate}`}

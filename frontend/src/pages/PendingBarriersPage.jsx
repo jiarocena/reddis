@@ -171,10 +171,23 @@ export default function PendingBarriersPage() {
                                         {r.userEmail}
                                     </p>
                                     {r.message && (
-                                        <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', fontStyle: 'italic', marginBottom: '1rem' }}>
-                                            "{r.message.replace(/^\[PROYECTO_ID:\d+\]\s*/, '')}"
-                                        </p>
-                                    )}
+                                         <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
+                                             "{r.message.replace(/^\[PROYECTO_ID:\d+\]\s*/, '')}"
+                                         </p>
+                                     )}
+                                     {r.organization && (
+                                         <p style={{ fontSize: '0.85rem', color: 'var(--gray-700)', marginBottom: '0.5rem' }}>
+                                             <strong>Organización:</strong> {r.organization}
+                                         </p>
+                                     )}
+                                     {r.motive && (
+                                         <div style={{ background: 'var(--gray-50)', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)', marginBottom: '1rem' }}>
+                                             <span style={{ fontSize: '0.75rem', color: 'var(--gray-400)', textTransform: 'uppercase', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>Motivo de colaboración</span>
+                                             <p style={{ fontSize: '0.875rem', color: 'var(--gray-700)', margin: 0, whiteSpace: 'pre-wrap' }}>
+                                                 {r.motive}
+                                             </p>
+                                         </div>
+                                     )}
                                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                                         <button className="btn btn-success btn-sm" onClick={() => handleApproveRole(r.id)}>
                                             <CheckCircle size={14} /> Aprobar

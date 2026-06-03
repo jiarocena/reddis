@@ -69,10 +69,10 @@ export async function fetchMe() {
     return request('/auth/me');
 }
 
-export async function requestRole(message) {
+export async function requestRole(message, organization, motive) {
     return request('/auth/role-request', {
         method: 'POST',
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, organization, motive }),
     });
 }
 
@@ -177,9 +177,10 @@ export async function addTimelineEntry(proyectoId, entry) {
     });
 }
 
-export async function joinProyecto(proyectoId) {
+export async function joinProyecto(proyectoId, organization) {
     return request(`/proyectos/${proyectoId}/colaboradores`, {
         method: 'POST',
+        body: JSON.stringify({ organization }),
     });
 }
 

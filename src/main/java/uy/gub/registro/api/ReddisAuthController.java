@@ -284,6 +284,8 @@ public class ReddisAuthController {
                 .usuario(usuario)
                 .requestedRole("COLABORADOR")
                 .message(message)
+                .organization(body.get("organization"))
+                .motive(body.get("motive"))
                 .build();
 
         roleRequestRepo.save(req);

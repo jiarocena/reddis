@@ -11,28 +11,40 @@ export default function ProyectosListPage() {
     const userDepto = user?.departamento || null;
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('todos');
+    const [postulateProject, setPostulateProject] = useState(null);
+    const [orgInput, setOrgInput] = useState('');
+    const [motiveInput, setMotiveInput] = useState('');
+    const isUsuarioComun = user?.rol === 'USUARIO';
 
-    const handlePostular = async (e, project) => {
+    const handleButtonClick = (e, project) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        try {
-            await requestCollaboratorRole(`[PROYECTO_ID:${project.id}] Postulación para colaborar en el proyecto: ${project.title}`);
-            showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
-        } catch (err) {
-            console.error(err);
-            showToast(err.message || 'Error al enviar postulación', 'error');
-        }
+        setPostulateProject(project);
+        setOrgInput('');
+        setMotiveInput('');
     };
 
-    const handleSumarme = async (e, project) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        try {
-            await addCollaborator(project.id);
-        } catch (err) {
-            console.error(err);
+    const handleModalSubmit = async () => {
+        if (isUsuarioComun) {
+            try {
+                await requestCollaboratorRole(
+                    `[PROYECTO_ID:${postulateProject.id}] Postulación para colaborar en el proyecto: ${postulateProject.title}`,
+                    orgInput.trim(),
+                    motiveInput.trim()
+                );
+                showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
+                setPostulateProject(null);
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'Error al enviar postulación', 'error');
+            }
+        } else {
+            try {
+                await addCollaborator(postulateProject.id, orgInput.trim());
+                setPostulateProject(null);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
@@ -53,7 +65,6 @@ export default function ProyectosListPage() {
         return true;
     });
 
-    const isUsuarioComun = user?.rol === 'USUARIO';
     const hasPending = user?.hasPendingRoleRequest;
 
     return (
@@ -277,7 +288,7 @@ export default function ProyectosListPage() {
 
                                 {!isUserCollaborator && !hasPendingForThisProject && (
                                     <button
-                                        onClick={(e) => isUsuarioComun ? handlePostular(e, p) : handleSumarme(e, p)}
+                                        onClick={(e) => handleButtonClick(e, p)}
                                         className="btn btn-accent btn-sm"
                                         style={{
                                             marginTop: '0.75rem',
@@ -297,6 +308,88 @@ export default function ProyectosListPage() {
                     );
                 })}
             </div>
+
+            {postulateProject && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    backdropFilter: 'blur(4px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '1rem'
+                }} onClick={() => setPostulateProject(null)}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '1rem',
+                        padding: '1.75rem',
+                        width: '100%',
+                        maxWidth: '480px',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.25rem',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--gray-800)' }}>
+                                {isUsuarioComun ? 'Postularse como Colaborador' : 'Sumarse al Proyecto'}
+                            </h3>
+                            <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--gray-400)', outline: 'none' }} onClick={() => setPostulateProject(null)}>✕</button>
+                        </div>
+                        
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.4 }}>
+                            {isUsuarioComun ? 'Estás postulándote para colaborar en:' : 'Vas a sumarte como colaborador en:'} <strong style={{ color: 'var(--gray-800)' }}>{postulateProject.title}</strong>
+                        </p>
+                        
+                        <div>
+                            <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Organización de la que provenís (Opcional)</label>
+                            <input 
+                                type="text" 
+                                className="form-input" 
+                                placeholder="Ej. ONG Inclusión, Cooperativa, Vecinal, etc." 
+                                value={orgInput} 
+                                onChange={e => setOrgInput(e.target.value)} 
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+                        
+                        {isUsuarioComun && (
+                            <div>
+                                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Motivo por el que querés colaborar</label>
+                                <textarea 
+                                    className="form-input" 
+                                    rows={4} 
+                                    placeholder="Contanos brevemente por qué querés sumarte a este proyecto y cómo podés aportar..." 
+                                    value={motiveInput} 
+                                    onChange={e => setMotiveInput(e.target.value)} 
+                                    style={{ width: '100%', resize: 'none', fontFamily: 'inherit' }}
+                                    required
+                                />
+                            </div>
+                        )}
+                        
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setPostulateProject(null)}>
+                                Cancelar
+                            </button>
+                            <button 
+                                type="button" 
+                                className="btn btn-primary btn-sm" 
+                                onClick={handleModalSubmit} 
+                                disabled={isUsuarioComun && !motiveInput.trim()}
+                            >
+                                {isUsuarioComun ? 'Enviar Postulación' : 'Sumarme'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

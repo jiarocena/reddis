@@ -206,10 +206,10 @@ export function DataProvider({ children }) {
         }
     }
 
-    async function addCollaborator(projectId) {
+    async function addCollaborator(projectId, organization) {
         if (backendAvailable) {
             try {
-                const saved = await api.joinProyecto(projectId);
+                const saved = await api.joinProyecto(projectId, organization);
                 // Refresh the project to get updated collaborators list
                 const updated = await api.fetchProyecto(projectId);
                 setProjects(prev => prev.map(p => p.id == projectId ? updated : p));

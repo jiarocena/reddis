@@ -293,7 +293,8 @@ public class ProyectoRestController {
     }
 
     @PostMapping("/proyectos/{id}/colaboradores")
-    public ResponseEntity<?> agregarColaborador(@PathVariable Long id) {
+    public ResponseEntity<?> agregarColaborador(@PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
         // Get current user - they join with their own name
         Usuario user = getCurrentUser();
         if (user == null) {
@@ -322,11 +323,14 @@ public class ProyectoRestController {
                 ? ("" + nombre.split(" ")[0].charAt(0) + nombre.split(" ")[1].charAt(0)).toUpperCase()
                 : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
 
+        String organization = body != null ? body.get("organization") : null;
+
         Colaborador col = Colaborador.builder()
                 .name(nombre)
                 .role(user.getRol())
                 .initials(initials)
                 .userId(user.getId())
+                .organization(organization)
                 .build();
 
         Colaborador saved = reddisService.agregarColaborador(id, col);
@@ -378,6 +382,7 @@ public class ProyectoRestController {
             cm.put("role", c.getRole());
             cm.put("initials", c.getInitials());
             cm.put("userId", c.getUserId());
+            cm.put("organization", c.getOrganization());
             collabs.add(cm);
         }
         m.put("collaborators", collabs);

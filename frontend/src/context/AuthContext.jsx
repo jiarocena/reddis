@@ -63,8 +63,8 @@ export function AuthProvider({ children }) {
         }
     }, [token, logout]);
 
-    const requestCollaboratorRole = useCallback(async (message) => {
-        const result = await api.requestRole(message);
+    const requestCollaboratorRole = useCallback(async (message, organization, motive) => {
+        const result = await api.requestRole(message, organization, motive);
         await refreshUser();
         return result;
     }, [refreshUser]);

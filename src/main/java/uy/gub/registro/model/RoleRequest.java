@@ -31,6 +31,12 @@ public class RoleRequest {
     @Column(length = 500)
     private String message;
 
+    @Column(length = 200)
+    private String organization;
+
+    @Column(length = 1000)
+    private String motive;
+
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
