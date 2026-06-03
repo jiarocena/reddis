@@ -60,7 +60,7 @@ function MapBounds({ barriers }) {
                 .map(b => [b.location.lat, b.location.lng]);
             if (validCoords.length > 0) {
                 const bounds = L.latLngBounds(validCoords);
-                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
                 hasZoomed.current = true;
             }
         }
