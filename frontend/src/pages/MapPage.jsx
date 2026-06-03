@@ -9,7 +9,7 @@ import { Filter, X, Search, MapPin } from 'lucide-react';
 
 export default function MapPage() {
     const { barriers } = useData();
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, loading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
@@ -28,18 +28,42 @@ export default function MapPage() {
     const [mapZoom, setMapZoom] = useState(userDeptoData ? userDeptoData.zoom : null);
     const [initializedForUser, setInitializedForUser] = useState(false);
 
-    // Auto-center on user's department when user loads
+    // Auto-center map: user department if authenticated, otherwise browser geolocation
     useEffect(() => {
-        if (user?.departamento && !initializedForUser) {
-            const depto = DEPARTAMENTOS.find(d => d.nombre === user.departamento);
-            if (depto) {
-                setSelectedDepartamento(user.departamento);
-                setMapCenter(depto.center);
-                setMapZoom(depto.zoom);
+        if (loading || initializedForUser) return;
+
+        if (isAuthenticated) {
+            if (user?.departamento) {
+                const depto = DEPARTAMENTOS.find(d => d.nombre === user.departamento);
+                if (depto) {
+                    setSelectedDepartamento(user.departamento);
+                    setMapCenter(depto.center);
+                    setMapZoom(depto.zoom);
+                    setInitializedForUser(true);
+                }
+            } else {
+                setInitializedForUser(true);
+            }
+        } else {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setMapCenter([latitude, longitude]);
+                        setMapZoom(14); // Closer zoom for device location
+                        setInitializedForUser(true);
+                    },
+                    (error) => {
+                        console.warn("Error getting geolocation:", error);
+                        setInitializedForUser(true); // Don't loop if error/denied
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+                );
+            } else {
                 setInitializedForUser(true);
             }
         }
-    }, [user, initializedForUser]);
+    }, [loading, isAuthenticated, user, initializedForUser]);
 
     const filteredBarriers = barriers.filter(b => {
         if (!b.isPublic) return false;

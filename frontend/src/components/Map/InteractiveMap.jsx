@@ -49,12 +49,12 @@ function createColoredIcon(status) {
     });
 }
 
-function MapBounds({ barriers }) {
+function MapBounds({ barriers, active = true }) {
     const map = useMap();
     const hasZoomed = useRef(false);
 
     useEffect(() => {
-        if (barriers.length > 0 && !hasZoomed.current) {
+        if (active && barriers.length > 0 && !hasZoomed.current) {
             const validCoords = barriers
                 .filter(b => b && b.location && b.location.lat !== null && b.location.lng !== null)
                 .map(b => [b.location.lat, b.location.lng]);
@@ -64,7 +64,7 @@ function MapBounds({ barriers }) {
                 hasZoomed.current = true;
             }
         }
-    }, [barriers, map]);
+    }, [barriers, map, active]);
 
     return null;
 }
@@ -98,8 +98,8 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
 
     return (
         <MapContainer
-            center={defaultCenter}
-            zoom={7}
+            center={externalCenter || defaultCenter}
+            zoom={externalZoom || 7}
             style={{ width: '100%', height: '100%', minHeight: compact ? '300px' : '500px' }}
             scrollWheelZoom={true}
         >
@@ -107,7 +107,7 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <MapBounds barriers={filteredBarriers} />
+            <MapBounds barriers={filteredBarriers} active={!externalCenter} />
             <MapCenterController center={externalCenter} zoom={externalZoom} />
             {filteredBarriers.map(barrier => (
                 <Marker
