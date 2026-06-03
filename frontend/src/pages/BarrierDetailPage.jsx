@@ -158,9 +158,29 @@ export default function BarrierDetailPage() {
             )}
 
             {/* Map */}
-            <div style={{ marginBottom: 'var(--space-8)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', height: '250px', boxShadow: 'var(--shadow-md)' }}>
-                <InteractiveMap barriers={[barrier]} compact />
-            </div>
+            {barrier.location && barrier.location.lat !== null && barrier.location.lat !== undefined && barrier.location.lng !== null && barrier.location.lng !== undefined && !isNaN(Number(barrier.location.lat)) && !isNaN(Number(barrier.location.lng)) ? (
+                <div style={{ marginBottom: 'var(--space-8)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', height: '250px', boxShadow: 'var(--shadow-md)' }}>
+                    <InteractiveMap barriers={[barrier]} compact />
+                </div>
+            ) : (
+                <div style={{
+                    marginBottom: 'var(--space-8)',
+                    borderRadius: 'var(--radius-xl)',
+                    height: '250px',
+                    boxShadow: 'var(--shadow-md)',
+                    background: 'var(--gray-50)',
+                    border: '1px dashed var(--gray-200)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--gray-400)',
+                    gap: 'var(--space-2)'
+                }}>
+                    <MapPin size={32} />
+                    <span style={{ fontSize: 'var(--font-sm)', fontWeight: 500 }}>Ubicación geográfica no disponible en el mapa</span>
+                </div>
+            )}
 
             {/* Claim Modal */}
             {showClaimModal && (

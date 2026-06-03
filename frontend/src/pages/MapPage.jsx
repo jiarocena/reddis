@@ -42,6 +42,10 @@ export default function MapPage() {
 
     const filteredBarriers = barriers.filter(b => {
         if (!b.isPublic) return false;
+        // Exclude barriers without valid coordinates to prevent map rendering issues
+        if (!b.location || b.location.lat === null || b.location.lat === undefined || b.location.lng === null || b.location.lng === undefined || isNaN(Number(b.location.lat)) || isNaN(Number(b.location.lng))) {
+            return false;
+        }
         // In public mode, only show approved barriers
         if (!isGestion && b.approved === false) return false;
         // If user is logged in, always filter by their department

@@ -55,9 +55,14 @@ function MapBounds({ barriers }) {
 
     useEffect(() => {
         if (barriers.length > 0 && !hasZoomed.current) {
-            const bounds = L.latLngBounds(barriers.map(b => [b.location.lat, b.location.lng]));
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
-            hasZoomed.current = true;
+            const validCoords = barriers
+                .filter(b => b && b.location && b.location.lat !== null && b.location.lng !== null)
+                .map(b => [b.location.lat, b.location.lng]);
+            if (validCoords.length > 0) {
+                const bounds = L.latLngBounds(validCoords);
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+                hasZoomed.current = true;
+            }
         }
     }, [barriers, map]);
 
@@ -79,7 +84,17 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
     const location = useLocation();
     const prefix = location.pathname.startsWith('/gestion') ? '/gestion' : '';
 
-    const filteredBarriers = barriers.filter(b => b.isPublic);
+    const filteredBarriers = (barriers || []).filter(b => 
+        b &&
+        b.isPublic &&
+        b.location &&
+        b.location.lat !== null &&
+        b.location.lat !== undefined &&
+        b.location.lng !== null &&
+        b.location.lng !== undefined &&
+        !isNaN(Number(b.location.lat)) &&
+        !isNaN(Number(b.location.lng))
+    );
 
     return (
         <MapContainer
