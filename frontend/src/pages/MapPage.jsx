@@ -26,6 +26,7 @@ export default function MapPage() {
     const [mapCenter, setMapCenter] = useState(userDeptoData ? userDeptoData.center : null);
     const [mapZoom, setMapZoom] = useState(userDeptoData ? userDeptoData.zoom : null);
     const [initializedForUser, setInitializedForUser] = useState(false);
+    const [sheetState, setSheetState] = useState('medium'); // 'collapsed' | 'medium' | 'expanded'
 
     // Auto-center on user's department when user loads
     useEffect(() => {
@@ -88,6 +89,14 @@ export default function MapPage() {
         }
     };
 
+    const toggleSheetState = () => {
+        setSheetState(prev => {
+            if (prev === 'collapsed') return 'medium';
+            if (prev === 'medium') return 'expanded';
+            return 'collapsed';
+        });
+    };
+
     return (
         <div className="map-page">
             <div className="map-container">
@@ -100,7 +109,12 @@ export default function MapPage() {
                 />
             </div>
 
-            <div className="map-sidebar">
+            <div className={`map-sidebar mobile-sheet-${sheetState}`}>
+                {/* Handle bar for mobile bottom sheet */}
+                <div className="sheet-handle-container" onClick={toggleSheetState}>
+                    <div className="sheet-handle"></div>
+                </div>
+
                 <h2 style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-4)', color: 'var(--gray-900)' }}>
                     Barreras Reportadas
                 </h2>
