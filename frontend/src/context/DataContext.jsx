@@ -115,6 +115,26 @@ export function DataProvider({ children }) {
         }
     }
 
+    async function deleteBarrier(id) {
+        if (backendAvailable) {
+            try {
+                await api.deleteBarrera(id);
+                showToast('Barrera eliminada con éxito', 'success');
+                await loadData(true);
+                return true;
+            } catch (err) {
+                console.error('Error al eliminar barrera:', err);
+                showToast(err.message || 'Error al eliminar barrera', 'error');
+                return false;
+            }
+        } else {
+            setBarriers(prev => prev.filter(b => b.id != id));
+            setProjects(prev => prev.filter(p => p.barrierId != id));
+            showToast('Barrera eliminada (modo local)', 'success');
+            return true;
+        }
+    }
+
     // ═══════════════ PROJECT OPERATIONS ═══════════════
 
     async function createProject(barrierId, projectData) {
@@ -248,6 +268,32 @@ export function DataProvider({ children }) {
         }
     }
 
+    async function deleteProject(id) {
+        if (backendAvailable) {
+            try {
+                await api.deleteProyecto(id);
+                showToast('Proyecto eliminado con éxito', 'success');
+                await loadData(true);
+                return true;
+            } catch (err) {
+                console.error('Error al eliminar proyecto:', err);
+                showToast(err.message || 'Error al eliminar proyecto', 'error');
+                return false;
+            }
+        } else {
+            setProjects(prev => prev.filter(p => p.id != id));
+            setBarriers(prev => prev.map(b => {
+                const associatedProj = projects.find(p => p.id == id);
+                if (associatedProj && b.id == associatedProj.barrierId) {
+                    return { ...b, status: 'denuncia' };
+                }
+                return b;
+            }));
+            showToast('Proyecto eliminado (modo local)', 'success');
+            return true;
+        }
+    }
+
     // ═══════════════ NOTIFICATIONS ═══════════════
 
     function addNotification(message) {
@@ -284,9 +330,11 @@ export function DataProvider({ children }) {
         loading,
         backendAvailable,
         addBarrier,
+        deleteBarrier,
         createProject,
         updateProject,
         updateProjectStatus,
+        deleteProject,
         addCollaborator,
         addTimelineEntry,
         resetData,

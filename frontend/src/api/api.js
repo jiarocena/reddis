@@ -109,6 +109,25 @@ export async function fetchAllUsers() {
     return request('/admin/users');
 }
 
+export async function deleteUsuario(id) {
+    return request(`/admin/users/${id}`, { method: 'DELETE' });
+}
+
+export async function confirmUsuarioEmail(email) {
+    return request('/admin/confirm-user', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+    });
+}
+
+export async function deleteBarrera(id) {
+    return request(`/admin/barriers/${id}`, { method: 'DELETE' });
+}
+
+export async function deleteProyecto(id) {
+    return request(`/admin/projects/${id}`, { method: 'DELETE' });
+}
+
 // ═══════════════ BARRERAS ═══════════════
 
 // Fetches barriers WITH auth (for staff views)

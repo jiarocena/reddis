@@ -288,4 +288,43 @@ public class ReddisAdminController {
 
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado: " + email));
     }
+
+    @DeleteMapping("/barriers/{id}")
+    public ResponseEntity<?> deleteBarrier(@PathVariable Long id) {
+        var opt = barreraRepo.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Barrera b = opt.get();
+
+        // Delete associated project first to avoid constraint violations
+        proyectoRepo.findAll().stream()
+                .filter(p -> p.getBarrera() != null && p.getBarrera().getId().equals(id))
+                .findFirst()
+                .ifPresent(proyectoRepo::delete);
+
+        barreraRepo.delete(b);
+        System.out.println("🗑️ BARRERA ELIMINADA: #" + id);
+
+        return ResponseEntity.ok(Map.of("message", "Barrera eliminada con éxito"));
+    }
+
+    @DeleteMapping("/projects/{id}")
+    public ResponseEntity<?> deleteProject(@PathVariable Long id) {
+        var opt = proyectoRepo.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Proyecto p = opt.get();
+
+        // Reset associated barrier status to "denuncia"
+        if (p.getBarrera() != null) {
+            Barrera b = p.getBarrera();
+            b.setStatus("denuncia");
+            barreraRepo.save(b);
+        }
+
+        proyectoRepo.delete(p);
+        System.out.println("🗑️ PROYECTO ELIMINADO: #" + id);
+
+        return ResponseEntity.ok(Map.of("message", "Proyecto eliminado con éxito"));
+    }
 }

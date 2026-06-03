@@ -1405,6 +1405,36 @@ select {
   color: var(--gray-900);
 }
 
+.admin-tabs {
+  display: flex;
+  gap: var(--space-4);
+  border-bottom: 2px solid var(--gray-200);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.admin-tab-btn {
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  font-size: var(--font-sm);
+  color: var(--gray-500);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all var(--transition-fast);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-tab-btn:hover {
+  color: var(--primary-600);
+}
+
+.admin-tab-btn.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-500);
+}
+
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
