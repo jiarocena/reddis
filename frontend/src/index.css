@@ -2357,11 +2357,12 @@ select {
   .map-page {
     height: calc(100vh - 56px);
     height: calc(100dvh - 56px);
+    flex-direction: row;
   }
 
   .map-sidebar {
-    height: 35vh;
-    padding: var(--space-4);
+    height: 100%;
+    padding: var(--space-3);
   }
 
   .map-filters {
@@ -2637,20 +2638,23 @@ select {
 
   /* Map full-height on mobile */
   .map-page {
-    flex-direction: column;
+    flex-direction: row;
     height: calc(100vh - 56px);
     height: calc(100dvh - 56px);
   }
 
   .map-sidebar {
-    width: 100%;
-    height: 38vh;
-    border-left: none;
-    border-top: 1px solid var(--gray-200);
+    width: 35%;
+    min-width: 220px;
+    max-width: 320px;
+    height: 100%;
+    border-left: 1px solid var(--gray-200);
+    border-top: none;
   }
 
   .map-container {
-    height: 62vh;
+    flex: 1;
+    height: 100%;
   }
 
   /* Report form */
