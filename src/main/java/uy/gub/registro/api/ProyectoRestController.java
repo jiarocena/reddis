@@ -99,6 +99,13 @@ public class ProyectoRestController {
             if (body.get("resources") != null) existing.setResources((String) body.get("resources"));
             if (body.get("needsHelp") != null) existing.setNeedsHelp((Boolean) body.get("needsHelp"));
             if (body.get("helpDescription") != null) existing.setHelpDescription((String) body.get("helpDescription"));
+            if (body.containsKey("accionesPrevistas")) {
+                List<String> list = (List<String>) body.get("accionesPrevistas");
+                existing.getAccionesPrevistas().clear();
+                if (list != null) {
+                    existing.getAccionesPrevistas().addAll(list);
+                }
+            }
             
             // Set status to "iniciando" when claimed
             existing.setStatus("iniciando");
@@ -117,6 +124,12 @@ public class ProyectoRestController {
                 .needsHelp(body.get("needsHelp") != null && (Boolean) body.get("needsHelp"))
                 .helpDescription((String) body.get("helpDescription"))
                 .build();
+        if (body.containsKey("accionesPrevistas")) {
+            List<String> list = (List<String>) body.get("accionesPrevistas");
+            if (list != null) {
+                proyecto.getAccionesPrevistas().addAll(list);
+            }
+        }
 
         Proyecto saved = reddisService.crearProyecto(proyecto, barreraId);
         return ResponseEntity.ok(toMap(saved));
@@ -217,6 +230,13 @@ public class ProyectoRestController {
         }
         if (body.containsKey("helpDescription")) {
             proyecto.setHelpDescription((String) body.get("helpDescription"));
+        }
+        if (body.containsKey("accionesPrevistas")) {
+            List<String> list = (List<String>) body.get("accionesPrevistas");
+            proyecto.getAccionesPrevistas().clear();
+            if (list != null) {
+                proyecto.getAccionesPrevistas().addAll(list);
+            }
         }
 
         if (body.containsKey("status")) {
@@ -338,6 +358,7 @@ public class ProyectoRestController {
         m.put("title", p.getTitle());
         m.put("description", p.getDescription());
         m.put("objective", p.getObjective());
+        m.put("accionesPrevistas", p.getAccionesPrevistas());
         m.put("status", p.getStatus());
         m.put("leader", p.getLeader());
         m.put("resources", p.getResources());

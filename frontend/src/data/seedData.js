@@ -198,6 +198,11 @@ export const SEED_PROJECTS = [
             { date: '2026-02-15', text: 'Gestión para incorporar segundo intérprete para turno nocturno.', completed: false }
         ],
         startDate: '2025-10-25',
+        accionesPrevistas: [
+            'Contratar intérpretes de LSU calificados',
+            'Coordinar con la dirección del hospital la asignación de espacios físicos',
+            'Difundir la disponibilidad del servicio a la comunidad sorda local'
+        ],
     },
     {
         id: 'p2',
@@ -223,6 +228,11 @@ export const SEED_PROJECTS = [
             { date: '2026-03-01', text: 'Capacitación a funcionarios (previsto).', completed: false }
         ],
         startDate: '2025-09-20',
+        accionesPrevistas: [
+            'Redactar borrador del protocolo de atención inclusiva',
+            'Realizar jornadas de capacitación a funcionarios públicos de atención',
+            'Establecer canales accesibles para el reporte de reclamos en la comuna'
+        ],
     },
     {
         id: 'p3',
@@ -250,7 +260,12 @@ export const SEED_PROJECTS = [
         startDate: '2025-07-01',
         endDate: '2025-09-10',
         impact: '15 personas con movilidad reducida beneficiadas directamente',
-        lessons: 'La articulación con empresas locales aceleró el proceso. El diseño participativo con PCD fue clave para la funcionalidad del refugio.'
+        lessons: 'La articulación con empresas locales aceleró el proceso. El diseño participativo con PCD fue clave para la funcionalidad del refugio.',
+        accionesPrevistas: [
+            'Gestionar donación de cemento con Constructora López',
+            'Realizar rebaje de cordón y nivelación de vereda en zona de parada',
+            'Construir refugio techado con espacio reservado para sillas de ruedas'
+        ],
     },
     {
         id: 'p4',
@@ -273,6 +288,11 @@ export const SEED_PROJECTS = [
             { date: '2026-01-15', text: 'BPS confirma cobertura parcial. Se busca financiamiento complementario.', completed: false }
         ],
         startDate: '2025-12-05',
+        accionesPrevistas: [
+            'Presentar expediente médico de Juan M. ante BPS',
+            'Organizar colecta comunitaria para cubrir la diferencia de costo',
+            'Brindar capacitación básica a Juan M. en el manejo de la silla motorizada'
+        ],
     }
 ];
 

@@ -71,6 +71,12 @@ public class Proyecto {
     @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimelineEntry> timeline = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "proyecto_acciones_previstas", joinColumns = @JoinColumn(name = "proyecto_id"))
+    @Column(name = "accion", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> accionesPrevistas = new ArrayList<>();
+
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

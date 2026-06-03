@@ -26,6 +26,8 @@ export default function ProjectDetailPage() {
     const [editLeader, setEditLeader] = useState('');
     const [editResources, setEditResources] = useState('');
     const [editStatus, setEditStatus] = useState('');
+    const [editAccionesPrevistas, setEditAccionesPrevistas] = useState([]);
+    const [newAccion, setNewAccion] = useState('');
 
     const project = projects.find(p => String(p.id) === String(id));
     const barrier = project ? barriers.find(b => String(b.id) === String(project.barrierId)) : null;
@@ -44,6 +46,8 @@ export default function ProjectDetailPage() {
         setEditLeader(project.leader || '');
         setEditResources(project.resources || '');
         setEditStatus(project.status || '');
+        setEditAccionesPrevistas(project.accionesPrevistas || []);
+        setNewAccion('');
         setIsEditing(true);
     };
 
@@ -55,11 +59,22 @@ export default function ProjectDetailPage() {
                 leader: editLeader,
                 resources: editResources,
                 status: editStatus,
+                accionesPrevistas: editAccionesPrevistas,
             });
             setIsEditing(false);
         } catch (err) {
             console.error(err);
         }
+    };
+
+    const handleAddAccion = () => {
+        if (!newAccion.trim()) return;
+        setEditAccionesPrevistas(prev => [...prev, newAccion.trim()]);
+        setNewAccion('');
+    };
+
+    const handleRemoveAccion = (index) => {
+        setEditAccionesPrevistas(prev => prev.filter((_, i) => i !== index));
     };
 
     const isUsuarioComun = user?.rol === 'USUARIO';
@@ -188,6 +203,53 @@ export default function ProjectDetailPage() {
                         />
                     </div>
 
+                    <div>
+                        <label className="form-label" style={{ fontWeight: 600 }}>Acciones Previstas</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            {editAccionesPrevistas.length === 0 ? (
+                                <p style={{ fontSize: '0.875rem', color: 'var(--gray-400)', margin: '0.25rem 0' }}>No hay acciones previstas registradas.</p>
+                            ) : (
+                                editAccionesPrevistas.map((accion, idx) => (
+                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', background: 'var(--gray-50)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
+                                        <span style={{ fontSize: '0.875rem', color: 'var(--gray-700)' }}>{accion}</span>
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-secondary btn-sm" 
+                                            style={{ padding: '0.2rem 0.4rem', minWidth: 'auto', color: 'var(--danger)', borderColor: 'var(--danger)', background: 'transparent' }}
+                                            onClick={() => handleRemoveAccion(idx)}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input 
+                                type="text" 
+                                className="form-input" 
+                                placeholder="Agregar acción prevista..." 
+                                value={newAccion} 
+                                onChange={e => setNewAccion(e.target.value)} 
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddAccion();
+                                    }
+                                }}
+                                style={{ flexGrow: 1 }}
+                            />
+                            <button 
+                                type="button" 
+                                className="btn btn-primary btn-sm" 
+                                onClick={handleAddAccion}
+                                style={{ minWidth: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
+                    </div>
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
                             <label className="form-label" style={{ fontWeight: 600 }}>Líder de Proyecto</label>
@@ -262,6 +324,21 @@ export default function ProjectDetailPage() {
                         <div>
                             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Target size={16} /> Objetivo</h3>
                             <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.objective || 'Sin definir'}</p>
+                        </div>
+                        <div>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><CheckCircle size={16} /> Acciones Previstas</h3>
+                            {(!project.accionesPrevistas || project.accionesPrevistas.length === 0) ? (
+                                <p style={{ fontSize: '0.875rem', color: 'var(--gray-500)', fontStyle: 'italic' }}>Sin acciones previstas definidas</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {project.accionesPrevistas.map((accion, idx) => (
+                                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.5 }}>
+                                            <Circle size={8} style={{ marginTop: '0.5rem', fill: 'var(--gray-400)', stroke: 'none', minWidth: '8px' }} />
+                                            <span>{accion}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
