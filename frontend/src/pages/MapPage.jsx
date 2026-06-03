@@ -183,41 +183,40 @@ export default function MapPage() {
                                 )}
                             </div>
 
-                            {/* Category Filters */}
-                            <div className="filter-group-item">
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <Filter size={12} /> Categoría
-                                </label>
-                                <div className="map-filters">
-                                    <button
-                                        className={`filter-btn ${selectedCategory === 'todas' ? 'active' : ''}`}
-                                        onClick={() => setSelectedCategory('todas')}
-                                    >Todas</button>
-                                    {Object.entries(CATEGORIES).map(([key, cat]) => (
-                                        <button
-                                            key={key}
-                                            className={`filter-btn ${selectedCategory === key ? `active-${key}` : ''}`}
-                                            onClick={() => setSelectedCategory(key)}
-                                        >{cat.label}</button>
-                                    ))}
+                            {/* Category and Status Dropdowns side-by-side */}
+                            <div className="filter-row-container" style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', flex: 2 }}>
+                                <div className="filter-group-item" style={{ flex: 1, minWidth: '160px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Filter size={12} /> Categoría
+                                    </label>
+                                    <select
+                                        className="form-select"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)', width: '100%' }}
+                                    >
+                                        <option value="todas">Todas las categorías</option>
+                                        {Object.entries(CATEGORIES).map(([key, cat]) => (
+                                            <option key={key} value={key}>{cat.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
 
-                            {/* Status Filters */}
-                            <div className="filter-group-item">
-                                <label>Estado</label>
-                                <div className="map-filters">
-                                    <button
-                                        className={`filter-btn ${selectedStatus === 'todos' ? 'active' : ''}`}
-                                        onClick={() => setSelectedStatus('todos')}
-                                    >Todos</button>
-                                    {Object.entries(PROJECT_STATUSES).map(([key, st]) => (
-                                        <button
-                                            key={key}
-                                            className={`filter-btn ${selectedStatus === key ? `active` : ''}`}
-                                            onClick={() => setSelectedStatus(key)}
-                                        >{st.label}</button>
-                                    ))}
+                                <div className="filter-group-item" style={{ flex: 1, minWidth: '160px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        Estado
+                                    </label>
+                                    <select
+                                        className="form-select"
+                                        value={selectedStatus}
+                                        onChange={(e) => setSelectedStatus(e.target.value)}
+                                        style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)', width: '100%' }}
+                                    >
+                                        <option value="todos">Todos los estados</option>
+                                        {Object.entries(PROJECT_STATUSES).map(([key, st]) => (
+                                            <option key={key} value={key}>{st.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>

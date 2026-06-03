@@ -142,7 +142,7 @@ export default function InteractiveMap({ barriers, selectedBarrierId, onMarkerCl
                             <Link
                                 to={`${prefix}/barrera/${barrier.id}`}
                                 className="btn btn-primary btn-sm"
-                                style={{ fontSize: '11px' }}
+                                style={{ fontSize: '11px', color: '#ffffff' }}
                             >
                                 Ver detalle
                             </Link>
