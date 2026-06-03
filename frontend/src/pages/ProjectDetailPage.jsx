@@ -164,7 +164,13 @@ export default function ProjectDetailPage() {
                 )}
             </div>
 
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-800)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem', marginTop: '1.5rem' }}>Proyecto</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: '2rem 0 1.5rem 0' }}>
+                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--gray-300))' }} />
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gray-800)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0, padding: '0 0.5rem' }}>
+                    Proyecto
+                </h2>
+                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--gray-300))' }} />
+            </div>
 
             {isEditing ? (
                 <div className="card animate-fadeIn" style={{ marginBottom: '2rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -383,8 +389,13 @@ export default function ProjectDetailPage() {
                 )}
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid var(--gray-200)', margin: '2.5rem 0' }} />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-800)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Ejecución</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: '3.5rem 0 2.5rem 0' }}>
+                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--gray-300))' }} />
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gray-800)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0, padding: '0 0.5rem' }}>
+                    Ejecución
+                </h2>
+                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--gray-300))' }} />
+            </div>
 
             {/* Status Bar */}
             <div className="project-status-bar" style={{ marginBottom: '2rem' }}>
