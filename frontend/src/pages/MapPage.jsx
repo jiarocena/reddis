@@ -68,12 +68,6 @@ export default function MapPage() {
 
     const handleMarkerClick = (barrierId) => {
         setSelectedBarrierId(barrierId);
-        // Switch to list view and scroll to the clicked card
-        setViewMode('list');
-        setTimeout(() => {
-            const el = document.getElementById(`barrier-${barrierId}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
     };
 
     const handleDepartamentoChange = (deptoName) => {
