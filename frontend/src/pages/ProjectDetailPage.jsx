@@ -25,7 +25,6 @@ export default function ProjectDetailPage() {
     // Local states for inputs (autosave)
     const [descVal, setDescVal] = useState('');
     const [objVal, setObjVal] = useState('');
-    const [leaderVal, setLeaderVal] = useState('');
     const [newAccion, setNewAccion] = useState('');
 
     // Toggle edit states for Description and Objective
@@ -40,7 +39,6 @@ export default function ProjectDetailPage() {
         if (project) {
             setDescVal(project.description || '');
             setObjVal(project.objective || '');
-            setLeaderVal(project.leader || '');
         }
     }, [project?.id]);
 
@@ -67,7 +65,7 @@ export default function ProjectDetailPage() {
     };
 
     const isUsuarioComun = user?.rol === 'USUARIO';
-    const hasPending = user?.hasPendingRoleRequest;
+    const hasPending = user?.hasPendingRole;
 
     const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
         const msgs = user?.pendingRoleRequestMessages || (user?.pendingRoleRequestMessage ? [user.pendingRoleRequestMessage] : []);
@@ -149,7 +147,7 @@ export default function ProjectDetailPage() {
                     onClick={() => setActiveTab('ejecucion')}
                     style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none', whiteSpace: 'nowrap' }}
                 >
-                    <Activity size={16} /> Ejecución y Avances
+                    <Activity size={16} /> Ejecución
                 </button>
             </div>
 
@@ -229,29 +227,6 @@ export default function ProjectDetailPage() {
                                     </div>
                                 ) : (
                                     <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7, margin: 0 }}>{project.objective || 'Sin definir'}</p>
-                                )}
-                            </div>
-
-                            {/* Líder de Proyecto */}
-                            <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
-                                    Referente / Líder de Proyecto
-                                </h3>
-                                {canEdit ? (
-                                    <div className="autosave-field-wrapper">
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={leaderVal}
-                                            onChange={e => setLeaderVal(e.target.value)}
-                                            onBlur={() => handleBlur('leader', leaderVal, project.leader)}
-                                            placeholder="Nombre del líder o referente..."
-                                            style={{ fontSize: '0.875rem' }}
-                                        />
-                                        <small className="autosave-hint">Se guarda automáticamente al hacer clic fuera.</small>
-                                    </div>
-                                ) : (
-                                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', margin: 0 }}>{project.leader}</p>
                                 )}
                             </div>
 
@@ -382,14 +357,14 @@ export default function ProjectDetailPage() {
                         <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-4)' }}>
                             Progreso del Proyecto
                         </h3>
-                        <div className="project-status-bar" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', background: 'var(--gray-50)', padding: 'var(--space-4) var(--space-6)', borderRadius: 'var(--radius-xl)' }}>
+                        <div className="project-status-bar" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', background: 'var(--gray-50)', padding: 'var(--space-4) var(--space-6)', borderRadius: 'var(--radius-xl)' }}>
                             {statusOrder.map((s, i) => (
                                 <div key={s} style={{ display: 'contents' }}>
-                                    <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--font-sm)', fontWeight: 500 }}>
-                                        {idx > i ? <CheckCircle size={18} style={{ color: 'var(--success)' }} /> : <Circle size={18} />}
+                                    <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--font-xs)', fontWeight: 500 }}>
+                                        {idx > i ? <CheckCircle size={16} style={{ color: 'var(--success)' }} /> : <Circle size={16} />}
                                         <span>{PROJECT_STATUSES[s]?.label}</span>
                                     </div>
-                                    {i < 2 && <div className={`status-connector ${idx > i ? 'completed' : ''}`} style={{ flexGrow: 1, height: '2px', background: idx > i ? 'var(--success)' : 'var(--gray-200)' }} />}
+                                    {i < 2 && <div className="status-connector" style={{ flexGrow: 1, height: '2px', background: idx > i ? 'var(--success)' : 'var(--gray-200)' }} />}
                                 </div>
                             ))}
                         </div>
