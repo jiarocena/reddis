@@ -164,18 +164,7 @@ export default function ProjectDetailPage() {
                 )}
             </div>
 
-            {/* Status Bar */}
-            <div className="project-status-bar">
-                {statusOrder.map((s, i) => (
-                    <div key={s} style={{ display: 'contents' }}>
-                        <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`}>
-                            {idx > i ? <CheckCircle size={18} /> : <Circle size={18} />}
-                            <span>{PROJECT_STATUSES[s]?.label}</span>
-                        </div>
-                        {i < 2 && <div className={`status-connector ${idx > i ? 'completed' : ''}`} />}
-                    </div>
-                ))}
-            </div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-800)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem', marginTop: '1.5rem' }}>Proyecto</h2>
 
             {isEditing ? (
                 <div className="card animate-fadeIn" style={{ marginBottom: '2rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -299,21 +288,7 @@ export default function ProjectDetailPage() {
                 </div>
             ) : (
                 <>
-                    {/* Status change buttons — for collaborators or staff (REFERENTE/ADMIN) of this project */}
-                    {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
-                        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-                            {project.status === 'iniciando' && (
-                                <button className="btn btn-primary btn-sm" onClick={() => updateProjectStatus(project.id, 'en-proceso')}>
-                                    Marcar "En Proceso"
-                                </button>
-                            )}
-                            {project.status === 'en-proceso' && (
-                                <button className="btn btn-success btn-sm" onClick={() => updateProjectStatus(project.id, 'finalizado')}>
-                                    <CheckCircle size={14} /> Finalizar
-                                </button>
-                            )}
-                        </div>
-                    )}
+
 
                     {/* Info */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
@@ -406,6 +381,22 @@ export default function ProjectDetailPage() {
                         </div>
                     </>
                 )}
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--gray-200)', margin: '2.5rem 0' }} />
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-800)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Ejecución</h2>
+
+            {/* Status Bar */}
+            <div className="project-status-bar" style={{ marginBottom: '2rem' }}>
+                {statusOrder.map((s, i) => (
+                    <div key={s} style={{ display: 'contents' }}>
+                        <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`}>
+                            {idx > i ? <CheckCircle size={18} /> : <Circle size={18} />}
+                            <span>{PROJECT_STATUSES[s]?.label}</span>
+                        </div>
+                        {i < 2 && <div className={`status-connector ${idx > i ? 'completed' : ''}`} />}
+                    </div>
+                ))}
             </div>
 
             {/* Timeline */}
