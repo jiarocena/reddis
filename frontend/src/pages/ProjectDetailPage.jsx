@@ -8,7 +8,7 @@ import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, He
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
-    const { projects, barriers, updateProjectStatus, addTimelineEntry, addCollaborator, loading, showToast } = useData();
+    const { projects, barriers, updateProject, updateProjectStatus, addTimelineEntry, addCollaborator, loading, showToast } = useData();
     const { isAuthenticated, user, hasRole, requestCollaboratorRole } = useAuth();
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
@@ -20,14 +20,47 @@ export default function ProjectDetailPage() {
     const [collabsExpanded, setCollabsExpanded] = useState(true);
     const [timelineExpanded, setTimelineExpanded] = useState(true);
 
+    const [isEditing, setIsEditing] = useState(false);
+    const [editDescription, setEditDescription] = useState('');
+    const [editObjective, setEditObjective] = useState('');
+    const [editLeader, setEditLeader] = useState('');
+    const [editResources, setEditResources] = useState('');
+    const [editStatus, setEditStatus] = useState('');
+
     const project = projects.find(p => String(p.id) === String(id));
     const barrier = project ? barriers.find(b => String(b.id) === String(project.barrierId)) : null;
 
     // Can interact (update status, add timeline): must be logged in + COLABORADOR/REFERENTE/ADMIN
     const canInteract = isAuthenticated && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
-
+    
     // Is already a collaborator on this project
     const isCollaborator = isAuthenticated && project?.collaborators?.some(c => c.userId === user?.id);
+    const canEdit = isAuthenticated && (isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN'));
+
+    const startEditing = () => {
+        if (!project) return;
+        setEditDescription(project.description || '');
+        setEditObjective(project.objective || '');
+        setEditLeader(project.leader || '');
+        setEditResources(project.resources || '');
+        setEditStatus(project.status || '');
+        setIsEditing(true);
+    };
+
+    const handleSave = async () => {
+        try {
+            await updateProject(project.id, {
+                description: editDescription,
+                objective: editObjective,
+                leader: editLeader,
+                resources: editResources,
+                status: editStatus,
+            });
+            setIsEditing(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const isUsuarioComun = user?.rol === 'USUARIO';
     const hasPending = user?.hasPendingRoleRequest;
@@ -96,17 +129,24 @@ export default function ProjectDetailPage() {
                 <ArrowLeft size={16} /> Volver
             </Link>
 
-            <div className="project-header">
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                    <span className={`badge badge-${project.status}`}>{PROJECT_STATUSES[project.status]?.label}</span>
-                    {barrier && <span className={`badge badge-${barrier.category}`}>{CATEGORIES[barrier.category]?.label}</span>}
-                    {project.needsHelp && <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita colaboración</span>}
+            <div className="project-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                        <span className={`badge badge-${project.status}`}>{PROJECT_STATUSES[project.status]?.label}</span>
+                        {barrier && <span className={`badge badge-${barrier.category}`}>{CATEGORIES[barrier.category]?.label}</span>}
+                        {project.needsHelp && <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita colaboración</span>}
+                    </div>
+                    <h1>{project.title}</h1>
+                    <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem' }}>
+                        Liderado por: <strong>{project.leader}</strong> · Inicio: {project.startDate}
+                        {project.endDate && ` · Fin: ${project.endDate}`}
+                    </p>
                 </div>
-                <h1>{project.title}</h1>
-                <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem' }}>
-                    Liderado por: <strong>{project.leader}</strong> · Inicio: {project.startDate}
-                    {project.endDate && ` · Fin: ${project.endDate}`}
-                </p>
+                {canEdit && !isEditing && (
+                    <button className="btn btn-accent btn-sm" onClick={startEditing}>
+                        ✏️ Editar Proyecto
+                    </button>
+                )}
             </div>
 
             {/* Status Bar */}
@@ -122,39 +162,116 @@ export default function ProjectDetailPage() {
                 ))}
             </div>
 
-            {/* Status change buttons — for collaborators or staff (REFERENTE/ADMIN) of this project */}
-            {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
-                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-                    {project.status === 'iniciando' && (
-                        <button className="btn btn-primary btn-sm" onClick={() => updateProjectStatus(project.id, 'en-proceso')}>
-                            Marcar "En Proceso"
-                        </button>
-                    )}
-                    {project.status === 'en-proceso' && (
-                        <button className="btn btn-success btn-sm" onClick={() => updateProjectStatus(project.id, 'finalizado')}>
-                            <CheckCircle size={14} /> Finalizar
-                        </button>
-                    )}
-                </div>
-            )}
+            {isEditing ? (
+                <div className="card animate-fadeIn" style={{ marginBottom: '2rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}><Package size={18} /> Editar Detalles del Proyecto</h3>
+                    
+                    <div>
+                        <label className="form-label" style={{ fontWeight: 600 }}>Descripción</label>
+                        <textarea 
+                            className="form-input" 
+                            rows={4} 
+                            value={editDescription} 
+                            onChange={e => setEditDescription(e.target.value)} 
+                            style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                        />
+                    </div>
 
-            {/* Info */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
-                <div>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Package size={16} /> Descripción</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.description}</p>
-                </div>
-                <div>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Target size={16} /> Objetivo</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.objective || 'Sin definir'}</p>
-                </div>
-            </div>
+                    <div>
+                        <label className="form-label" style={{ fontWeight: 600 }}>Objetivo</label>
+                        <textarea 
+                            className="form-input" 
+                            rows={3} 
+                            value={editObjective} 
+                            onChange={e => setEditObjective(e.target.value)} 
+                            style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                        />
+                    </div>
 
-            {project.resources && (
-                <div style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--gray-50)', borderRadius: '0.75rem' }}>
-                    <h4 style={{ fontSize: '0.875rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>Recursos</h4>
-                    <p style={{ fontSize: '0.875rem' }}>{project.resources}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                            <label className="form-label" style={{ fontWeight: 600 }}>Líder de Proyecto</label>
+                            <input 
+                                type="text" 
+                                className="form-input" 
+                                value={editLeader} 
+                                onChange={e => setEditLeader(e.target.value)} 
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label" style={{ fontWeight: 600 }}>Estado del Proyecto</label>
+                            <select 
+                                className="form-input" 
+                                value={editStatus} 
+                                onChange={e => setEditStatus(e.target.value)}
+                                style={{ width: '100%', padding: '0.5rem' }}
+                            >
+                                <option value="denuncia">Identificada</option>
+                                <option value="iniciando">Iniciando</option>
+                                <option value="en-proceso">En Proceso</option>
+                                <option value="finalizado">Finalizado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="form-label" style={{ fontWeight: 600 }}>Recursos</label>
+                        <input 
+                            type="text" 
+                            className="form-input" 
+                            value={editResources} 
+                            onChange={e => setEditResources(e.target.value)} 
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>
+                            Cancelar
+                        </button>
+                        <button className="btn btn-success btn-sm" onClick={handleSave}>
+                            Guardar Cambios
+                        </button>
+                    </div>
                 </div>
+            ) : (
+                <>
+                    {/* Status change buttons — for collaborators or staff (REFERENTE/ADMIN) of this project */}
+                    {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
+                        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
+                            {project.status === 'iniciando' && (
+                                <button className="btn btn-primary btn-sm" onClick={() => updateProjectStatus(project.id, 'en-proceso')}>
+                                    Marcar "En Proceso"
+                                </button>
+                            )}
+                            {project.status === 'en-proceso' && (
+                                <button className="btn btn-success btn-sm" onClick={() => updateProjectStatus(project.id, 'finalizado')}>
+                                    <CheckCircle size={14} /> Finalizar
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Info */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <div>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Package size={16} /> Descripción</h3>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.description}</p>
+                        </div>
+                        <div>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Target size={16} /> Objetivo</h3>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.objective || 'Sin definir'}</p>
+                        </div>
+                    </div>
+
+                    {project.resources && (
+                        <div style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--gray-50)', borderRadius: '0.75rem' }}>
+                            <h4 style={{ fontSize: '0.875rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>Recursos</h4>
+                            <p style={{ fontSize: '0.875rem' }}>{project.resources}</p>
+                        </div>
+                    )}
+                </>
             )}
 
             {project.needsHelp && project.helpDescription && (

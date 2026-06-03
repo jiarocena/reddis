@@ -177,6 +177,59 @@ public class ProyectoRestController {
         return ResponseEntity.ok(toMap(updated));
     }
 
+    @PutMapping("/proyectos/{id}")
+    public ResponseEntity<?> actualizarProyecto(@PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        Usuario user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isCollab = "REFERENTE".equalsIgnoreCase(user.getRol())
+                || "ADMIN".equalsIgnoreCase(user.getRol())
+                || proyecto.getCollaborators().stream().anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (!isCollab) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos para modificar este proyecto"));
+        }
+
+        if (body.containsKey("title")) {
+            proyecto.setTitle((String) body.get("title"));
+        }
+        if (body.containsKey("description")) {
+            proyecto.setDescription((String) body.get("description"));
+        }
+        if (body.containsKey("objective")) {
+            proyecto.setObjective((String) body.get("objective"));
+        }
+        if (body.containsKey("leader")) {
+            proyecto.setLeader((String) body.get("leader"));
+        }
+        if (body.containsKey("resources")) {
+            proyecto.setResources((String) body.get("resources"));
+        }
+        if (body.containsKey("needsHelp")) {
+            proyecto.setNeedsHelp((Boolean) body.get("needsHelp"));
+        }
+        if (body.containsKey("helpDescription")) {
+            proyecto.setHelpDescription((String) body.get("helpDescription"));
+        }
+
+        if (body.containsKey("status")) {
+            String status = (String) body.get("status");
+            String authorName = user.getNombreCompleto();
+            proyecto = reddisService.actualizarStatusProyecto(id, status, authorName);
+        } else {
+            proyecto = reddisService.saveProyecto(proyecto);
+        }
+
+        return ResponseEntity.ok(toMap(proyecto));
+    }
+
     @PostMapping("/proyectos/{id}/timeline")
     public ResponseEntity<?> agregarTimeline(@PathVariable Long id,
             @RequestBody Map<String, Object> body) {

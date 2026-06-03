@@ -153,6 +153,34 @@ export function DataProvider({ children }) {
         }
     }
 
+    async function updateProject(projectId, data) {
+        if (backendAvailable) {
+            try {
+                const updated = await api.updateProyecto(projectId, data);
+                setProjects(prev => prev.map(p => p.id == projectId ? updated : p));
+                if (data.status && updated.barrierId) {
+                    setBarriers(prev =>
+                        prev.map(b => (b.id == updated.barrierId ? { ...b, status: data.status } : b))
+                    );
+                }
+                showToast('Proyecto actualizado', 'success');
+                return updated;
+            } catch (err) {
+                console.error('Error actualizando proyecto:', err);
+                showToast(err.message || 'Error al actualizar proyecto', 'error');
+                return null;
+            }
+        } else {
+            setProjects(prev => prev.map(p => {
+                if (p.id === projectId) {
+                    return { ...p, ...data };
+                }
+                return p;
+            }));
+            showToast('Proyecto actualizado (modo local)', 'success');
+        }
+    }
+
     async function updateProjectStatus(projectId, status) {
         if (backendAvailable) {
             try {
@@ -257,6 +285,7 @@ export function DataProvider({ children }) {
         backendAvailable,
         addBarrier,
         createProject,
+        updateProject,
         updateProjectStatus,
         addCollaborator,
         addTimelineEntry,

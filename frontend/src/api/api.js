@@ -163,6 +163,13 @@ export async function finalizarProyecto(id, impact, lessons) {
     });
 }
 
+export async function updateProyecto(id, data) {
+    return request(`/proyectos/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}
+
 export async function addTimelineEntry(proyectoId, entry) {
     return request(`/proyectos/${proyectoId}/timeline`, {
         method: 'POST',
