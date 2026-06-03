@@ -1098,7 +1098,7 @@ select {
   height: 16px;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .project-status-bar {
     flex-direction: column;
     align-items: flex-start;

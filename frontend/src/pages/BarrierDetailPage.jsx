@@ -20,8 +20,6 @@ export default function BarrierDetailPage() {
     const [claimData, setClaimData] = useState({
         title: '',
         objective: '',
-        leader: '',
-        resources: '',
         needsHelp: false,
         helpDescription: '',
     });
@@ -204,32 +202,12 @@ export default function BarrierDetailPage() {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">¿Quién lidera este proyecto? *</label>
-                            <input
-                                className="form-input"
-                                placeholder="Ej: Lic. María García - OSC Inclusión Local"
-                                value={claimData.leader}
-                                onChange={e => setClaimData(prev => ({ ...prev, leader: e.target.value }))}
-                            />
-                        </div>
-
-                        <div className="form-group">
                             <label className="form-label">Objetivo</label>
                             <textarea
                                 className="form-textarea"
                                 placeholder="¿Qué se proponen lograr?"
                                 value={claimData.objective}
                                 onChange={e => setClaimData(prev => ({ ...prev, objective: e.target.value }))}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Recursos disponibles</label>
-                            <input
-                                className="form-input"
-                                placeholder="Ej: Equipo técnico, financiamiento parcial..."
-                                value={claimData.resources}
-                                onChange={e => setClaimData(prev => ({ ...prev, resources: e.target.value }))}
                             />
                         </div>
 
@@ -263,8 +241,6 @@ export default function BarrierDetailPage() {
                             <button
                                 className="btn btn-success"
                                 onClick={handleClaim}
-                                disabled={!claimData.leader}
-                                style={{ opacity: claimData.leader ? 1 : 0.5 }}
                             >
                                 <Handshake size={16} /> Crear Proyecto
                             </button>

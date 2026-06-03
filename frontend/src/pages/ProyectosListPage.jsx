@@ -225,9 +225,6 @@ export default function ProyectosListPage() {
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <CheckCircle size={12} /> {completedEntries}/{p.timeline?.length || 0} hitos
                                     </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Target size={12} /> Líder: {p.leader}
-                                    </span>
                                 </div>
 
                                 {/* Last timeline entry */}

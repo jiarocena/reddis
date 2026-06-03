@@ -181,8 +181,6 @@ export const SEED_PROJECTS = [
         description: 'Implementar un servicio de interpretación en Lengua de Señas Uruguaya en el Hospital de Paysandú, comenzando por el servicio de urgencias y extendiéndose progresivamente a otras áreas.',
         objective: 'Garantizar la comunicación efectiva entre el personal médico y los pacientes sordos en el servicio de urgencias.',
         status: 'en-proceso',
-        leader: 'Dra. María Rodríguez - Dirección del Hospital',
-        resources: 'Financiamiento ASSE, intérpretes de LSU contratados',
         needsHelp: true,
         helpDescription: 'Se necesitan más intérpretes de LSU y financiamiento para turnos nocturnos.',
         collaborators: [
@@ -211,8 +209,6 @@ export const SEED_PROJECTS = [
         description: 'Diseñar e implementar un protocolo integral de atención inclusiva para personas con discapacidad en todas las oficinas de la Intendencia de Paysandú.',
         objective: 'Que toda persona con discapacidad pueda realizar sus trámites de forma autónoma y digna.',
         status: 'en-proceso',
-        leader: 'Lic. Carlos Pereira - Dir. de Desarrollo Social',
-        resources: 'Equipo técnico de la Intendencia, asesoramiento de INADIS',
         needsHelp: false,
         helpDescription: '',
         collaborators: [
@@ -241,8 +237,6 @@ export const SEED_PROJECTS = [
         description: 'Construcción de refugio accesible y rebaje de cordón en la parada de ómnibus principal sobre ruta 3.',
         objective: 'Permitir el abordaje autónomo de ómnibus por parte de personas en silla de ruedas.',
         status: 'finalizado',
-        leader: 'Ing. Laura Méndez - Intendencia de Paysandú',
-        resources: 'Presupuesto departamental, donación de materiales de empresa local',
         needsHelp: false,
         helpDescription: '',
         collaborators: [

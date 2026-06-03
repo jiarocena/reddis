@@ -91,7 +91,7 @@ export default function ProjectDetailPage() {
         </div>
     );
 
-    const statusOrder = ['iniciando', 'en-proceso', 'finalizado'];
+    const statusOrder = ['denuncia', 'iniciando', 'en-proceso', 'finalizado'];
     const idx = statusOrder.indexOf(project.status);
 
     const handleAddEntry = () => {
@@ -371,7 +371,7 @@ export default function ProjectDetailPage() {
 
                         {/* Interactive Status Dropdown for collaborators */}
                         {canEdit && (
-                            <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--gray-50)', padding: '0.6rem 0.9rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', width: 'fit-content' }}>
+                            <div style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', background: 'var(--gray-50)', padding: '0.6rem 0.9rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', width: 'fit-content', maxWidth: '100%' }}>
                                 <span style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--gray-700)', textTransform: 'uppercase' }}>Cambiar estado del proyecto:</span>
                                 <select
                                     className="form-select"
