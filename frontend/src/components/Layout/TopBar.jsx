@@ -3,7 +3,7 @@ import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, Use
 
 const PAGE_TITLES = {
     '/': { title: 'REDDIS (piloto)', subtitle: 'Red Digital de Inclusión Social', icon: Network },
-    '/barreras': { title: 'Mapa de Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
+    '/barreras': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
     '/reportar': { title: 'Reportar Barrera', subtitle: 'Identificá una barrera de accesibilidad', icon: AlertTriangle },
     '/participar': { title: 'Participar', subtitle: 'Participar o colaborar en un proyecto', icon: Users },
     '/acerca': { title: 'Acerca de REDDIS (piloto)', subtitle: 'Información del proyecto', icon: Info },

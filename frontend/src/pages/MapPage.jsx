@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,7 @@ export default function MapPage() {
     const userDepto = user?.departamento || null;
     const userDeptoData = userDepto ? DEPARTAMENTOS.find(d => d.nombre === userDepto) : null;
 
+    const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
     const [selectedCategory, setSelectedCategory] = useState('todas');
     const [selectedStatus, setSelectedStatus] = useState('todos');
     const [selectedDepartamento, setSelectedDepartamento] = useState(userDepto || 'todos');
@@ -26,24 +27,6 @@ export default function MapPage() {
     const [mapCenter, setMapCenter] = useState(userDeptoData ? userDeptoData.center : null);
     const [mapZoom, setMapZoom] = useState(userDeptoData ? userDeptoData.zoom : null);
     const [initializedForUser, setInitializedForUser] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const [sheetHeight, setSheetHeight] = useState(window.innerHeight * 0.33); // 33vh
-    const [isDragging, setIsDragging] = useState(false);
-    const dragStartY = useRef(0);
-    const dragStartHeight = useRef(0);
-    const dragHasMoved = useRef(false);
-
-    useEffect(() => {
-        const handleResize = () => {
-            const mobile = window.innerWidth <= 768;
-            setIsMobile(mobile);
-            if (!mobile) {
-                setSheetHeight(window.innerHeight * 0.33);
-            }
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     // Auto-center on user's department when user loads
     useEffect(() => {
@@ -83,13 +66,14 @@ export default function MapPage() {
         return true;
     });
 
-    // Get unique departments from barriers
-    const barrierDeptos = [...new Set(barriers.filter(b => b.departamento).map(b => b.departamento))].sort();
-
     const handleMarkerClick = (barrierId) => {
         setSelectedBarrierId(barrierId);
-        const el = document.getElementById(`barrier-${barrierId}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Switch to list view and scroll to the clicked card
+        setViewMode('list');
+        setTimeout(() => {
+            const el = document.getElementById(`barrier-${barrierId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
     };
 
     const handleDepartamentoChange = (deptoName) => {
@@ -106,202 +90,162 @@ export default function MapPage() {
         }
     };
 
-    const handleTouchStart = (e) => {
-        const touch = e.touches[0];
-        dragStartY.current = touch.clientY;
-        dragStartHeight.current = sheetHeight;
-        setIsDragging(true);
-        dragHasMoved.current = false;
-    };
-
-    const handleTouchMove = (e) => {
-        if (!isDragging) return;
-        const touch = e.touches[0];
-        const diffY = dragStartY.current - touch.clientY; // drag up is positive diff
-        if (Math.abs(diffY) > 5) {
-            dragHasMoved.current = true;
-        }
-        const newHeight = Math.max(75, Math.min(window.innerHeight * 0.85, dragStartHeight.current + diffY));
-        setSheetHeight(newHeight);
-    };
-
-    const handleTouchEnd = () => {
-        setIsDragging(false);
-        if (!dragHasMoved.current) {
-            cycleSheetState();
-            return;
-        }
-        snapToClosest();
-    };
-
-    const snapToClosest = () => {
-        const collapsedVal = 75;
-        const mediumVal = window.innerHeight * 0.33;
-        const expandedVal = window.innerHeight * 0.80;
-
-        const distCollapsed = Math.abs(sheetHeight - collapsedVal);
-        const distMedium = Math.abs(sheetHeight - mediumVal);
-        const distExpanded = Math.abs(sheetHeight - expandedVal);
-        const minDist = Math.min(distCollapsed, distMedium, distExpanded);
-
-        if (minDist === distCollapsed) {
-            setSheetHeight(collapsedVal);
-        } else if (minDist === distMedium) {
-            setSheetHeight(mediumVal);
-        } else {
-            setSheetHeight(expandedVal);
-        }
-    };
-
-    const cycleSheetState = () => {
-        const collapsedVal = 75;
-        const mediumVal = window.innerHeight * 0.33;
-        const expandedVal = window.innerHeight * 0.80;
-
-        const distCollapsed = Math.abs(sheetHeight - collapsedVal);
-        const distMedium = Math.abs(sheetHeight - mediumVal);
-        const distExpanded = Math.abs(sheetHeight - expandedVal);
-        const minDist = Math.min(distCollapsed, distMedium, distExpanded);
-
-        if (minDist === distCollapsed) {
-            setSheetHeight(mediumVal);
-        } else if (minDist === distMedium) {
-            setSheetHeight(expandedVal);
-        } else {
-            setSheetHeight(collapsedVal);
-        }
-    };
-
     return (
-        <div className="map-page">
-            <div className="map-container">
-                <InteractiveMap
-                    barriers={filteredBarriers}
-                    selectedBarrierId={selectedBarrierId}
-                    onMarkerClick={handleMarkerClick}
-                    externalCenter={mapCenter}
-                    externalZoom={mapZoom}
-                />
+        <div className="map-page-layout">
+            {/* View toggle header stuck to the top bar */}
+            <div className="map-toggle-header">
+                <div className="map-toggle-buttons">
+                    <button
+                        className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+                        onClick={() => setViewMode('map')}
+                    >
+                        Mapa de barreras
+                    </button>
+                    <button
+                        className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                        onClick={() => setViewMode('list')}
+                    >
+                        Listado de barreras
+                    </button>
+                </div>
             </div>
 
-            <div
-                className={`map-sidebar ${isMobile ? 'mobile-sheet' : ''} ${isMobile && sheetHeight <= 80 ? 'mobile-sheet-collapsed' : ''} ${isDragging ? 'dragging' : ''}`}
-                style={isMobile ? { height: `${sheetHeight}px` } : {}}
-            >
-                {/* Drag handle header for mobile bottom sheet */}
-                <div
-                    className="sheet-header"
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                    onClick={cycleSheetState}
-                    style={isMobile ? { cursor: 'grab', userSelect: 'none' } : {}}
-                >
-                    <div className="sheet-handle-container">
-                        <div className="sheet-handle"></div>
+            <div className="map-page-content">
+                {viewMode === 'map' && (
+                    <div className="map-container full-view animate-fadeIn">
+                        <InteractiveMap
+                            barriers={filteredBarriers}
+                            selectedBarrierId={selectedBarrierId}
+                            onMarkerClick={handleMarkerClick}
+                            externalCenter={mapCenter}
+                            externalZoom={mapZoom}
+                        />
                     </div>
-                    <h2 style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-2)', color: 'var(--gray-900)', textAlign: 'center', pointerEvents: 'none' }}>
-                        Barreras Reportadas
-                    </h2>
-                </div>
+                )}
 
-                {/* Department Selector */}
-                <div style={{ marginBottom: 'var(--space-3)' }}>
-                    <label style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontWeight: 600, marginBottom: 'var(--space-2)', display: 'block' }}>
-                        <MapPin size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-                        Departamento
-                    </label>
-                    {userDepto ? (
-                        <>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={userDepto}
-                                disabled
-                                style={{ background: 'var(--gray-100)', color: 'var(--gray-500)', cursor: 'not-allowed', fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
-                            />
-                            <small style={{ color: 'var(--gray-400)', fontSize: '0.7rem' }}>Filtrado por tu departamento</small>
-                        </>
-                    ) : (
-                        <select
-                            className="form-select"
-                            value={selectedDepartamento}
-                            onChange={(e) => handleDepartamentoChange(e.target.value)}
-                            style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
-                        >
-                            <option value="todos">Todos los departamentos</option>
-                            {DEPARTAMENTOS.map(d => (
-                                <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
+                {viewMode === 'list' && (
+                    <div className="map-list-container animate-fadeIn">
+                        {/* Filters grid */}
+                        <div className="list-filters-section">
+                            {/* Department Selector */}
+                            <div className="filter-group-item">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <MapPin size={12} /> Departamento
+                                </label>
+                                {userDepto ? (
+                                    <>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={userDepto}
+                                            disabled
+                                            style={{ background: 'var(--gray-100)', color: 'var(--gray-500)', cursor: 'not-allowed', fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
+                                        />
+                                        <small style={{ color: 'var(--gray-400)', fontSize: '0.7rem' }}>Filtrado por tu departamento</small>
+                                    </>
+                                ) : (
+                                    <select
+                                        className="form-select"
+                                        value={selectedDepartamento}
+                                        onChange={(e) => handleDepartamentoChange(e.target.value)}
+                                        style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-3)' }}
+                                    >
+                                        <option value="todos">Todos los departamentos</option>
+                                        {DEPARTAMENTOS.map(d => (
+                                            <option key={d.nombre} value={d.nombre}>{d.nombre}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+
+                            {/* Category Filters */}
+                            <div className="filter-group-item">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Filter size={12} /> Categoría
+                                </label>
+                                <div className="map-filters">
+                                    <button
+                                        className={`filter-btn ${selectedCategory === 'todas' ? 'active' : ''}`}
+                                        onClick={() => setSelectedCategory('todas')}
+                                    >Todas</button>
+                                    {Object.entries(CATEGORIES).map(([key, cat]) => (
+                                        <button
+                                            key={key}
+                                            className={`filter-btn ${selectedCategory === key ? `active-${key}` : ''}`}
+                                            onClick={() => setSelectedCategory(key)}
+                                        >{cat.label}</button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Status Filters */}
+                            <div className="filter-group-item">
+                                <label>Estado</label>
+                                <div className="map-filters">
+                                    <button
+                                        className={`filter-btn ${selectedStatus === 'todos' ? 'active' : ''}`}
+                                        onClick={() => setSelectedStatus('todos')}
+                                    >Todos</button>
+                                    {Object.entries(PROJECT_STATUSES).map(([key, st]) => (
+                                        <button
+                                            key={key}
+                                            className={`filter-btn ${selectedStatus === key ? `active` : ''}`}
+                                            onClick={() => setSelectedStatus(key)}
+                                        >{st.label}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search and Count */}
+                        <div className="list-meta-section">
+                            <div className="search-bar-container">
+                                <input
+                                    type="text"
+                                    className="form-input search-input"
+                                    placeholder="Buscar por título, dirección, descripción..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-2) var(--space-8) var(--space-2) var(--space-3)' }}
+                                />
+                                {searchTerm ? (
+                                    <button className="clear-search-btn" onClick={() => setSearchTerm('')}>
+                                        <X size={16} />
+                                    </button>
+                                ) : (
+                                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)', display: 'flex', alignItems: 'center' }}>
+                                        <Search size={16} />
+                                    </span>
+                                )}
+                            </div>
+                            <div className="results-count-text">
+                                {filteredBarriers.length} barrera{filteredBarriers.length !== 1 ? 's' : ''} encontrada{filteredBarriers.length !== 1 ? 's' : ''}
+                            </div>
+                        </div>
+
+                        {/* Responsive grid of barrier cards */}
+                        <div className="list-cards-grid">
+                            {filteredBarriers.map(barrier => (
+                                <div
+                                    key={barrier.id}
+                                    id={`barrier-${barrier.id}`}
+                                    className="grid-card-wrapper"
+                                    style={{
+                                        border: selectedBarrierId === barrier.id ? '2px solid var(--primary-400)' : undefined,
+                                        borderRadius: selectedBarrierId === barrier.id ? 'var(--radius-lg)' : undefined,
+                                    }}
+                                >
+                                    <BarrierCard barrier={barrier} />
+                                </div>
                             ))}
-                        </select>
-                    )}
-                </div>
-
-                {/* Category Filters */}
-                <div style={{ marginBottom: 'var(--space-3)' }}>
-                    <label style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontWeight: 600, marginBottom: 'var(--space-2)', display: 'block' }}>
-                        <Filter size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-                        Categoría
-                    </label>
-                    <div className="map-filters">
-                        <button
-                            className={`filter-btn ${selectedCategory === 'todas' ? 'active' : ''}`}
-                            onClick={() => setSelectedCategory('todas')}
-                        >Todas</button>
-                        {Object.entries(CATEGORIES).map(([key, cat]) => (
-                            <button
-                                key={key}
-                                className={`filter-btn ${selectedCategory === key ? `active-${key}` : ''}`}
-                                onClick={() => setSelectedCategory(key)}
-                            >{cat.label}</button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Status Filters */}
-                <div style={{ marginBottom: 'var(--space-4)' }}>
-                    <label style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontWeight: 600, marginBottom: 'var(--space-2)', display: 'block' }}>
-                        Estado
-                    </label>
-                    <div className="map-filters">
-                        <button
-                            className={`filter-btn ${selectedStatus === 'todos' ? 'active' : ''}`}
-                            onClick={() => setSelectedStatus('todos')}
-                        >Todos</button>
-                        {Object.entries(PROJECT_STATUSES).map(([key, st]) => (
-                            <button
-                                key={key}
-                                className={`filter-btn ${selectedStatus === key ? `active` : ''}`}
-                                onClick={() => setSelectedStatus(key)}
-                            >{st.label}</button>
-                        ))}
-                    </div>
-                </div>
-
-                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)', marginBottom: 'var(--space-4)' }}>
-                    {filteredBarriers.length} barrera{filteredBarriers.length !== 1 ? 's' : ''} encontrada{filteredBarriers.length !== 1 ? 's' : ''}
-                </div>
-
-                {/* Barrier List */}
-                <div className="barrier-list">
-                    {filteredBarriers.map(barrier => (
-                        <div
-                            key={barrier.id}
-                            id={`barrier-${barrier.id}`}
-                            style={{
-                                border: selectedBarrierId === barrier.id ? '2px solid var(--primary-400)' : undefined,
-                                borderRadius: selectedBarrierId === barrier.id ? 'var(--radius-lg)' : undefined,
-                            }}
-                        >
-                            <BarrierCard barrier={barrier} compact />
+                            {filteredBarriers.length === 0 && (
+                                <div className="empty-state-container">
+                                    <p>No se encontraron barreras con estos filtros.</p>
+                                </div>
+                            )}
                         </div>
-                    ))}
-                    {filteredBarriers.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-400)' }}>
-                            <p>No se encontraron barreras con estos filtros.</p>
-                        </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );

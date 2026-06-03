@@ -724,30 +724,175 @@ select {
    Map
    ========================================= */
 
-.map-page {
+/* =========================================
+   Map Page (Toggle View)
+   ========================================= */
+
+.map-page-layout {
   display: flex;
+  flex-direction: column;
   height: calc(100vh - 64px);
-  position: relative;
+  width: 100%;
+  background: var(--gray-50);
 }
 
-.map-container {
+.map-toggle-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: var(--space-3) var(--space-6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 600;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.map-toggle-buttons {
+  display: inline-flex;
+  background: var(--gray-100);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.map-toggle-buttons .toggle-btn {
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--gray-600);
+  transition: all var(--transition-base);
+}
+
+.map-toggle-buttons .toggle-btn:hover {
+  color: var(--gray-800);
+}
+
+.map-toggle-buttons .toggle-btn.active {
+  background: var(--white);
+  color: var(--primary-600);
+  box-shadow: var(--shadow-sm);
+}
+
+.map-page-content {
   flex: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-container.full-view {
+  width: 100%;
   height: 100%;
 }
 
-.map-container .leaflet-container {
+.map-container.full-view .leaflet-container {
   width: 100%;
   height: 100%;
   border-radius: 0;
 }
 
-.map-sidebar {
-  width: 380px;
-  background: var(--white);
-  border-left: 1px solid var(--gray-200);
+.map-list-container {
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
-  padding: var(--space-6);
-  z-index: 500;
+  padding: var(--space-6) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.list-filters-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  background: var(--white);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-group-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filter-group-item label {
+  font-size: var(--font-xs);
+  color: var(--gray-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list-meta-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.search-bar-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  padding-right: 40px !important;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-search-btn:hover {
+  color: var(--gray-600);
+}
+
+.results-count-text {
+  font-size: var(--font-sm);
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.list-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-6);
+}
+
+.grid-card-wrapper {
+  height: 100%;
+}
+
+.grid-card-wrapper .barrier-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.empty-state-container {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-12);
+  color: var(--gray-400);
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  border: 1px dashed var(--gray-200);
 }
 
 .map-filters {
@@ -2334,15 +2479,10 @@ select {
     font-size: var(--font-sm);
   }
 
-  /* Map page */
-  .map-page {
+  /* Map page layout */
+  .map-page-layout {
     height: calc(100vh - 56px);
     height: calc(100dvh - 56px);
-    flex-direction: column;
-  }
-
-  .map-sidebar {
-    padding: 0 var(--space-3) var(--space-3) var(--space-3) !important;
   }
 
   .map-filters {
@@ -2617,75 +2757,33 @@ select {
   }
 
   /* Map layout on mobile (bottom sheet) */
-  .map-page {
-    flex-direction: column;
+  .map-page-layout {
     height: calc(100vh - 56px);
     height: calc(100dvh - 56px);
-    position: relative;
-    overflow: hidden;
   }
 
-  .map-container {
-    width: 100%;
-    height: 100%;
+  .map-toggle-header {
+    padding: var(--space-2) var(--space-4);
   }
 
-  .map-sidebar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100% !important;
-    max-width: none !important;
-    background: var(--white);
-    border-left: none;
-    border-top: 1px solid var(--gray-200);
-    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    padding: 0 var(--space-4) var(--space-4) var(--space-4) !important;
-    display: flex;
-    flex-direction: column;
-    transition: height var(--transition-base);
+  .map-toggle-buttons .toggle-btn {
+    padding: 6px var(--space-3);
+    font-size: var(--font-xs);
   }
 
-  .map-sidebar.dragging {
-    transition: none !important;
+  .map-list-container {
+    padding: var(--space-4) var(--space-4);
+    gap: var(--space-4);
   }
 
-  /* Bottom sheet height states */
-  .map-sidebar.mobile-sheet-collapsed {
-    overflow: hidden !important;
+  .list-filters-section {
+    padding: var(--space-4);
+    gap: var(--space-4);
   }
 
-  /* Handle styles */
-  .sheet-handle-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: var(--space-3) 0 var(--space-2) 0;
-    cursor: pointer;
-    user-select: none;
-    flex-shrink: 0;
-  }
-
-  .sheet-handle {
-    width: 40px;
-    height: 5px;
-    background-color: var(--gray-300);
-    border-radius: var(--radius-full);
-    transition: background-color var(--transition-fast);
-  }
-
-  .sheet-handle-container:hover .sheet-handle {
-    background-color: var(--gray-400);
-  }
-
-  /* Make list scrollable vertically */
-  .barrier-list {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: var(--space-4);
+  .list-cards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
   }
 
   /* Report form */
