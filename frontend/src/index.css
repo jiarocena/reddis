@@ -125,6 +125,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -134,6 +135,7 @@ body {
   color: var(--gray-800);
   background-color: var(--gray-50);
   min-height: 100vh;
+  overscroll-behavior-y: contain;
 }
 
 #root {

@@ -18,7 +18,7 @@ export default function MapPage() {
     const userDepto = user?.departamento || null;
     const userDeptoData = userDepto ? DEPARTAMENTOS.find(d => d.nombre === userDepto) : null;
 
-    const isListPath = location.pathname.endsWith('/barreras');
+    const isListPath = location.pathname === '/gestion/barreras';
     const [viewMode, setViewMode] = useState(isListPath ? 'list' : 'map'); // 'map' or 'list'
     const [selectedCategory, setSelectedCategory] = useState('todas');
     const [selectedStatus, setSelectedStatus] = useState('todos');
@@ -68,7 +68,7 @@ export default function MapPage() {
 
     // Sync viewMode with URL path changes (e.g. Map vs List menu options)
     useEffect(() => {
-        const isList = location.pathname.endsWith('/barreras');
+        const isList = location.pathname === '/gestion/barreras';
         setViewMode(isList ? 'list' : 'map');
     }, [location.pathname]);
 
