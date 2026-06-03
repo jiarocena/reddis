@@ -19,7 +19,6 @@ import RegisterPage from './pages/RegisterPage';
 import ConfirmPage from './pages/ConfirmPage';
 import ProfilePage from './pages/ProfilePage';
 import PendingBarriersPage from './pages/PendingBarriersPage';
-import BarrerasListPage from './pages/BarrerasListPage';
 import ProyectosListPage from './pages/ProyectosListPage';
 
 function Toast() {
@@ -128,7 +127,7 @@ function AppContent() {
                         <ProtectedRoute><ReportPage /></ProtectedRoute>
                     } />
                     <Route path="/gestion/barreras" element={
-                        <ProtectedRoute><BarrerasListPage /></ProtectedRoute>
+                        <ProtectedRoute><MapPage /></ProtectedRoute>
                     } />
                     <Route path="/gestion/proyectos" element={
                         <ProtectedRoute><ProyectosListPage /></ProtectedRoute>

@@ -18,7 +18,8 @@ export default function MapPage() {
     const userDepto = user?.departamento || null;
     const userDeptoData = userDepto ? DEPARTAMENTOS.find(d => d.nombre === userDepto) : null;
 
-    const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
+    const isListPath = location.pathname.endsWith('/barreras');
+    const [viewMode, setViewMode] = useState(isListPath ? 'list' : 'map'); // 'map' or 'list'
     const [selectedCategory, setSelectedCategory] = useState('todas');
     const [selectedStatus, setSelectedStatus] = useState('todos');
     const [selectedDepartamento, setSelectedDepartamento] = useState(userDepto || 'todos');
@@ -64,6 +65,12 @@ export default function MapPage() {
             }
         }
     }, [loading, isAuthenticated, user, initializedForUser]);
+
+    // Sync viewMode with URL path changes (e.g. Map vs List menu options)
+    useEffect(() => {
+        const isList = location.pathname.endsWith('/barreras');
+        setViewMode(isList ? 'list' : 'map');
+    }, [location.pathname]);
 
     const filteredBarriers = barriers.filter(b => {
         if (!b.isPublic) return false;
