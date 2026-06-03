@@ -81,7 +81,7 @@ export default function BarrierDetailPage() {
                         <span className="badge badge-urgente"><AlertTriangle size={10} /> Urgente</span>
                     )}
                 </div>
-                <h1>{barrier.title}</h1>
+                <h1 style={{ fontSize: '1.65rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0.25rem 0', lineHeight: 1.3 }}>{barrier.title}</h1>
             </div>
 
             {/* ═══ PROJECT / CLAIM — AT THE TOP for staff ═══ */}
@@ -119,23 +119,25 @@ export default function BarrierDetailPage() {
                 </div>
             ) : null}
 
-            {/* Info Grid */}
-            <div className="barrier-detail-info">
-                <div className="info-item">
-                    <label><MapPin size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Ubicación</label>
-                    <span>{barrier.address}</span>
-                </div>
-                <div className="info-item">
-                    <label><Clock size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Fecha de reporte</label>
-                    <span>{barrier.date}</span>
-                </div>
-                <div className="info-item">
-                    <label><Users size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Personas afectadas</label>
-                    <span>{barrier.affectedPeople}</span>
-                </div>
-                <div className="info-item">
-                    <label>Reportado por</label>
-                    <span>{barrier.reportedBy}</span>
+            {/* Info Grid Card */}
+            <div className="card" style={{ padding: 'var(--space-5)', marginBottom: 'var(--space-6)' }}>
+                <div className="barrier-detail-info" style={{ marginBottom: 0 }}>
+                    <div className="info-item">
+                        <label><MapPin size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Ubicación</label>
+                        <span>{barrier.address}</span>
+                    </div>
+                    <div className="info-item">
+                        <label><Clock size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Fecha de reporte</label>
+                        <span>{barrier.date}</span>
+                    </div>
+                    <div className="info-item">
+                        <label><Users size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Personas afectadas</label>
+                        <span>{barrier.affectedPeople}</span>
+                    </div>
+                    <div className="info-item">
+                        <label>Reportado por</label>
+                        <span>{barrier.reportedBy}</span>
+                    </div>
                 </div>
             </div>
 

@@ -1,86 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import Timeline from '../components/Project/Timeline';
 import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
-import { ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target, Package, HelpCircle, UserPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+    ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target,
+    Package, HelpCircle, UserPlus, ChevronDown, ChevronUp, Briefcase, Activity
+} from 'lucide-react';
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
-    const { projects, barriers, updateProject, updateProjectStatus, addTimelineEntry, addCollaborator, loading, showToast } = useData();
+    const { projects, barriers, updateProject, addTimelineEntry, addCollaborator, loading, showToast } = useData();
     const { isAuthenticated, user, hasRole, requestCollaboratorRole } = useAuth();
     const location = useLocation();
     const isGestion = location.pathname.startsWith('/gestion');
     const prefix = isGestion ? '/gestion' : '';
 
+    const [activeTab, setActiveTab] = useState('proyecto'); // 'proyecto' | 'ejecucion'
     const [newEntry, setNewEntry] = useState('');
     const [showJoinConfirm, setShowJoinConfirm] = useState(false);
     const [joining, setJoining] = useState(false);
     const [collabsExpanded, setCollabsExpanded] = useState(true);
     const [timelineExpanded, setTimelineExpanded] = useState(true);
 
-    const [isEditing, setIsEditing] = useState(false);
-    const [editDescription, setEditDescription] = useState('');
-    const [editObjective, setEditObjective] = useState('');
-    const [editLeader, setEditLeader] = useState('');
-    const [editResources, setEditResources] = useState('');
-    const [editStatus, setEditStatus] = useState('');
-    const [editAccionesPrevistas, setEditAccionesPrevistas] = useState([]);
+    // Local states for inputs (autosave)
+    const [descVal, setDescVal] = useState('');
+    const [objVal, setObjVal] = useState('');
+    const [leaderVal, setLeaderVal] = useState('');
+    const [resourcesVal, setResourcesVal] = useState('');
     const [newAccion, setNewAccion] = useState('');
 
     const project = projects.find(p => String(p.id) === String(id));
     const barrier = project ? barriers.find(b => String(b.id) === String(project.barrierId)) : null;
 
-    // Can interact (update status, add timeline): must be logged in + COLABORADOR/REFERENTE/ADMIN
-    const canInteract = isAuthenticated && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
-    
-    // Is already a collaborator on this project
+    // Synchronize local state with project data
+    useEffect(() => {
+        if (project) {
+            setDescVal(project.description || '');
+            setObjVal(project.objective || '');
+            setLeaderVal(project.leader || '');
+            setResourcesVal(project.resources || '');
+        }
+    }, [project?.id]);
+
     const isCollaborator = isAuthenticated && project?.collaborators?.some(c => c.userId === user?.id);
     const canEdit = isAuthenticated && (isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN'));
 
-    const startEditing = () => {
-        if (!project) return;
-        setEditDescription(project.description || '');
-        setEditObjective(project.objective || '');
-        setEditLeader(project.leader || '');
-        setEditResources(project.resources || '');
-        setEditStatus(project.status || '');
-        setEditAccionesPrevistas(project.accionesPrevistas || []);
-        setNewAccion('');
-        setIsEditing(true);
-    };
-
-    const handleSave = async () => {
-        try {
-            await updateProject(project.id, {
-                description: editDescription,
-                objective: editObjective,
-                leader: editLeader,
-                resources: editResources,
-                status: editStatus,
-                accionesPrevistas: editAccionesPrevistas,
-            });
-            setIsEditing(false);
-        } catch (err) {
-            console.error(err);
+    // Autosave handler
+    const handleBlur = async (fieldName, currentValue, originalValue) => {
+        if (currentValue.trim() !== (originalValue || '').trim()) {
+            await updateProject(project.id, { [fieldName]: currentValue.trim() });
         }
     };
 
-    const handleAddAccion = () => {
+    const handleAddAccionDirect = async () => {
         if (!newAccion.trim()) return;
-        setEditAccionesPrevistas(prev => [...prev, newAccion.trim()]);
+        const updatedAcciones = [...(project.accionesPrevistas || []), newAccion.trim()];
+        await updateProject(project.id, { accionesPrevistas: updatedAcciones });
         setNewAccion('');
     };
 
-    const handleRemoveAccion = (index) => {
-        setEditAccionesPrevistas(prev => prev.filter((_, i) => i !== index));
+    const handleRemoveAccionDirect = async (indexToRemove) => {
+        const updatedAcciones = (project.accionesPrevistas || []).filter((_, i) => i !== indexToRemove);
+        await updateProject(project.id, { accionesPrevistas: updatedAcciones });
     };
 
     const isUsuarioComun = user?.rol === 'USUARIO';
     const hasPending = user?.hasPendingRoleRequest;
 
-    // Check if the pending request is specifically for this project
     const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
         const msgs = user?.pendingRoleRequestMessages || (user?.pendingRoleRequestMessage ? [user.pendingRoleRequestMessage] : []);
         return msgs.some(msg => {
@@ -92,10 +80,7 @@ export default function ProjectDetailPage() {
         });
     })();
 
-    // Can join directly as collaborator: has role COLABORADOR/REFERENTE/ADMIN and not already joined
     const canJoinDirectly = isAuthenticated && !isCollaborator && (hasRole('COLABORADOR') || hasRole('REFERENTE') || hasRole('ADMIN'));
-    
-    // Can apply (postularse): is usuario comun, doesn't have pending request for THIS project
     const canApply = isAuthenticated && isUsuarioComun && !hasPendingForThisProject;
 
     if (loading) return (
@@ -139,320 +124,386 @@ export default function ProjectDetailPage() {
     };
 
     return (
-        <div className="project-panel animate-fadeIn">
-            <Link to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+        <div className="project-panel animate-fadeIn" style={{ maxWidth: '1000px' }}>
+            <Link
+                to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}
+            >
                 <ArrowLeft size={16} /> Volver
             </Link>
 
-            <div className="project-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                        <span className={`badge badge-${project.status}`}>{PROJECT_STATUSES[project.status]?.label}</span>
-                        {barrier && <span className={`badge badge-${barrier.category}`}>{CATEGORIES[barrier.category]?.label}</span>}
-                        {project.needsHelp && <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita colaboración</span>}
-                    </div>
-                    <h1>{project.title}</h1>
-                    {(() => {
-                        const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
-                        if (orgs.length > 0) {
-                            return (
-                                <p style={{ color: 'var(--primary)', fontSize: '0.875rem', fontWeight: 600, margin: '0.25rem 0' }}>
-                                    Organizaciones participantes: {orgs.join(' / ')}
-                                </p>
-                            );
-                        }
-                        return null;
-                    })()}
-                    <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem' }}>
-                        Liderado por: <strong>{project.leader}</strong> · Inicio: {project.startDate}
-                        {project.endDate && ` · Fin: ${project.endDate}`}
-                    </p>
+            {/* Premium Header Card */}
+            <div className="card" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-6)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', background: 'var(--white)', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                    <span className={`badge badge-${project.status}`}>{PROJECT_STATUSES[project.status]?.label}</span>
+                    {barrier && <span className={`badge badge-${barrier.category}`}>{CATEGORIES[barrier.category]?.label}</span>}
+                    {project.needsHelp && <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita colaboración</span>}
                 </div>
-                {canEdit && !isEditing && (
-                    <button className="btn btn-accent btn-sm" onClick={startEditing}>
-                        ✏️ Editar Proyecto
-                    </button>
-                )}
+                <h1 style={{ fontSize: '1.65rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0.25rem 0', lineHeight: 1.3 }}>{project.title}</h1>
+                {(() => {
+                    const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
+                    if (orgs.length > 0) {
+                        return (
+                            <p style={{ color: 'var(--primary-600)', fontSize: '0.875rem', fontWeight: 600, margin: '0.4rem 0' }}>
+                                🏛️ Organizaciones participantes: {orgs.join(' / ')}
+                            </p>
+                        );
+                    }
+                    return null;
+                })()}
+                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', margin: '0.4rem 0 0 0' }}>
+                    Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
+                </p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: '2rem 0 1.5rem 0' }}>
-                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--gray-300))' }} />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gray-800)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0, padding: '0 0.5rem' }}>
-                    Proyecto
-                </h2>
-                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--gray-300))' }} />
+            {/* Tabbed Navigation Bar */}
+            <div className="admin-tabs" style={{ display: 'flex', borderBottom: '2px solid var(--gray-200)', marginBottom: 'var(--space-6)', gap: 'var(--space-6)' }}>
+                <button
+                    className={`admin-tab-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('proyecto')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none' }}
+                >
+                    <Briefcase size={16} /> El Proyecto
+                </button>
+                <button
+                    className={`admin-tab-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('ejecucion')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none' }}
+                >
+                    <Activity size={16} /> Ejecución y Avances
+                </button>
             </div>
 
-            {isEditing ? (
-                <div className="card animate-fadeIn" style={{ marginBottom: '2rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}><Package size={18} /> Editar Detalles del Proyecto</h3>
-                    
-                    <div>
-                        <label className="form-label" style={{ fontWeight: 600 }}>Descripción</label>
-                        <textarea 
-                            className="form-input" 
-                            rows={4} 
-                            value={editDescription} 
-                            onChange={e => setEditDescription(e.target.value)} 
-                            style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
-                        />
-                    </div>
+            {/* TAB CONTENT: PROYECTO */}
+            {activeTab === 'proyecto' && (
+                <div className="project-detail-grid animate-fadeIn">
+                    {/* Left Column: Details */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                        <div className="card" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+                            
+                            {/* Descripción */}
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                    <Package size={16} /> Descripción
+                                </h3>
+                                {canEdit ? (
+                                    <div className="autosave-field-wrapper">
+                                        <textarea
+                                            className="form-input"
+                                            rows={4}
+                                            value={descVal}
+                                            onChange={e => setDescVal(e.target.value)}
+                                            onBlur={() => handleBlur('description', descVal, project.description)}
+                                            placeholder="Detalla la barrera y las obras o planes..."
+                                            style={{ fontSize: '0.875rem', lineHeight: 1.6 }}
+                                        />
+                                        <small className="autosave-hint">Se guarda automáticamente al hacer clic fuera del campo.</small>
+                                    </div>
+                                ) : (
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7, margin: 0 }}>{project.description}</p>
+                                )}
+                            </div>
 
-                    <div>
-                        <label className="form-label" style={{ fontWeight: 600 }}>Objetivo</label>
-                        <textarea 
-                            className="form-input" 
-                            rows={3} 
-                            value={editObjective} 
-                            onChange={e => setEditObjective(e.target.value)} 
-                            style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
-                        />
-                    </div>
+                            {/* Objetivo */}
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                    <Target size={16} /> Objetivo
+                                </h3>
+                                {canEdit ? (
+                                    <div className="autosave-field-wrapper">
+                                        <textarea
+                                            className="form-input"
+                                            rows={3}
+                                            value={objVal}
+                                            onChange={e => setObjVal(e.target.value)}
+                                            onBlur={() => handleBlur('objective', objVal, project.objective)}
+                                            placeholder="¿Qué meta o logro específico se proponen?"
+                                            style={{ fontSize: '0.875rem', lineHeight: 1.6 }}
+                                        />
+                                        <small className="autosave-hint">Se guarda automáticamente al hacer clic fuera del campo.</small>
+                                    </div>
+                                ) : (
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7, margin: 0 }}>{project.objective || 'Sin definir'}</p>
+                                )}
+                            </div>
 
-                    <div>
-                        <label className="form-label" style={{ fontWeight: 600 }}>Acciones Previstas</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            {editAccionesPrevistas.length === 0 ? (
-                                <p style={{ fontSize: '0.875rem', color: 'var(--gray-400)', margin: '0.25rem 0' }}>No hay acciones previstas registradas.</p>
-                            ) : (
-                                editAccionesPrevistas.map((accion, idx) => (
-                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', background: 'var(--gray-50)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
-                                        <span style={{ fontSize: '0.875rem', color: 'var(--gray-700)' }}>{accion}</span>
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-secondary btn-sm" 
-                                            style={{ padding: '0.2rem 0.4rem', minWidth: 'auto', color: 'var(--danger)', borderColor: 'var(--danger)', background: 'transparent' }}
-                                            onClick={() => handleRemoveAccion(idx)}
+                            {/* Líder de Proyecto */}
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                    Referente / Líder de Proyecto
+                                </h3>
+                                {canEdit ? (
+                                    <div className="autosave-field-wrapper">
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={leaderVal}
+                                            onChange={e => setLeaderVal(e.target.value)}
+                                            onBlur={() => handleBlur('leader', leaderVal, project.leader)}
+                                            placeholder="Nombre del líder o referente..."
+                                            style={{ fontSize: '0.875rem' }}
+                                        />
+                                        <small className="autosave-hint">Se guarda automáticamente al hacer clic fuera.</small>
+                                    </div>
+                                ) : (
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', margin: 0 }}>{project.leader}</p>
+                                )}
+                            </div>
+
+                            {/* Recursos */}
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                    Recursos Disponibles
+                                </h3>
+                                {canEdit ? (
+                                    <div className="autosave-field-wrapper">
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={resourcesVal}
+                                            onChange={e => setResourcesVal(e.target.value)}
+                                            onBlur={() => handleBlur('resources', resourcesVal, project.resources)}
+                                            placeholder="Ej: Materiales provistos, personal técnico..."
+                                            style={{ fontSize: '0.875rem' }}
+                                        />
+                                        <small className="autosave-hint">Se guarda automáticamente al hacer clic fuera.</small>
+                                    </div>
+                                ) : (
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', margin: 0 }}>{project.resources || 'Sin definir'}</p>
+                                )}
+                            </div>
+
+                            {/* Acciones Previstas */}
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                    <CheckCircle size={16} /> Acciones Previstas
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                    {(!project.accionesPrevistas || project.accionesPrevistas.length === 0) ? (
+                                        <p style={{ fontSize: '0.875rem', color: 'var(--gray-400)', fontStyle: 'italic', margin: 0 }}>Sin acciones previstas definidas</p>
+                                    ) : (
+                                        project.accionesPrevistas.map((accion, idx) => (
+                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', background: 'var(--gray-50)', padding: '0.4rem 0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.4 }}>
+                                                    <Circle size={6} style={{ marginTop: '0.4rem', fill: 'var(--gray-400)', stroke: 'none', minWidth: '6px' }} />
+                                                    <span>{accion}</span>
+                                                </div>
+                                                {canEdit && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-secondary btn-sm"
+                                                        style={{ padding: '0.1rem 0.3rem', minWidth: 'auto', color: 'var(--danger)', borderColor: 'var(--danger)', background: 'transparent', fontSize: '10px' }}
+                                                        onClick={() => handleRemoveAccionDirect(idx)}
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                {canEdit && (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            placeholder="Agregar acción..."
+                                            value={newAccion}
+                                            onChange={e => setNewAccion(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleAddAccionDirect();
+                                                }
+                                            }}
+                                            style={{ flexGrow: 1, fontSize: '0.875rem' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary btn-sm"
+                                            onClick={handleAddAccionDirect}
+                                            style={{ minWidth: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         >
-                                            ✕
+                                            <Plus size={16} />
                                         </button>
                                     </div>
-                                ))
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <input 
-                                type="text" 
-                                className="form-input" 
-                                placeholder="Agregar acción prevista..." 
-                                value={newAccion} 
-                                onChange={e => setNewAccion(e.target.value)} 
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleAddAccion();
-                                    }
-                                }}
-                                style={{ flexGrow: 1 }}
-                            />
-                            <button 
-                                type="button" 
-                                className="btn btn-primary btn-sm" 
-                                onClick={handleAddAccion}
-                                style={{ minWidth: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                <Plus size={16} />
-                            </button>
+                                )}
+                            </div>
+
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label className="form-label" style={{ fontWeight: 600 }}>Líder de Proyecto</label>
-                            <input 
-                                type="text" 
-                                className="form-input" 
-                                value={editLeader} 
-                                onChange={e => setEditLeader(e.target.value)} 
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-                        <div>
-                            <label className="form-label" style={{ fontWeight: 600 }}>Estado del Proyecto</label>
-                            <select 
-                                className="form-input" 
-                                value={editStatus} 
-                                onChange={e => setEditStatus(e.target.value)}
-                                style={{ width: '100%', padding: '0.5rem' }}
-                            >
-                                <option value="denuncia">Identificada</option>
-                                <option value="iniciando">Iniciando</option>
-                                <option value="en-proceso">En Proceso</option>
-                                <option value="finalizado">Finalizado</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="form-label" style={{ fontWeight: 600 }}>Recursos</label>
-                        <input 
-                            type="text" 
-                            className="form-input" 
-                            value={editResources} 
-                            onChange={e => setEditResources(e.target.value)} 
-                            style={{ width: '100%' }}
-                        />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>
-                            Cancelar
-                        </button>
-                        <button className="btn btn-success btn-sm" onClick={handleSave}>
-                            Guardar Cambios
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                <>
-
-
-                    {/* Info */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div>
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Package size={16} /> Descripción</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.description}</p>
-                        </div>
-                        <div>
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><Target size={16} /> Objetivo</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7 }}>{project.objective || 'Sin definir'}</p>
-                        </div>
-                        <div>
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}><CheckCircle size={16} /> Acciones Previstas</h3>
-                            {(!project.accionesPrevistas || project.accionesPrevistas.length === 0) ? (
-                                <p style={{ fontSize: '0.875rem', color: 'var(--gray-500)', fontStyle: 'italic' }}>Sin acciones previstas definidas</p>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    {project.accionesPrevistas.map((accion, idx) => (
-                                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.5 }}>
-                                            <Circle size={8} style={{ marginTop: '0.5rem', fill: 'var(--gray-400)', stroke: 'none', minWidth: '8px' }} />
-                                            <span>{accion}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {project.resources && (
-                        <div style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--gray-50)', borderRadius: '0.75rem' }}>
-                            <h4 style={{ fontSize: '0.875rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>Recursos</h4>
-                            <p style={{ fontSize: '0.875rem' }}>{project.resources}</p>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {project.needsHelp && project.helpDescription && (
-                <div style={{ marginBottom: '2rem', padding: '1.25rem', background: '#fef9c3', borderRadius: '0.75rem', border: '1px solid #fde68a' }}>
-                    <h4 style={{ fontSize: '0.875rem', color: '#92400e', marginBottom: '0.5rem' }}><HelpCircle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />Se necesita colaboración</h4>
-                    <p style={{ fontSize: '0.875rem', color: '#78350f' }}>{project.helpDescription}</p>
-                </div>
-            )}
-
-            {/* Collaborators */}
-            <div className="collaborators-section" style={{ marginBottom: '2rem' }}>
-                <div 
-                    onClick={() => setCollabsExpanded(!collabsExpanded)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', cursor: 'pointer', userSelect: 'none' }}
-                >
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Users size={18} /> Colaboradores ({project.collaborators.length})
-                        {collabsExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
-                    </h3>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                        {isCollaborator && (
-                            <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Ya sos parte</span>
-                        )}
-                        {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
-                            <span style={{ fontSize: '0.85rem', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Clock size={14} /> Postulación Pendiente
-                            </span>
-                        )}
-                    </div>
-                </div>
-
-                {collabsExpanded && (
-                    <>
-                        {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
-                            <div style={{
-                                marginBottom: '1rem',
-                                padding: '0.75rem 1rem',
-                                background: '#fffbeb',
-                                border: '1px solid #fef3c7',
-                                borderRadius: 'var(--radius-md)',
-                                fontSize: '0.875rem',
-                                color: '#b45309'
-                            }}>
-                                📝 Tu postulación para colaborar en este proyecto está pendiente de aprobación por un referente departamental.
+                    {/* Right Column: Collaborators and Application */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                        {/* Help requested alert banner */}
+                        {project.needsHelp && project.helpDescription && (
+                            <div style={{ padding: '1.25rem', background: '#fffbeb', borderRadius: 'var(--radius-xl)', border: '1px solid #fef3c7', boxShadow: 'var(--shadow-sm)' }}>
+                                <h4 style={{ fontSize: '0.875rem', color: '#b45309', marginBottom: '0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <HelpCircle size={16} /> Se solicita colaboración
+                                </h4>
+                                <p style={{ fontSize: '0.875rem', color: '#b45309', margin: 0, lineHeight: 1.5 }}>{project.helpDescription}</p>
                             </div>
                         )}
 
-                        <div className="collaborator-list">
-                            {project.collaborators.map((c, i) => (
-                                <div key={i} className="collaborator-item">
-                                    <div className="collaborator-avatar">{c.initials}</div>
-                                    <div className="collaborator-info"><h4>{c.name}</h4><span>{c.role}</span></div>
+                        {/* Join banner */}
+                        {(canJoinDirectly || canApply) && (
+                            <div className="card" style={{ padding: 'var(--space-5)', background: 'var(--accent-50)', borderColor: 'var(--accent-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                                <h4 style={{ margin: 0, color: 'var(--gray-800)', fontSize: '0.95rem', fontWeight: 700 }}>¿Querés colaborar en este proyecto?</h4>
+                                <p style={{ margin: 0, fontSize: 'var(--font-xs)', color: 'var(--gray-500)', lineHeight: 1.5 }}>
+                                    {isUsuarioComun
+                                        ? 'Postulate para unirte al equipo del proyecto. Un referente de departamento revisará tu postulación y te habilitará el rol de colaborador.'
+                                        : 'Unite directamente como colaborador para registrar avances, actualizar el estado y los objetivos.'}
+                                </p>
+                                {showJoinConfirm ? (
+                                    <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => setShowJoinConfirm(false)} disabled={joining}>Cancelar</button>
+                                        <button className="btn btn-accent btn-sm" onClick={handleJoin} disabled={joining}>
+                                            {joining ? 'Enviando...' : (isUsuarioComun ? 'Confirmar Postulación' : 'Unirse ahora')}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button className="btn btn-accent btn-sm" onClick={() => setShowJoinConfirm(true)} style={{ alignSelf: 'flex-start' }}>
+                                        <UserPlus size={14} /> {isUsuarioComun ? 'Postularse como colaborador' : 'Unirse al proyecto'}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Collaborators list */}
+                        <div className="card" style={{ padding: 'var(--space-5)' }}>
+                            <div
+                                onClick={() => setCollabsExpanded(!collabsExpanded)}
+                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+                            >
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0 }}>
+                                    <Users size={18} /> Colaboradores ({project.collaborators.length})
+                                </h3>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    {isCollaborator && (
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>✓ Sos parte</span>
+                                    )}
+                                    {collabsExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
+                                </div>
+                            </div>
+
+                            {collabsExpanded && (
+                                <div style={{ marginTop: 'var(--space-4)' }}>
+                                    {isAuthenticated && isUsuarioComun && hasPendingForThisProject && (
+                                        <div style={{ marginBottom: '1rem', padding: '0.6rem 0.8rem', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-xs)', color: '#b45309' }}>
+                                            📝 Tu postulación está pendiente de aprobación por un referente departamental.
+                                        </div>
+                                    )}
+
+                                    <div className="collaborator-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {project.collaborators.map((c, i) => (
+                                            <div key={i} className="collaborator-item" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div className="collaborator-avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary-100)', color: 'var(--primary-700)', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.75rem' }}>
+                                                    {c.initials}
+                                                </div>
+                                                <div className="collaborator-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--gray-800)' }}>{c.name}</h4>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--gray-400)' }}>{c.organization || 'OSC/Colaborador'}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+                </div>
+            )}
+
+            {/* TAB CONTENT: EJECUCION */}
+            {activeTab === 'ejecucion' && (
+                <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                    
+                    {/* Status Step Bar */}
+                    <div>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-4)' }}>
+                            Progreso del Proyecto
+                        </h3>
+                        <div className="project-status-bar" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', background: 'var(--gray-50)', padding: 'var(--space-4) var(--space-6)', borderRadius: 'var(--radius-xl)' }}>
+                            {statusOrder.map((s, i) => (
+                                <div key={s} style={{ display: 'contents' }}>
+                                    <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--font-sm)', fontWeight: 500 }}>
+                                        {idx > i ? <CheckCircle size={18} style={{ color: 'var(--success)' }} /> : <Circle size={18} />}
+                                        <span>{PROJECT_STATUSES[s]?.label}</span>
+                                    </div>
+                                    {i < 2 && <div className={`status-connector ${idx > i ? 'completed' : ''}`} style={{ flexGrow: 1, height: '2px', background: idx > i ? 'var(--success)' : 'var(--gray-200)' }} />}
                                 </div>
                             ))}
                         </div>
-                    </>
-                )}
-            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: '3.5rem 0 2.5rem 0' }}>
-                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--gray-300))' }} />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gray-800)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0, padding: '0 0.5rem' }}>
-                    Ejecución
-                </h2>
-                <div style={{ flexGrow: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--gray-300))' }} />
-            </div>
-
-            {/* Status Bar */}
-            <div className="project-status-bar" style={{ marginBottom: '2rem' }}>
-                {statusOrder.map((s, i) => (
-                    <div key={s} style={{ display: 'contents' }}>
-                        <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`}>
-                            {idx > i ? <CheckCircle size={18} /> : <Circle size={18} />}
-                            <span>{PROJECT_STATUSES[s]?.label}</span>
-                        </div>
-                        {i < 2 && <div className={`status-connector ${idx > i ? 'completed' : ''}`} />}
-                    </div>
-                ))}
-            </div>
-
-            {/* Timeline */}
-            <div style={{ marginBottom: '2rem' }}>
-                <div 
-                    onClick={() => setTimelineExpanded(!timelineExpanded)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', cursor: 'pointer', userSelect: 'none' }}
-                >
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Clock size={18} /> Registro de Avances
-                        {timelineExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
-                    </h3>
-                </div>
-
-                {timelineExpanded && (
-                    <>
-                        <Timeline entries={project.timeline} />
-
-                        {/* Only collaborators or staff (REFERENTE/ADMIN) of this project can add entries */}
-                        {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
-                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '2rem' }}>
-                                <input className="form-input" placeholder="Registrar avance..." value={newEntry} onChange={e => setNewEntry(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddEntry()} />
-                                <button className="btn btn-primary btn-sm" onClick={handleAddEntry}><Plus size={14} /></button>
+                        {/* Interactive Status Dropdown for collaborators */}
+                        {canEdit && (
+                            <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--gray-50)', padding: '0.6rem 0.9rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', width: 'fit-content' }}>
+                                <span style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--gray-700)', textTransform: 'uppercase' }}>Cambiar estado del proyecto:</span>
+                                <select
+                                    className="form-select"
+                                    value={project.status}
+                                    onChange={async (e) => {
+                                        await updateProject(project.id, { status: e.target.value });
+                                    }}
+                                    style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-1) var(--space-2)', width: 'auto', border: '1px solid var(--gray-300)' }}
+                                >
+                                    <option value="denuncia">Identificada</option>
+                                    <option value="iniciando">Iniciando</option>
+                                    <option value="en-proceso">En Proceso</option>
+                                    <option value="finalizado">Finalizado</option>
+                                </select>
                             </div>
                         )}
-                    </>
-                )}
-            </div>
+                    </div>
 
-            {project.status === 'finalizado' && (
-                <div className="card" style={{ background: '#d1fae5', borderColor: '#a7f3d0' }}>
-                    <h3 style={{ color: '#065f46', marginBottom: '1rem' }}><CheckCircle size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px' }} />Proyecto Finalizado</h3>
-                    {project.impact && <p style={{ fontSize: '0.875rem', color: '#064e3b', marginBottom: '0.75rem' }}><strong>Impacto:</strong> {project.impact}</p>}
-                    {project.lessons && <p style={{ fontSize: '0.875rem', color: '#064e3b' }}><strong>Aprendizajes:</strong> {project.lessons}</p>}
+                    {/* Timeline (Avances) */}
+                    <div>
+                        <div
+                            onClick={() => setTimelineExpanded(!timelineExpanded)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', cursor: 'pointer', userSelect: 'none' }}
+                        >
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0 }}>
+                                <Clock size={18} /> Registro de Avances
+                            </h3>
+                            {timelineExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
+                        </div>
+
+                        {timelineExpanded && (
+                            <div style={{ paddingLeft: '0.5rem' }}>
+                                <Timeline entries={project.timeline} />
+
+                                {/* Add Timeline entry */}
+                                {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
+                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '1rem' }}>
+                                        <input
+                                            className="form-input"
+                                            placeholder="Escribe y registra un avance..."
+                                            value={newEntry}
+                                            onChange={e => setNewEntry(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddEntry()}
+                                            style={{ fontSize: '0.875rem' }}
+                                        />
+                                        <button className="btn btn-primary btn-sm" onClick={handleAddEntry}>
+                                            <Plus size={14} /> Registrar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Project Finalized impact card */}
+                    {project.status === 'finalizado' && (
+                        <div className="card" style={{ background: '#d1fae5', borderColor: '#a7f3d0', padding: '1.25rem' }}>
+                            <h3 style={{ color: '#065f46', marginBottom: '0.75rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}><CheckCircle size={20} /> Proyecto Finalizado</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
+                                {project.impact && <p style={{ fontSize: '0.875rem', color: '#064e3b', margin: 0 }}><strong>Impacto:</strong> {project.impact}</p>}
+                                {project.lessons && <p style={{ fontSize: '0.875rem', color: '#064e3b', margin: 0 }}><strong>Aprendizajes:</strong> {project.lessons}</p>}
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             )}
         </div>
