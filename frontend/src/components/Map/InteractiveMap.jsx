@@ -15,12 +15,12 @@ L.Icon.Default.mergeOptions({
 
 function createColoredIcon(status) {
     const colors = {
-        denuncia: '#fbbf24',
-        iniciando: '#60a5fa',
-        'en-proceso': '#3b82f6',
+        denuncia: '#ef4444',
+        iniciando: '#f97316',
+        'en-proceso': '#eab308',
         finalizado: '#10b981',
     };
-    const color = colors[status] || '#fbbf24';
+    const color = colors[status] || '#ef4444';
 
     return L.divIcon({
         className: '',

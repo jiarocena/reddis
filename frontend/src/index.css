@@ -332,18 +332,18 @@ select {
 }
 
 .badge-denuncia {
-  background: #fef9c3;
-  color: #a16207;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .badge-iniciando {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #ffedd5;
+  color: #c2410c;
 }
 
 .badge-en-proceso {
-  background: #bfdbfe;
-  color: #1d4ed8;
+  background: #fef9c3;
+  color: #a16207;
 }
 
 .badge-finalizado {
