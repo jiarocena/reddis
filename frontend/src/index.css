@@ -2649,18 +2649,13 @@ select {
     transition: height var(--transition-base);
   }
 
+  .map-sidebar.dragging {
+    transition: none !important;
+  }
+
   /* Bottom sheet height states */
   .map-sidebar.mobile-sheet-collapsed {
-    height: 65px !important;
-    overflow: hidden;
-  }
-
-  .map-sidebar.mobile-sheet-medium {
-    height: 33vh !important;
-  }
-
-  .map-sidebar.mobile-sheet-expanded {
-    height: 80vh !important;
+    overflow: hidden !important;
   }
 
   /* Handle styles */

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +26,24 @@ export default function MapPage() {
     const [mapCenter, setMapCenter] = useState(userDeptoData ? userDeptoData.center : null);
     const [mapZoom, setMapZoom] = useState(userDeptoData ? userDeptoData.zoom : null);
     const [initializedForUser, setInitializedForUser] = useState(false);
-    const [sheetState, setSheetState] = useState('medium'); // 'collapsed' | 'medium' | 'expanded'
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [sheetHeight, setSheetHeight] = useState(window.innerHeight * 0.33); // 33vh
+    const [isDragging, setIsDragging] = useState(false);
+    const dragStartY = useRef(0);
+    const dragStartHeight = useRef(0);
+    const dragHasMoved = useRef(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth <= 768;
+            setIsMobile(mobile);
+            if (!mobile) {
+                setSheetHeight(window.innerHeight * 0.33);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Auto-center on user's department when user loads
     useEffect(() => {
@@ -89,12 +106,70 @@ export default function MapPage() {
         }
     };
 
-    const toggleSheetState = () => {
-        setSheetState(prev => {
-            if (prev === 'collapsed') return 'medium';
-            if (prev === 'medium') return 'expanded';
-            return 'collapsed';
-        });
+    const handleTouchStart = (e) => {
+        const touch = e.touches[0];
+        dragStartY.current = touch.clientY;
+        dragStartHeight.current = sheetHeight;
+        setIsDragging(true);
+        dragHasMoved.current = false;
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const diffY = dragStartY.current - touch.clientY; // drag up is positive diff
+        if (Math.abs(diffY) > 5) {
+            dragHasMoved.current = true;
+        }
+        const newHeight = Math.max(75, Math.min(window.innerHeight * 0.85, dragStartHeight.current + diffY));
+        setSheetHeight(newHeight);
+    };
+
+    const handleTouchEnd = () => {
+        setIsDragging(false);
+        if (!dragHasMoved.current) {
+            cycleSheetState();
+            return;
+        }
+        snapToClosest();
+    };
+
+    const snapToClosest = () => {
+        const collapsedVal = 75;
+        const mediumVal = window.innerHeight * 0.33;
+        const expandedVal = window.innerHeight * 0.80;
+
+        const distCollapsed = Math.abs(sheetHeight - collapsedVal);
+        const distMedium = Math.abs(sheetHeight - mediumVal);
+        const distExpanded = Math.abs(sheetHeight - expandedVal);
+        const minDist = Math.min(distCollapsed, distMedium, distExpanded);
+
+        if (minDist === distCollapsed) {
+            setSheetHeight(collapsedVal);
+        } else if (minDist === distMedium) {
+            setSheetHeight(mediumVal);
+        } else {
+            setSheetHeight(expandedVal);
+        }
+    };
+
+    const cycleSheetState = () => {
+        const collapsedVal = 75;
+        const mediumVal = window.innerHeight * 0.33;
+        const expandedVal = window.innerHeight * 0.80;
+
+        const distCollapsed = Math.abs(sheetHeight - collapsedVal);
+        const distMedium = Math.abs(sheetHeight - mediumVal);
+        const distExpanded = Math.abs(sheetHeight - expandedVal);
+        const minDist = Math.min(distCollapsed, distMedium, distExpanded);
+
+        if (minDist === distCollapsed) {
+            setSheetHeight(mediumVal);
+        } else if (minDist === distMedium) {
+            setSheetHeight(expandedVal);
+        } else {
+            setSheetHeight(collapsedVal);
+        }
     };
 
     return (
@@ -109,15 +184,26 @@ export default function MapPage() {
                 />
             </div>
 
-            <div className={`map-sidebar mobile-sheet-${sheetState}`}>
-                {/* Handle bar for mobile bottom sheet */}
-                <div className="sheet-handle-container" onClick={toggleSheetState}>
-                    <div className="sheet-handle"></div>
+            <div
+                className={`map-sidebar ${isMobile ? 'mobile-sheet' : ''} ${isMobile && sheetHeight <= 80 ? 'mobile-sheet-collapsed' : ''} ${isDragging ? 'dragging' : ''}`}
+                style={isMobile ? { height: `${sheetHeight}px` } : {}}
+            >
+                {/* Drag handle header for mobile bottom sheet */}
+                <div
+                    className="sheet-header"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    onClick={cycleSheetState}
+                    style={isMobile ? { cursor: 'grab', userSelect: 'none' } : {}}
+                >
+                    <div className="sheet-handle-container">
+                        <div className="sheet-handle"></div>
+                    </div>
+                    <h2 style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-2)', color: 'var(--gray-900)', textAlign: 'center', pointerEvents: 'none' }}>
+                        Barreras Reportadas
+                    </h2>
                 </div>
-
-                <h2 style={{ fontSize: 'var(--font-xl)', marginBottom: 'var(--space-4)', color: 'var(--gray-900)' }}>
-                    Barreras Reportadas
-                </h2>
 
                 {/* Department Selector */}
                 <div style={{ marginBottom: 'var(--space-3)' }}>
