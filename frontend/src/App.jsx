@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -77,6 +77,35 @@ function AppContent() {
     const isGestion = location.pathname.startsWith('/gestion');
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
 
+    const [installPrompt, setInstallPrompt] = useState(null);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e) => {
+            e.preventDefault();
+            setInstallPrompt(e);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        // Check if already in standalone mode
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isStandalone) {
+            setInstallPrompt(null);
+        }
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!installPrompt) return;
+        installPrompt.prompt();
+        const { outcome } = await installPrompt.userChoice;
+        console.log(`User response to install prompt: ${outcome}`);
+        setInstallPrompt(null);
+    };
+
     // Poll backend every 8 seconds to automatically update role request approvals in real-time
     useEffect(() => {
         if (!isAuthenticated) return;
@@ -153,6 +182,42 @@ function AppContent() {
                     <Route path="/admin" element={<Navigate to="/gestion/admin" replace />} />
                     <Route path="/perfil" element={<Navigate to="/gestion/perfil" replace />} />
                 </Routes>
+
+                {/* Install App Promotion */}
+                {installPrompt && (
+                    <div style={{
+                        padding: '1.25rem var(--space-6)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        background: 'var(--white)',
+                        borderTop: '1px solid var(--gray-200)',
+                        textAlign: 'center',
+                        gap: '0.5rem',
+                        marginTop: '2rem'
+                    }} className="animate-fadeIn">
+                        <p style={{ fontSize: '0.8rem', color: 'var(--gray-500)', margin: 0 }}>
+                            ¿Querés acceder más rápido? Instalá REDDIS en tu pantalla de inicio.
+                        </p>
+                        <button
+                            onClick={handleInstallClick}
+                            className="btn btn-primary"
+                            style={{
+                                width: '100%',
+                                maxWidth: '350px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                padding: '0.65rem 1.25rem',
+                                fontSize: '0.85rem',
+                                borderRadius: 'var(--radius-lg)'
+                            }}
+                        >
+                            Instalar app
+                        </button>
+                    </div>
+                )}
             </main>
 
             {/* Bottom nav for public mode only */}
