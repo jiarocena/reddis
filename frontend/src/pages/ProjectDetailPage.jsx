@@ -102,25 +102,42 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="project-panel animate-fadeIn" style={{ maxWidth: '1000px' }}>
-            <Link
-                to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '1.5rem' }}
-            >
-                <ArrowLeft size={16} /> Volver
-            </Link>
-
-            {/* Premium Header Card */}
-            <div className="card" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-6)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', background: 'var(--white)', boxShadow: 'var(--shadow-sm)' }}>
-                <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0', lineHeight: 1.3 }}>{project.title}</h1>
-                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', margin: '0.4rem 0 0 0' }}>
+            {/* Top compact header (without surrounding card) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', marginTop: '0.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <Link
+                        to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')}
+                        style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            width: '28px', 
+                            height: '28px', 
+                            borderRadius: '50%', 
+                            background: 'var(--white)', 
+                            color: 'var(--gray-500)',
+                            border: '1px solid var(--gray-200)',
+                            boxShadow: 'var(--shadow-sm)',
+                            transition: 'all 0.2s',
+                            flexShrink: 0
+                        }}
+                        title="Volver"
+                    >
+                        <ArrowLeft size={14} />
+                    </Link>
+                    <h1 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0', lineHeight: 1.25, flexGrow: 1 }}>
+                        {project.title}
+                    </h1>
+                </div>
+                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-xs)', margin: '0 0 0 36px' }}>
                     Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
                 </p>
                 {(() => {
                     const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
                     if (orgs.length > 0) {
                         return (
-                            <p style={{ color: 'var(--primary-600)', fontSize: '0.875rem', fontWeight: 600, margin: '0.4rem 0 0 0' }}>
-                                🏛️ Organizaciones participantes: {orgs.join(' / ')}
+                            <p style={{ color: 'var(--primary-600)', fontSize: '0.75rem', fontWeight: 600, margin: '0 0 0 36px' }}>
+                                🏛️ {orgs.join(' / ')}
                             </p>
                         );
                     }
@@ -128,14 +145,16 @@ export default function ProjectDetailPage() {
                 })()}
 
                 {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
-                <div style={{ display: 'flex', marginTop: '1.25rem', borderBottom: 'none' }}>
+                <div style={{ display: 'flex', margin: '0.5rem 0 0 36px', borderBottom: 'none' }}>
                     <div style={{ 
                         display: 'inline-flex', 
                         background: 'var(--gray-100)', 
-                        padding: '4px', 
+                        padding: '3px', 
                         borderRadius: 'var(--radius-lg)', 
-                        gap: '4px',
-                        border: '1px solid var(--gray-200)'
+                        gap: '2px',
+                        border: '1px solid var(--gray-200)',
+                        maxWidth: '100%',
+                        overflowX: 'auto'
                     }}>
                         <button
                             type="button"
@@ -144,9 +163,9 @@ export default function ProjectDetailPage() {
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '6px', 
-                                padding: '6px 16px', 
-                                fontSize: '0.875rem', 
+                                gap: '4px', 
+                                padding: '4px 12px', 
+                                fontSize: '0.8rem', 
                                 fontWeight: 600, 
                                 border: 'none', 
                                 borderRadius: 'var(--radius-md)', 
@@ -154,11 +173,12 @@ export default function ProjectDetailPage() {
                                 background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
                                 color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
                                 boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
-                                transition: 'all 0.2s',
-                                outline: 'none'
+                                transition: 'all 0.15s',
+                                outline: 'none',
+                                whiteSpace: 'nowrap'
                             }}
                         >
-                            <Briefcase size={14} /> Proyecto
+                            <Briefcase size={12} /> Proyecto
                         </button>
                         <button
                             type="button"
@@ -167,9 +187,9 @@ export default function ProjectDetailPage() {
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '6px', 
-                                padding: '6px 16px', 
-                                fontSize: '0.875rem', 
+                                gap: '4px', 
+                                padding: '4px 12px', 
+                                fontSize: '0.8rem', 
                                 fontWeight: 600, 
                                 border: 'none', 
                                 borderRadius: 'var(--radius-md)', 
@@ -177,11 +197,12 @@ export default function ProjectDetailPage() {
                                 background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
                                 color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
                                 boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
-                                transition: 'all 0.2s',
-                                outline: 'none'
+                                transition: 'all 0.15s',
+                                outline: 'none',
+                                whiteSpace: 'nowrap'
                             }}
                         >
-                            <Activity size={14} /> Ejecución
+                            <Activity size={12} /> Ejecución
                         </button>
                         {isCollaborator && (
                             <button
@@ -191,9 +212,9 @@ export default function ProjectDetailPage() {
                                 style={{ 
                                     display: 'flex', 
                                     alignItems: 'center', 
-                                    gap: '6px', 
-                                    padding: '6px 16px', 
-                                    fontSize: '0.875rem', 
+                                    gap: '4px', 
+                                    padding: '4px 12px', 
+                                    fontSize: '0.8rem', 
                                     fontWeight: 600, 
                                     border: 'none', 
                                     borderRadius: 'var(--radius-md)', 
@@ -201,11 +222,12 @@ export default function ProjectDetailPage() {
                                     background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
                                     color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
                                     boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
-                                    transition: 'all 0.2s',
-                                    outline: 'none'
+                                    transition: 'all 0.15s',
+                                    outline: 'none',
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
-                                <MessageSquare size={14} /> Chat
+                                <MessageSquare size={12} /> Chat
                             </button>
                         )}
                     </div>
