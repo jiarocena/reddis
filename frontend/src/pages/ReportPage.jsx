@@ -222,27 +222,33 @@ export default function ReportPage() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">*</label>
-                        <div className="input-with-button">
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Seleccioná la ubicación en el mapa..."
-                                value={formData.address}
-                                readOnly
-                                style={{ background: 'var(--gray-100)', color: 'var(--gray-500)', cursor: 'not-allowed' }}
-                            />
-                            <button
-                                type="button"
-                                className="btn btn-secondary btn-sm map-btn"
-                                onClick={() => setShowMap(true)}
-                                title="Seleccionar en el mapa"
-                            >
-                                <Map size={16} /> Ubicación
-                            </button>
-                        </div>
+                        <label className="form-label">
+                            <MapPin size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                            Ubicación *
+                        </label>
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setShowMap(true)}
+                            style={{ 
+                                width: '100%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                gap: '8px',
+                                padding: '0.75rem',
+                                fontSize: 'var(--font-sm)',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap'
+                            }}
+                            title="Seleccionar ubicación en el mapa"
+                        >
+                            <Map size={16} />
+                            {formData.address || "Seleccioná la ubicación en el mapa..."}
+                        </button>
                         {formData.location?.lat && (
-                            <small className="coords-display">
+                            <small className="coords-display" style={{ display: 'block', marginTop: '4px' }}>
                                 📍 Coordenadas: {formData.location.lat.toFixed(5)}, {formData.location.lng.toFixed(5)}
                             </small>
                         )}

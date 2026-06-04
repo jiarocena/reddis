@@ -598,8 +598,8 @@ function ProjectChatSection({ projectId }) {
         <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '450px', background: 'var(--white)' }}>
             <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <MessageSquare size={18} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MessageSquare size={14} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
                     </h3>
                     <button
                         type="button"
