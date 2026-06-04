@@ -152,9 +152,6 @@ function AppContent() {
             {/* Bottom nav for public mode only */}
             <BottomNav />
 
-            {/* Footer only on gestion */}
-            {isGestion && <Footer />}
-
             <Toast />
         </>
     );

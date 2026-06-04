@@ -42,7 +42,7 @@ export default function ProjectDetailPage() {
         }
     }, [project?.id]);
 
-    const isCollaborator = isAuthenticated && project?.collaborators?.some(c => c.userId === user?.id);
+    const isCollaborator = isAuthenticated && project?.collaborators?.some(c => Number(c.userId) === Number(user?.id));
     const canEdit = isAuthenticated && (isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN'));
 
     // Autosave handler
@@ -111,53 +111,105 @@ export default function ProjectDetailPage() {
 
             {/* Premium Header Card */}
             <div className="card" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-6)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', background: 'var(--white)', boxShadow: 'var(--shadow-sm)' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                    <span className={`badge badge-${project.status}`}>{PROJECT_STATUSES[project.status]?.label}</span>
-                    {barrier && <span className={`badge badge-${barrier.category}`}>{CATEGORIES[barrier.category]?.label}</span>}
-                    {project.needsHelp && <span className="badge badge-urgente"><HelpCircle size={10} /> Necesita colaboración</span>}
-                </div>
-                <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0.25rem 0', lineHeight: 1.3 }}>{project.title}</h1>
+                <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0', lineHeight: 1.3 }}>{project.title}</h1>
+                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', margin: '0.4rem 0 0 0' }}>
+                    Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
+                </p>
                 {(() => {
                     const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
                     if (orgs.length > 0) {
                         return (
-                            <p style={{ color: 'var(--primary-600)', fontSize: '0.875rem', fontWeight: 600, margin: '0.4rem 0' }}>
+                            <p style={{ color: 'var(--primary-600)', fontSize: '0.875rem', fontWeight: 600, margin: '0.4rem 0 0 0' }}>
                                 🏛️ Organizaciones participantes: {orgs.join(' / ')}
                             </p>
                         );
                     }
                     return null;
                 })()}
-                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', margin: '0.4rem 0 0 0' }}>
-                    Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
-                </p>
-            </div>
 
-            {/* Tabbed Navigation Bar */}
-            <div className="admin-tabs" style={{ display: 'flex', flexWrap: 'nowrap', overflowX: 'auto', borderBottom: '2px solid var(--gray-200)', marginBottom: 'var(--space-6)', gap: 'var(--space-6)' }}>
-                <button
-                    className={`admin-tab-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('proyecto')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none', whiteSpace: 'nowrap' }}
-                >
-                    <Briefcase size={16} /> El Proyecto
-                </button>
-                <button
-                    className={`admin-tab-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('ejecucion')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none', whiteSpace: 'nowrap' }}
-                >
-                    <Activity size={16} /> Ejecución
-                </button>
-                {isCollaborator && (
-                    <button
-                        className={`admin-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('chat')}
-                        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none', whiteSpace: 'nowrap' }}
-                    >
-                        <MessageSquare size={16} /> Chat Interno
-                    </button>
-                )}
+                {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
+                <div style={{ display: 'flex', marginTop: '1.25rem', borderBottom: 'none' }}>
+                    <div style={{ 
+                        display: 'inline-flex', 
+                        background: 'var(--gray-100)', 
+                        padding: '4px', 
+                        borderRadius: 'var(--radius-lg)', 
+                        gap: '4px',
+                        border: '1px solid var(--gray-200)'
+                    }}>
+                        <button
+                            type="button"
+                            className={`project-menu-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('proyecto')}
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '6px', 
+                                padding: '6px 16px', 
+                                fontSize: '0.875rem', 
+                                fontWeight: 600, 
+                                border: 'none', 
+                                borderRadius: 'var(--radius-md)', 
+                                cursor: 'pointer',
+                                background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
+                                color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
+                                transition: 'all 0.2s',
+                                outline: 'none'
+                            }}
+                        >
+                            <Briefcase size={14} /> Proyecto
+                        </button>
+                        <button
+                            type="button"
+                            className={`project-menu-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('ejecucion')}
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '6px', 
+                                padding: '6px 16px', 
+                                fontSize: '0.875rem', 
+                                fontWeight: 600, 
+                                border: 'none', 
+                                borderRadius: 'var(--radius-md)', 
+                                cursor: 'pointer',
+                                background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
+                                color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
+                                transition: 'all 0.2s',
+                                outline: 'none'
+                            }}
+                        >
+                            <Activity size={14} /> Ejecución
+                        </button>
+                        {isCollaborator && (
+                            <button
+                                type="button"
+                                className={`project-menu-btn ${activeTab === 'chat' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('chat')}
+                                style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '6px', 
+                                    padding: '6px 16px', 
+                                    fontSize: '0.875rem', 
+                                    fontWeight: 600, 
+                                    border: 'none', 
+                                    borderRadius: 'var(--radius-md)', 
+                                    cursor: 'pointer',
+                                    background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
+                                    color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                    boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
+                                    transition: 'all 0.2s',
+                                    outline: 'none'
+                                }}
+                            >
+                                <MessageSquare size={14} /> Chat
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* TAB CONTENT: PROYECTO */}
@@ -463,7 +515,9 @@ function ProjectChatSection({ projectId }) {
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState('');
     const [sending, setSending] = useState(false);
-    const messagesEndRef = useRef(null);
+    const containerRef = useRef(null);
+    const prevCountRef = useRef(0);
+    const isFirstLoadRef = useRef(true);
 
     const loadMessages = useCallback(async () => {
         const msgs = await getChatMessages(projectId);
@@ -477,7 +531,14 @@ function ProjectChatSection({ projectId }) {
     }, [loadMessages]);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (!containerRef.current) return;
+
+        // If messages count increased or first load
+        if (messages.length > prevCountRef.current || isFirstLoadRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+            isFirstLoadRef.current = false;
+        }
+        prevCountRef.current = messages.length;
     }, [messages]);
 
     const handleSend = async (e) => {
@@ -504,7 +565,7 @@ function ProjectChatSection({ projectId }) {
             </div>
 
             {/* Messages box */}
-            <div style={{ flexGrow: 1, height: '350px', overflowY: 'auto', background: 'var(--gray-50)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div ref={containerRef} style={{ flexGrow: 1, height: '350px', overflowY: 'auto', background: 'var(--gray-50)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {messages.length === 0 ? (
                     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)', gap: 'var(--space-2)' }}>
                         <MessageSquare size={32} />
@@ -540,7 +601,6 @@ function ProjectChatSection({ projectId }) {
                         );
                     })
                 )}
-                <div ref={messagesEndRef} />
             </div>
 
             {/* Input area */}

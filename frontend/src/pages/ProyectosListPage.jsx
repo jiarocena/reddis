@@ -14,6 +14,7 @@ export default function ProyectosListPage() {
     const [postulateProject, setPostulateProject] = useState(null);
     const [orgInput, setOrgInput] = useState('');
     const [motiveInput, setMotiveInput] = useState('');
+    const [showHelp, setShowHelp] = useState(false);
     const isUsuarioComun = user?.rol === 'USUARIO';
 
     const handleButtonClick = (e, project) => {
@@ -70,8 +71,31 @@ export default function ProyectosListPage() {
     return (
         <div className="pending-page animate-fadeIn">
             <div className="pending-header">
-                <h1><Briefcase size={24} /> Proyectos</h1>
-                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><Briefcase size={24} /> Proyectos</h1>
+                    {isUsuarioComun && (
+                        <button
+                            type="button"
+                            onClick={() => setShowHelp(!showHelp)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: showHelp ? 'var(--accent-600)' : 'var(--gray-400)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px',
+                                borderRadius: '50%',
+                                transition: 'all 0.2s',
+                                outline: 'none'
+                            }}
+                            title="Ayuda sobre cómo colaborar"
+                        >
+                            <HelpCircle size={18} />
+                        </button>
+                    )}
+                </div>
+                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginTop: '0.25rem' }}>
                     {filtered.length} proyecto{filtered.length !== 1 ? 's' : ''} · Barreras que se están trabajando
                 </p>
             </div>
@@ -108,8 +132,8 @@ export default function ProyectosListPage() {
                 );
             })()}
 
-            {isUsuarioComun && !hasPending && (
-                <div style={{
+            {isUsuarioComun && showHelp && !hasPending && (
+                <div className="animate-fadeIn" style={{
                     padding: '1rem',
                     background: 'var(--accent-50)',
                     border: '1px solid var(--accent-100)',
@@ -168,7 +192,7 @@ export default function ProyectosListPage() {
                     const lastEntry = p.timeline?.[p.timeline.length - 1];
                     const completedEntries = p.timeline?.filter(t => t.completed).length || 0;
 
-                    const isUserCollaborator = user && p.collaborators?.some(c => c.userId === user?.id);
+                    const isUserCollaborator = user && p.collaborators?.some(c => Number(c.userId) === Number(user?.id));
 
                     const hasPendingForThisProject = isUsuarioComun && hasPending && (() => {
                         const msgs = user?.pendingRoleRequestMessages || (user?.pendingRoleRequestMessage ? [user.pendingRoleRequestMessage] : []);
