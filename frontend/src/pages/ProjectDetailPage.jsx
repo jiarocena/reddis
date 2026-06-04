@@ -104,7 +104,7 @@ export default function ProjectDetailPage() {
         <div className="project-panel animate-fadeIn" style={{ maxWidth: '1000px' }}>
             {/* Top compact header (without surrounding card) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', marginTop: '0.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                     <Link
                         to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')}
                         style={{ 
@@ -119,33 +119,36 @@ export default function ProjectDetailPage() {
                             border: '1px solid var(--gray-200)',
                             boxShadow: 'var(--shadow-sm)',
                             transition: 'all 0.2s',
-                            flexShrink: 0
+                            flexShrink: 0,
+                            marginTop: '2px'
                         }}
                         title="Volver"
                     >
                         <ArrowLeft size={14} />
                     </Link>
-                    <h1 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0', lineHeight: 1.25, flexGrow: 1 }}>
-                        {project.title}
-                    </h1>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flexGrow: 1 }}>
+                        <h1 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0', lineHeight: 1.25 }}>
+                            {project.title}
+                        </h1>
+                        <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-xs)', margin: '0' }}>
+                            Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
+                        </p>
+                        {(() => {
+                            const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
+                            if (orgs.length > 0) {
+                                return (
+                                    <p style={{ color: 'var(--primary-600)', fontSize: '0.75rem', fontWeight: 600, margin: '0' }}>
+                                        🏛️ {orgs.join(' / ')}
+                                    </p>
+                                );
+                            }
+                            return null;
+                        })()}
+                    </div>
                 </div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-xs)', margin: '0 0 0 36px' }}>
-                    Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
-                </p>
-                {(() => {
-                    const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
-                    if (orgs.length > 0) {
-                        return (
-                            <p style={{ color: 'var(--primary-600)', fontSize: '0.75rem', fontWeight: 600, margin: '0 0 0 36px' }}>
-                                🏛️ {orgs.join(' / ')}
-                            </p>
-                        );
-                    }
-                    return null;
-                })()}
 
                 {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
-                <div style={{ display: 'flex', margin: '0.5rem 0 0 36px', borderBottom: 'none' }}>
+                <div style={{ display: 'flex', margin: '0.25rem 0 0 36px', borderBottom: 'none' }}>
                     <div style={{ 
                         display: 'inline-flex', 
                         background: 'var(--gray-100)', 
@@ -435,34 +438,49 @@ export default function ProjectDetailPage() {
             {activeTab === 'ejecucion' && (
                 <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
                     
-                    {/* Status Step Bar */}
-                    <div>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-4)' }}>
-                            Progreso del Proyecto
-                        </h3>
-                        <div className="project-status-bar" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', background: 'var(--gray-50)', padding: 'var(--space-4) var(--space-6)', borderRadius: 'var(--radius-xl)' }}>
-                            {statusOrder.map((s, i) => (
-                                <div key={s} style={{ display: 'contents' }}>
-                                    <div className={`status-step ${idx >= i ? (idx > i ? 'completed' : 'active') : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--font-xs)', fontWeight: 500 }}>
-                                        {idx > i ? <CheckCircle size={16} style={{ color: 'var(--success)' }} /> : <Circle size={16} />}
-                                        <span>{PROJECT_STATUSES[s]?.label}</span>
-                                    </div>
-                                    {i < 2 && <div className="status-connector" style={{ flexGrow: 1, height: '2px', background: idx > i ? 'var(--success)' : 'var(--gray-200)' }} />}
-                                </div>
-                            ))}
+                    {/* Status Box */}
+                    <div style={{ 
+                        padding: '0.75rem 1rem', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between', 
+                        gap: '1rem', 
+                        flexWrap: 'wrap',
+                        background: 'var(--gray-50)',
+                        border: '1px solid var(--gray-200)',
+                        borderRadius: 'var(--radius-lg)',
+                        marginBottom: '1.5rem'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--gray-700)' }}>
+                                Estado del proyecto:
+                            </span>
+                            <span className={`badge badge-${project.status}`}>
+                                {PROJECT_STATUSES[project.status]?.label}
+                            </span>
                         </div>
 
                         {/* Interactive Status Dropdown for collaborators */}
                         {canEdit && (
-                            <div style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', background: 'var(--gray-50)', padding: '0.6rem 0.9rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', width: 'fit-content', maxWidth: '100%' }}>
-                                <span style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--gray-700)', textTransform: 'uppercase' }}>Cambiar estado del proyecto:</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-500)' }}>
+                                    Cambiar:
+                                </span>
                                 <select
                                     className="form-select"
                                     value={project.status}
                                     onChange={async (e) => {
                                         await updateProject(project.id, { status: e.target.value });
                                     }}
-                                    style={{ fontSize: 'var(--font-sm)', padding: 'var(--space-1) var(--space-2)', width: 'auto', border: '1px solid var(--gray-300)' }}
+                                    style={{ 
+                                        fontSize: 'var(--font-xs)', 
+                                        padding: '4px 8px', 
+                                        width: 'auto', 
+                                        border: '1px solid var(--gray-300)',
+                                        borderRadius: 'var(--radius-md)',
+                                        background: 'var(--white)',
+                                        cursor: 'pointer'
+                                    }}
                                 >
                                     <option value="denuncia">Identificada</option>
                                     <option value="iniciando">Iniciando</option>
