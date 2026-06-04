@@ -101,7 +101,7 @@ export default function ProjectDetailPage() {
     };
 
     return (
-        <div className="project-panel animate-fadeIn" style={{ maxWidth: '1000px' }}>
+        <div className="project-panel animate-fadeIn" style={{ maxWidth: '100%', width: '100%' }}>
             {/* Top compact header (without surrounding card) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', marginTop: '0.25rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
@@ -127,10 +127,7 @@ export default function ProjectDetailPage() {
                         <ArrowLeft size={14} />
                     </Link>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flexGrow: 1 }}>
-                        <h1 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gray-900)', margin: '0', lineHeight: 1.25 }}>
-                            {project.title}
-                        </h1>
-                        <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-xs)', margin: '0' }}>
+                        <p style={{ color: 'var(--gray-505)', fontSize: 'var(--font-xs)', margin: '0' }}>
                             Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
                         </p>
                         {(() => {
@@ -148,16 +145,15 @@ export default function ProjectDetailPage() {
                 </div>
 
                 {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
-                <div style={{ display: 'flex', margin: '0.25rem 0 0 36px', borderBottom: 'none' }}>
+                <div style={{ display: 'flex', margin: '0.5rem 0 1rem 0', width: '100%', borderBottom: 'none' }}>
                     <div style={{ 
-                        display: 'inline-flex', 
+                        display: 'flex', 
+                        width: '100%',
                         background: 'var(--gray-100)', 
-                        padding: '3px', 
+                        padding: '4px', 
                         borderRadius: 'var(--radius-lg)', 
-                        gap: '2px',
-                        border: '1px solid var(--gray-200)',
-                        maxWidth: '100%',
-                        overflowX: 'auto'
+                        gap: '4px',
+                        border: '1px solid var(--gray-200)'
                     }}>
                         <button
                             type="button"
@@ -166,9 +162,10 @@ export default function ProjectDetailPage() {
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '4px', 
-                                padding: '4px 12px', 
-                                fontSize: '0.8rem', 
+                                justifyContent: 'center',
+                                gap: '6px', 
+                                padding: '8px 12px', 
+                                fontSize: '0.95rem', 
                                 fontWeight: 600, 
                                 border: 'none', 
                                 borderRadius: 'var(--radius-md)', 
@@ -178,10 +175,11 @@ export default function ProjectDetailPage() {
                                 boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
                                 transition: 'all 0.15s',
                                 outline: 'none',
-                                whiteSpace: 'nowrap'
+                                whiteSpace: 'nowrap',
+                                flex: 1
                             }}
                         >
-                            <Briefcase size={12} /> Proyecto
+                            <Briefcase size={14} /> Proyecto
                         </button>
                         <button
                             type="button"
@@ -190,9 +188,10 @@ export default function ProjectDetailPage() {
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '4px', 
-                                padding: '4px 12px', 
-                                fontSize: '0.8rem', 
+                                justifyContent: 'center',
+                                gap: '6px', 
+                                padding: '8px 12px', 
+                                fontSize: '0.95rem', 
                                 fontWeight: 600, 
                                 border: 'none', 
                                 borderRadius: 'var(--radius-md)', 
@@ -202,10 +201,11 @@ export default function ProjectDetailPage() {
                                 boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
                                 transition: 'all 0.15s',
                                 outline: 'none',
-                                whiteSpace: 'nowrap'
+                                whiteSpace: 'nowrap',
+                                flex: 1
                             }}
                         >
-                            <Activity size={12} /> Ejecución
+                            <Activity size={14} /> Ejecución
                         </button>
                         {isCollaborator && (
                             <button
@@ -215,9 +215,10 @@ export default function ProjectDetailPage() {
                                 style={{ 
                                     display: 'flex', 
                                     alignItems: 'center', 
-                                    gap: '4px', 
-                                    padding: '4px 12px', 
-                                    fontSize: '0.8rem', 
+                                    justifyContent: 'center',
+                                    gap: '6px', 
+                                    padding: '8px 12px', 
+                                    fontSize: '0.95rem', 
                                     fontWeight: 600, 
                                     border: 'none', 
                                     borderRadius: 'var(--radius-md)', 
@@ -227,10 +228,11 @@ export default function ProjectDetailPage() {
                                     boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
                                     transition: 'all 0.15s',
                                     outline: 'none',
-                                    whiteSpace: 'nowrap'
+                                    whiteSpace: 'nowrap',
+                                    flex: 1
                                 }}
                             >
-                                <MessageSquare size={12} /> Chat
+                                <MessageSquare size={14} /> Chat
                             </button>
                         )}
                     </div>
@@ -242,8 +244,16 @@ export default function ProjectDetailPage() {
                 <div className="project-detail-grid animate-fadeIn">
                     {/* Left Column: Details */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-                        <div className="card" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', padding: 'var(--space-2) 0' }}>
                             
+                            {/* Título */}
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                    <Briefcase size={16} /> Título del Proyecto
+                                </h3>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7, margin: 0 }}>{project.title}</p>
+                            </div>
+
                             {/* Descripción */}
                             <div>
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
@@ -389,7 +399,7 @@ export default function ProjectDetailPage() {
                         )}
 
                         {/* Collaborators list */}
-                        <div className="card" style={{ padding: 'var(--space-5)' }}>
+                        <div style={{ padding: 'var(--space-2) 0' }}>
                             <div
                                 onClick={() => setCollabsExpanded(!collabsExpanded)}
                                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
@@ -436,7 +446,7 @@ export default function ProjectDetailPage() {
 
             {/* TAB CONTENT: EJECUCION */}
             {activeTab === 'ejecucion' && (
-                <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                <div className="animate-fadeIn" style={{ padding: 'var(--space-2) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
                     
                     {/* Status Box */}
                     <div style={{ 
@@ -529,7 +539,7 @@ export default function ProjectDetailPage() {
 
                     {/* Project Finalized impact card */}
                     {project.status === 'finalizado' && (
-                        <div className="card" style={{ background: '#d1fae5', borderColor: '#a7f3d0', padding: '1.25rem' }}>
+                        <div style={{ background: '#d1fae5', border: '1px solid #a7f3d0', borderRadius: 'var(--radius-xl)', padding: '1.25rem' }}>
                             <h3 style={{ color: '#065f46', marginBottom: '0.75rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}><CheckCircle size={20} /> Proyecto Finalizado</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
                                 {project.impact && <p style={{ fontSize: '0.875rem', color: '#064e3b', margin: 0 }}><strong>Impacto:</strong> {project.impact}</p>}
@@ -559,6 +569,54 @@ function ProjectChatSection({ projectId }) {
     const containerRef = useRef(null);
     const prevCountRef = useRef(0);
     const isFirstLoadRef = useRef(true);
+
+    const urlBase64ToUint8Array = (base64String) => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    };
+
+    useEffect(() => {
+        if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+
+        const registerPush = async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return;
+
+                const keyRes = await fetch('/api/reddis/push/vapid-public-key');
+                if (!keyRes.ok) throw new Error('VAPID key error');
+                const keyData = await keyRes.json();
+                
+                const registration = await navigator.serviceWorker.ready;
+                let subscription = await registration.pushManager.getSubscription();
+                
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
+                    });
+                }
+
+                await fetch('/api/reddis/push/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                });
+            } catch (err) {
+                console.error('Push notification registration error:', err);
+            }
+        };
+
+        registerPush();
+    }, []);
 
     const loadMessages = useCallback(async () => {
         const msgs = await getChatMessages(projectId);
@@ -595,7 +653,7 @@ function ProjectChatSection({ projectId }) {
     };
 
     return (
-        <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '450px', background: 'var(--white)' }}>
+        <div className="animate-fadeIn" style={{ padding: 'var(--space-2) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '450px' }}>
             <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>

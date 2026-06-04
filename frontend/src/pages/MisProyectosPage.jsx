@@ -1,21 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { PROJECT_STATUSES } from '../data/seedData';
-import { Briefcase, Search, ChevronRight, Users, CheckCircle, Clock, LogOut, Settings } from 'lucide-react';
+import { Briefcase, Search, ChevronRight, Users, CheckCircle, Clock } from 'lucide-react';
 
 export default function MisProyectosPage() {
-    const { projects, barriers, showToast } = useData();
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const { projects, barriers } = useData();
+    const { user } = useAuth();
     const [search, setSearch] = useState('');
-
-    const handleLogout = () => {
-        logout();
-        showToast('Sesión cerrada con éxito', 'info');
-        navigate('/');
-    };
 
     // Filter projects where current user is a collaborator
     const myCollaborations = projects.filter(p => 
@@ -33,55 +26,10 @@ export default function MisProyectosPage() {
         return true;
     });
 
-    const userInitials = user?.nombre
-        ? user.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-        : 'U';
-
     return (
         <div className="pending-page animate-fadeIn">
-            {/* Profile Header Card */}
-            <div className="profile-header-card animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '50%',
-                        background: 'var(--primary-100)',
-                        color: 'var(--primary-700)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: '1.2rem',
-                        boxShadow: 'var(--shadow-sm)'
-                    }}>
-                        {userInitials}
-                    </div>
-                    <div style={{ flexGrow: 1 }}>
-                        <h2 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--gray-900)', fontWeight: 700 }}>
-                            ¡Hola, {user?.nombre}!
-                        </h2>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--gray-500)' }}>
-                            Rol: <strong>{user?.rol}</strong> · Depto: <strong>{user?.departamento || 'No asignado'}</strong>
-                        </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <Link to="/gestion/perfil" className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Settings size={12} /> Configurar Cuenta
-                        </Link>
-                        <button 
-                            onClick={handleLogout} 
-                            className="btn btn-secondary btn-sm" 
-                            style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--danger-500)', borderColor: 'var(--danger-400)' }}
-                        >
-                            <LogOut size={12} /> Cerrar Sesión
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             {/* Title Section */}
-            <div className="pending-header" style={{ marginTop: 'var(--space-8)' }}>
+            <div className="pending-header" style={{ marginTop: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
                         <Briefcase size={24} /> Mis proyectos
@@ -145,9 +93,6 @@ export default function MisProyectosPage() {
                                         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', flexShrink: 0, alignItems: 'flex-start' }}>
                                             <span className={`badge badge-${p.status}`}>
                                                 {PROJECT_STATUSES[p.status]?.label}
-                                            </span>
-                                            <span className="badge" style={{ background: '#d1fae5', color: '#065f46', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <CheckCircle size={10} /> Colaborador
                                             </span>
                                         </div>
                                     </div>

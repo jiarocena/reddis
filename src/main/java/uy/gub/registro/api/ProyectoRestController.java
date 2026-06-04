@@ -8,7 +8,9 @@ import uy.gub.registro.model.*;
 import uy.gub.registro.repository.UsuarioRepository;
 import uy.gub.registro.repository.RoleRequestRepository;
 import uy.gub.registro.repository.ChatMessageRepository;
+import uy.gub.registro.repository.PushSubscriptionRepository;
 import uy.gub.registro.service.ReddisService;
+import uy.gub.registro.service.PushNotificationService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,12 +24,16 @@ public class ProyectoRestController {
     private final UsuarioRepository usuarioRepo;
     private final RoleRequestRepository roleRequestRepo;
     private final ChatMessageRepository chatMessageRepo;
+    private final PushSubscriptionRepository pushSubscriptionRepo;
+    private final PushNotificationService pushNotificationService;
 
-    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo, RoleRequestRepository roleRequestRepo, ChatMessageRepository chatMessageRepo) {
+    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo, RoleRequestRepository roleRequestRepo, ChatMessageRepository chatMessageRepo, PushSubscriptionRepository pushSubscriptionRepo, PushNotificationService pushNotificationService) {
         this.reddisService = reddisService;
         this.usuarioRepo = usuarioRepo;
         this.roleRequestRepo = roleRequestRepo;
         this.chatMessageRepo = chatMessageRepo;
+        this.pushSubscriptionRepo = pushSubscriptionRepo;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @GetMapping("/diagnostico")
@@ -482,6 +488,17 @@ public class ProyectoRestController {
 
         ChatMessage saved = chatMessageRepo.save(message);
 
+        // Send push notifications to other project collaborators
+        String title = "Chat en " + proyecto.getTitle();
+        String bodyText = user.getNombreCompleto() + ": " + saved.getText();
+        String chatUrl = "/gestion/proyecto/" + proyecto.getId() + "?tab=chat";
+
+        for (Colaborador col : proyecto.getCollaborators()) {
+            if (col.getUserId() != null && !col.getUserId().equals(user.getId())) {
+                pushNotificationService.sendPushNotification(col.getUserId(), title, bodyText, chatUrl);
+            }
+        }
+
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("id", saved.getId());
         map.put("text", saved.getText());
@@ -490,5 +507,47 @@ public class ProyectoRestController {
         map.put("createdAt", saved.getCreatedAt().toString());
 
         return ResponseEntity.ok(map);
+    }
+
+    @GetMapping("/push/vapid-public-key")
+    public ResponseEntity<?> getVapidPublicKey() {
+        return ResponseEntity.ok(Map.of("publicKey", pushNotificationService.getPublicKeyBase64()));
+    }
+
+    @PostMapping("/push/subscribe")
+    public ResponseEntity<?> subscribePush(@RequestBody Map<String, Object> body) {
+        Usuario user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        String endpoint = (String) body.get("endpoint");
+        Map<String, String> keys = (Map<String, String>) body.get("keys");
+        if (endpoint == null || keys == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Datos de suscripción incompletos"));
+        }
+
+        String p256dh = keys.get("p256dh");
+        String auth = keys.get("auth");
+
+        // Check if subscription already exists for this endpoint
+        Optional<PushSubscription> existing = pushSubscriptionRepo.findByEndpoint(endpoint);
+        if (existing.isPresent()) {
+            PushSubscription sub = existing.get();
+            sub.setUsuario(user);
+            sub.setP256dh(p256dh);
+            sub.setAuth(auth);
+            pushSubscriptionRepo.save(sub);
+        } else {
+            PushSubscription sub = PushSubscription.builder()
+                    .usuario(user)
+                    .endpoint(endpoint)
+                    .p256dh(p256dh)
+                    .auth(auth)
+                    .build();
+            pushSubscriptionRepo.save(sub);
+        }
+
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }
