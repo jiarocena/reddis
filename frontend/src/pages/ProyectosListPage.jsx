@@ -266,28 +266,6 @@ export default function ProyectosListPage() {
                                     </span>
                                 </div>
 
-                                {/* Last timeline entry */}
-                                {lastEntry && (
-                                    <div style={{
-                                        fontSize: '0.75rem',
-                                        color: 'var(--gray-500)',
-                                        padding: '0.5rem 0.75rem',
-                                        background: 'var(--gray-50)',
-                                        borderRadius: 'var(--radius-md)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        justifyContent: 'space-between',
-                                        marginBottom: (isUserCollaborator || (isUsuarioComun && hasPendingForThisProject)) ? '0.5rem' : '0'
-                                    }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Clock size={12} />
-                                            Último avance: {lastEntry.text?.substring(0, 60)}{lastEntry.text?.length > 60 ? '...' : ''}
-                                        </span>
-                                        <ChevronRight size={14} />
-                                    </div>
-                                )}
-
                                 {isUserCollaborator && (
                                     <div style={{
                                         padding: '0.5rem 0.75rem',
