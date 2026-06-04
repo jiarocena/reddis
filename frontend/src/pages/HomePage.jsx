@@ -14,16 +14,16 @@ export default function HomePage() {
                 <div className="container">
                     <div className="hero-content animate-fadeInUp">
                         {isAuthenticated && user?.departamento && (
-                            <div style={{
+                            <Link to="/gestion/perfil" className="hero-user-pill" style={{
                                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                                 background: 'rgba(251, 191, 36, 0.15)', border: '1px solid rgba(251, 191, 36, 0.3)',
                                 padding: '8px 16px', borderRadius: 'var(--radius-full)',
                                 fontSize: 'var(--font-sm)', color: '#fbbf24', marginBottom: 'var(--space-4)',
-                                backdropFilter: 'blur(8px)'
+                                backdropFilter: 'blur(8px)', textDecoration: 'none', transition: 'all 0.2s'
                             }}>
                                 <User size={14} />
-                                {user.nombre} — {user.departamento}
-                            </div>
+                                <span>{user.nombre} — {user.departamento}</span>
+                            </Link>
                         )}
                         <h1>
                             <span className="highlight">Comunidad</span><br />

@@ -20,6 +20,7 @@ import ConfirmPage from './pages/ConfirmPage';
 import ProfilePage from './pages/ProfilePage';
 import PendingBarriersPage from './pages/PendingBarriersPage';
 import ProyectosListPage from './pages/ProyectosListPage';
+import MisProyectosPage from './pages/MisProyectosPage';
 
 function Toast() {
     const { toast } = useData();
@@ -126,6 +127,9 @@ function AppContent() {
                     } />
                     <Route path="/gestion/perfil" element={
                         <ProtectedRoute><ProfilePage /></ProtectedRoute>
+                    } />
+                    <Route path="/gestion/mis-proyectos" element={
+                        <ProtectedRoute><MisProyectosPage /></ProtectedRoute>
                     } />
                     <Route path="/gestion/reportar" element={
                         <ProtectedRoute><ReportPage /></ProtectedRoute>

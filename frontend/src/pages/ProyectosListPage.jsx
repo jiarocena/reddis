@@ -82,6 +82,10 @@ export default function ProyectosListPage() {
     };
 
     const filtered = projects.filter(p => {
+        // Exclude projects where the user is already collaborating
+        const isUserCollaborator = user && p.collaborators?.some(c => Number(c.userId) === Number(user?.id));
+        if (isUserCollaborator) return false;
+
         // Filter by user's department if logged in
         if (userDepto) {
             const barrier = barriers.find(b => String(b.id) === String(p.barrierId));
@@ -104,31 +108,10 @@ export default function ProyectosListPage() {
         <div className="pending-page animate-fadeIn">
             <div className="pending-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><Briefcase size={24} /> Proyectos</h1>
-                    {isUsuarioComun && (
-                        <button
-                            type="button"
-                            onClick={() => setShowHelp(!showHelp)}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: showHelp ? 'var(--accent-600)' : 'var(--gray-400)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '4px',
-                                borderRadius: '50%',
-                                transition: 'all 0.2s',
-                                outline: 'none'
-                            }}
-                            title="Ayuda sobre cómo colaborar"
-                        >
-                            <HelpCircle size={18} />
-                        </button>
-                    )}
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><Briefcase size={24} /> Colaborar</h1>
                 </div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginTop: '0.25rem' }}>
-                    {filtered.length} proyecto{filtered.length !== 1 ? 's' : ''} · Barreras que se están trabajando
+                <p style={{ color: 'var(--gray-600)', fontSize: 'var(--font-sm)', marginTop: '0.5rem', lineHeight: 1.4 }}>
+                    Busca en la lista la barrera/proyecto que sea de tu interés, y hacé clic en botón 'Postularme' para enviar tu solicitud.
                 </p>
             </div>
 
@@ -338,7 +321,6 @@ export default function ProyectosListPage() {
                                         <Clock size={14} /> Solicitud de colaboración pendiente
                                     </div>
                                 )}
-
                                 {!isUserCollaborator && !hasPendingForThisProject && (
                                     <button
                                         onClick={(e) => handleButtonClick(e, p)}
@@ -353,7 +335,7 @@ export default function ProyectosListPage() {
                                             padding: '0.5rem'
                                         }}
                                     >
-                                        <Users size={14} /> Ser colaborador
+                                        <Users size={14} /> Postularme
                                     </button>
                                 )}
                             </div>

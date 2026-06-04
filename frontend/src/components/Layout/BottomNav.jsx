@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Home, MapPin, AlertTriangle, Users, LogIn, Handshake } from 'lucide-react';
+import { Home, MapPin, AlertTriangle, Users, LogIn, Handshake, Briefcase } from 'lucide-react';
 
 export default function BottomNav() {
     const location = useLocation();
@@ -30,9 +30,9 @@ export default function BottomNav() {
                 <span>Colaborar</span>
             </NavLink>
             {isAuthenticated ? (
-                <NavLink to="/gestion/perfil" className="bottom-nav-item">
-                    <Users size={20} />
-                    <span>Mi Cuenta</span>
+                <NavLink to="/gestion/mis-proyectos" className="bottom-nav-item">
+                    <Briefcase size={20} />
+                    <span>Mis proyectos</span>
                 </NavLink>
             ) : (
                 <NavLink to="/gestion" className="bottom-nav-item">

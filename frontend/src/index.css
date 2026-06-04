@@ -3370,4 +3370,19 @@ a.step-card:hover {
   font-style: italic;
 }
 
+.hero-user-pill:hover {
+  background: rgba(251, 191, 36, 0.25) !important;
+  transform: scale(1.02);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+}
+
+.profile-header-card {
+  margin-bottom: var(--space-6);
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--gray-200);
+  padding: var(--space-6);
+  transition: all var(--transition-base);
+}
+
 
