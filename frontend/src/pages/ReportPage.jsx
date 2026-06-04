@@ -14,6 +14,7 @@ export default function ReportPage() {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showMap, setShowMap] = useState(false);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
     const fileInputRef = useRef(null);
 
     // User's department (locked)
@@ -83,9 +84,16 @@ export default function ReportPage() {
     };
 
     const handleSubmit = async () => {
-        const barrier = await addBarrier(formData);
-        if (barrier) {
-            setShowSuccess(true);
+        setSubmitting(true);
+        try {
+            const barrier = await addBarrier(formData);
+            if (barrier) {
+                setShowSuccess(true);
+            }
+        } catch (error) {
+            console.error('Error submitting report:', error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -297,7 +305,12 @@ export default function ReportPage() {
             {/* Navigation */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-8)' }}>
                 {step > 1 ? (
-                    <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>
+                    <button 
+                        className="btn btn-secondary" 
+                        onClick={() => setStep(step - 1)}
+                        disabled={submitting}
+                        style={{ opacity: submitting ? 0.6 : 1 }}
+                    >
                         <ArrowLeft size={16} /> Anterior
                     </button>
                 ) : <div />}
@@ -306,8 +319,8 @@ export default function ReportPage() {
                     <button
                         className="btn btn-primary"
                         onClick={() => setStep(step + 1)}
-                        disabled={!canProceed()}
-                        style={{ opacity: canProceed() ? 1 : 0.5 }}
+                        disabled={!canProceed() || submitting}
+                        style={{ opacity: (canProceed() && !submitting) ? 1 : 0.5 }}
                     >
                         Siguiente <ArrowRight size={16} />
                     </button>
@@ -315,8 +328,8 @@ export default function ReportPage() {
                     <button
                         className="btn btn-success btn-lg"
                         onClick={handleSubmit}
-                        disabled={!canProceed()}
-                        style={{ opacity: canProceed() ? 1 : 0.5 }}
+                        disabled={!canProceed() || submitting}
+                        style={{ opacity: (canProceed() && !submitting) ? 1 : 0.5 }}
                     >
                         <CheckCircle size={18} /> Enviar Reporte
                     </button>
@@ -342,6 +355,26 @@ export default function ReportPage() {
                             style={{ marginTop: 'var(--space-6)', width: '100%' }}>
                             Aceptar
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Submitting Overlay */}
+            {submitting && (
+                <div className="success-overlay animate-fadeIn">
+                    <div className="success-modal">
+                        <div className="loading-spinner-container">
+                            <div className="loading-spinner"></div>
+                        </div>
+                        <h2 style={{ fontSize: '1.40rem', color: 'var(--gray-800)', marginBottom: '0.5rem' }}>
+                            Enviando reporte...
+                        </h2>
+                        <p style={{ fontSize: '0.95rem', color: 'var(--gray-600)', margin: '0.5rem 0 1rem 0', lineHeight: 1.5 }}>
+                            Subiendo imagen y registrando la barrera en el sistema.
+                        </p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)', fontStyle: 'italic' }}>
+                            Por favor, no cierres esta ventana.
+                        </p>
                     </div>
                 </div>
             )}
