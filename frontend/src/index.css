@@ -688,15 +688,31 @@ select {
 }
 
 .step-1 .step-number {
-  background: linear-gradient(135deg, var(--danger-500), var(--danger-400));
+  background: linear-gradient(135deg, var(--accent-600), var(--accent-400));
 }
 
 .step-2 .step-number {
-  background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+  background: linear-gradient(135deg, var(--danger-500), var(--danger-400));
 }
 
 .step-3 .step-number {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+}
+
+.step-4 .step-number {
   background: linear-gradient(135deg, var(--success-500), var(--success-400));
+}
+
+a.step-card {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+a.step-card:hover {
+  color: inherit;
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
 }
 
 .step-card h3 {

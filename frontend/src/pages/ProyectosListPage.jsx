@@ -7,7 +7,39 @@ import { Briefcase, Search, ChevronRight, Users, Clock, CheckCircle, HelpCircle,
 
 export default function ProyectosListPage() {
     const { projects, barriers, addCollaborator, showToast } = useData();
-    const { user, requestCollaboratorRole, hasRole } = useAuth();
+    const { user, requestCollaboratorRole, hasRole, isAuthenticated } = useAuth();
+    
+    if (!isAuthenticated) {
+        return (
+            <div className="pending-page animate-fadeIn text-center" style={{ padding: '4rem 1.5rem', maxWidth: '500px', margin: '0 auto' }}>
+                <div style={{
+                    width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(45, 90, 184, 0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
+                    color: 'var(--primary-500)'
+                }}>
+                    <Users size={32} />
+                </div>
+                <h2 style={{ fontSize: 'var(--font-2xl)', color: 'var(--gray-900)', marginBottom: '1rem', fontWeight: 700 }}>
+                    Colaborar en REDDIS
+                </h2>
+                <p style={{ color: 'var(--gray-600)', marginBottom: '2rem', lineHeight: 1.6, fontSize: 'var(--font-sm)' }}>
+                    Para participar activamente en la resolución de las barreras reportadas, sumarte a equipos de trabajo y registrar avances, debés registrarte como usuario.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <Link to="/gestion/registro?redirect=/gestion/proyectos" className="btn btn-primary btn-lg" style={{ justifyContent: 'center' }}>
+                        Registrarse como usuario
+                    </Link>
+                    <span style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-400)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0.5rem 0' }}>
+                        ¿Ya tenés una cuenta?
+                    </span>
+                    <Link to="/gestion?redirect=/gestion/proyectos" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center' }}>
+                        Iniciar Sesión
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     const userDepto = user?.departamento || null;
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('todos');

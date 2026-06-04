@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Layout/Navbar';
@@ -50,19 +50,23 @@ function ProtectedRoute({ children, requiredRole }) {
     return children;
 }
 
-// After login, redirect to /
+// After login, redirect to target or default
 function GestionLoginRedirect() {
     const { isAuthenticated, loading } = useAuth();
+    const [searchParams] = useSearchParams();
+    const redirectParam = searchParams.get('redirect') || '/';
     if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
-    if (isAuthenticated) return <Navigate to="/" replace />;
-    return <LoginPage redirectTo="/" />;
+    if (isAuthenticated) return <Navigate to={redirectParam} replace />;
+    return <LoginPage redirectTo={redirectParam} />;
 }
 
 function GestionRegisterRedirect() {
     const { isAuthenticated, loading } = useAuth();
+    const [searchParams] = useSearchParams();
+    const redirectParam = searchParams.get('redirect') || '/reportar';
     if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Cargando...</div>;
-    if (isAuthenticated) return <Navigate to="/" replace />;
-    return <RegisterPage />;
+    if (isAuthenticated) return <Navigate to={redirectParam} replace />;
+    return <RegisterPage redirectTo={redirectParam} />;
 }
 
 function AppContent() {
@@ -129,9 +133,7 @@ function AppContent() {
                     <Route path="/gestion/barreras" element={
                         <ProtectedRoute><MapPage /></ProtectedRoute>
                     } />
-                    <Route path="/gestion/proyectos" element={
-                        <ProtectedRoute><ProyectosListPage /></ProtectedRoute>
-                    } />
+                    <Route path="/gestion/proyectos" element={<ProyectosListPage />} />
                     <Route path="/gestion/barrera/:id" element={
                         <ProtectedRoute><BarrierDetailPage /></ProtectedRoute>
                     } />

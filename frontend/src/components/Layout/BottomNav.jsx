@@ -25,12 +25,10 @@ export default function BottomNav() {
                 <AlertTriangle size={20} />
                 <span>Reportar</span>
             </NavLink>
-            {isAuthenticated && (
-                <NavLink to="/gestion/proyectos" className="bottom-nav-item">
-                    <Handshake size={20} />
-                    <span>Colaborar</span>
-                </NavLink>
-            )}
+            <NavLink to="/gestion/proyectos" className="bottom-nav-item">
+                <Handshake size={20} />
+                <span>Colaborar</span>
+            </NavLink>
             {isAuthenticated ? (
                 <NavLink to="/gestion/perfil" className="bottom-nav-item">
                     <Users size={20} />

@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { DEPARTAMENTOS } from '../data/seedData';
 import { UserPlus, Mail, Lock, User, MapPin, CheckCircle } from 'lucide-react';
 
-export default function RegisterPage() {
+export default function RegisterPage({ redirectTo = '/reportar' }) {
     const { register, isAuthenticated } = useAuth();
     const { showToast } = useData();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const finalRedirect = searchParams.get('redirect') || redirectTo;
     const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmPassword: '', departamento: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -34,8 +36,8 @@ export default function RegisterPage() {
         try {
             await register(form.nombre, form.email, form.password, form.departamento);
             showToast('¡Registro exitoso! Ya podés usar la plataforma.', 'success');
-            // Auto-login happens in AuthContext, redirect to map
-            navigate('/reportar');
+            // Auto-login happens in AuthContext, redirect to target
+            navigate(finalRedirect);
         } catch (err) {
             setError(err.message);
         } finally {
