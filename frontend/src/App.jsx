@@ -83,6 +83,7 @@ function AppContent() {
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
             e.preventDefault();
+            window.deferredPrompt = e;
             setInstallPrompt(e);
         };
 
@@ -92,6 +93,7 @@ function AppContent() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         if (isStandalone) {
             setInstallPrompt(null);
+            window.deferredPrompt = null;
         }
 
         return () => {
@@ -99,12 +101,30 @@ function AppContent() {
         };
     }, []);
 
-    const handleInstallClick = async () => {
-        if (!installPrompt) return;
-        installPrompt.prompt();
-        const { outcome } = await installPrompt.userChoice;
-        console.log(`User response to install prompt: ${outcome}`);
-        setInstallPrompt(null);
+    const handleInstallClick = async (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        const promptEvent = window.deferredPrompt || installPrompt;
+        if (!promptEvent) {
+            alert('No se pudo iniciar la instalación: el navegador no ha disparado la señal de instalación. Asegúrate de estar usando un navegador compatible (Chrome/Edge/etc.) en una conexión segura y que la app no esté ya instalada.');
+            return;
+        }
+
+        try {
+            promptEvent.prompt();
+            const { outcome } = await promptEvent.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            if (outcome === 'accepted') {
+                window.deferredPrompt = null;
+                setInstallPrompt(null);
+            }
+        } catch (error) {
+            console.error('Error al iniciar la instalación:', error);
+            alert('Error al instalar: ' + error.message);
+        }
     };
 
     // Poll backend every 8 seconds to automatically update role request approvals in real-time
