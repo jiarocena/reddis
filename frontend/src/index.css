@@ -1077,7 +1077,19 @@ a.step-card:hover {
 .project-panel {
   max-width: 900px;
   margin: var(--space-8) auto;
-  padding: 0 var(--space-6);
+  padding: var(--space-8);
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .project-panel {
+    margin: var(--space-4) auto;
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+  }
 }
 
 .project-header {

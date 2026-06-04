@@ -102,63 +102,74 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="project-panel animate-fadeIn" style={{ maxWidth: '100%', width: '100%' }}>
-            {/* Top compact header (without surrounding card) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', marginTop: '0.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <Link
-                        to={isGestion ? '/gestion/proyectos' : (barrier ? `/barrera/${barrier.id}` : '/barreras')}
+            {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
+            <div style={{ display: 'flex', margin: '0 0 1.25rem 0', width: '100%', borderBottom: 'none' }}>
+                <div style={{ 
+                    display: 'flex', 
+                    width: '100%',
+                    background: 'var(--gray-100)', 
+                    padding: '4px', 
+                    borderRadius: 'var(--radius-lg)', 
+                    gap: '4px',
+                    border: '1px solid var(--gray-200)'
+                }}>
+                    <button
+                        type="button"
+                        className={`project-menu-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('proyecto')}
                         style={{ 
-                            display: 'inline-flex', 
+                            display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center',
-                            width: '28px', 
-                            height: '28px', 
-                            borderRadius: '50%', 
-                            background: 'var(--white)', 
-                            color: 'var(--gray-500)',
-                            border: '1px solid var(--gray-200)',
-                            boxShadow: 'var(--shadow-sm)',
-                            transition: 'all 0.2s',
-                            flexShrink: 0,
-                            marginTop: '2px'
+                            gap: '6px', 
+                            padding: '8px 12px', 
+                            fontSize: '0.95rem', 
+                            fontWeight: 600, 
+                            border: 'none', 
+                            borderRadius: 'var(--radius-md)', 
+                            cursor: 'pointer',
+                            background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
+                            color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
+                            boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
+                            transition: 'all 0.15s',
+                            outline: 'none',
+                            whiteSpace: 'nowrap',
+                            flex: 1
                         }}
-                        title="Volver"
                     >
-                        <ArrowLeft size={14} />
-                    </Link>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flexGrow: 1 }}>
-                        <p style={{ color: 'var(--gray-505)', fontSize: 'var(--font-xs)', margin: '0' }}>
-                            Inicio: <strong>{project.startDate}</strong> {project.endDate && ` · Fin: ${project.endDate}`}
-                        </p>
-                        {(() => {
-                            const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
-                            if (orgs.length > 0) {
-                                return (
-                                    <p style={{ color: 'var(--primary-600)', fontSize: '0.75rem', fontWeight: 600, margin: '0' }}>
-                                        🏛️ {orgs.join(' / ')}
-                                    </p>
-                                );
-                            }
-                            return null;
-                        })()}
-                    </div>
-                </div>
-
-                {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
-                <div style={{ display: 'flex', margin: '0.5rem 0 1rem 0', width: '100%', borderBottom: 'none' }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        width: '100%',
-                        background: 'var(--gray-100)', 
-                        padding: '4px', 
-                        borderRadius: 'var(--radius-lg)', 
-                        gap: '4px',
-                        border: '1px solid var(--gray-200)'
-                    }}>
+                        <Briefcase size={14} /> Proyecto
+                    </button>
+                    <button
+                        type="button"
+                        className={`project-menu-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('ejecucion')}
+                        style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            gap: '6px', 
+                            padding: '8px 12px', 
+                            fontSize: '0.95rem', 
+                            fontWeight: 600, 
+                            border: 'none', 
+                            borderRadius: 'var(--radius-md)', 
+                            cursor: 'pointer',
+                            background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
+                            color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
+                            boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
+                            transition: 'all 0.15s',
+                            outline: 'none',
+                            whiteSpace: 'nowrap',
+                            flex: 1
+                        }}
+                    >
+                        <Activity size={14} /> Ejecución
+                    </button>
+                    {isCollaborator && (
                         <button
                             type="button"
-                            className={`project-menu-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('proyecto')}
+                            className={`project-menu-btn ${activeTab === 'chat' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('chat')}
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
@@ -170,72 +181,18 @@ export default function ProjectDetailPage() {
                                 border: 'none', 
                                 borderRadius: 'var(--radius-md)', 
                                 cursor: 'pointer',
-                                background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
-                                color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
+                                background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
+                                color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
                                 transition: 'all 0.15s',
                                 outline: 'none',
                                 whiteSpace: 'nowrap',
                                 flex: 1
                             }}
                         >
-                            <Briefcase size={14} /> Proyecto
+                            <MessageSquare size={14} /> Chat
                         </button>
-                        <button
-                            type="button"
-                            className={`project-menu-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('ejecucion')}
-                            style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                gap: '6px', 
-                                padding: '8px 12px', 
-                                fontSize: '0.95rem', 
-                                fontWeight: 600, 
-                                border: 'none', 
-                                borderRadius: 'var(--radius-md)', 
-                                cursor: 'pointer',
-                                background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
-                                color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
-                                transition: 'all 0.15s',
-                                outline: 'none',
-                                whiteSpace: 'nowrap',
-                                flex: 1
-                            }}
-                        >
-                            <Activity size={14} /> Ejecución
-                        </button>
-                        {isCollaborator && (
-                            <button
-                                type="button"
-                                className={`project-menu-btn ${activeTab === 'chat' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('chat')}
-                                style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    gap: '6px', 
-                                    padding: '8px 12px', 
-                                    fontSize: '0.95rem', 
-                                    fontWeight: 600, 
-                                    border: 'none', 
-                                    borderRadius: 'var(--radius-md)', 
-                                    cursor: 'pointer',
-                                    background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
-                                    color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                    boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
-                                    transition: 'all 0.15s',
-                                    outline: 'none',
-                                    whiteSpace: 'nowrap',
-                                    flex: 1
-                                }}
-                            >
-                                <MessageSquare size={14} /> Chat
-                            </button>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -244,11 +201,38 @@ export default function ProjectDetailPage() {
                 <div className="project-detail-grid animate-fadeIn">
                     {/* Left Column: Details */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                        {/* Metadata row (moved from top) */}
+                        <div style={{ 
+                            display: 'flex', 
+                            flexWrap: 'wrap', 
+                            gap: '1rem', 
+                            borderBottom: '1px solid var(--gray-200)', 
+                            paddingBottom: '0.75rem', 
+                            marginBottom: '0.25rem',
+                            color: 'var(--gray-500)',
+                            fontSize: '0.85rem'
+                        }}>
+                            <span>
+                                📅 <strong>Inicio:</strong> {project.startDate} {project.endDate && ` · <strong>Fin:</strong> ${project.endDate}`}
+                            </span>
+                            {(() => {
+                                const orgs = Array.from(new Set(project.collaborators?.map(c => c.organization).filter(o => o && o.trim() !== '')));
+                                if (orgs.length > 0) {
+                                    return (
+                                        <span style={{ color: 'var(--primary-600)', fontWeight: 600 }}>
+                                            🏛️ {orgs.join(' / ')}
+                                        </span>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </div>
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', padding: 'var(--space-2) 0' }}>
                             
                             {/* Título */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
                                     <Briefcase size={16} /> Título del Proyecto
                                 </h3>
                                 <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7, margin: 0 }}>{project.title}</p>
@@ -256,7 +240,7 @@ export default function ProjectDetailPage() {
 
                             {/* Descripción */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
                                     <Package size={16} /> Descripción
                                     {canEdit && !isEditingDesc && (
                                         <button
@@ -292,7 +276,7 @@ export default function ProjectDetailPage() {
 
                             {/* Objetivo */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
                                     <Target size={16} /> Objetivo
                                     {canEdit && !isEditingObj && (
                                         <button
@@ -328,7 +312,7 @@ export default function ProjectDetailPage() {
 
                             {/* Acciones Previstas */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
                                     <CheckCircle size={16} /> Acciones Previstas
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -448,6 +432,42 @@ export default function ProjectDetailPage() {
             {activeTab === 'ejecucion' && (
                 <div className="animate-fadeIn" style={{ padding: 'var(--space-2) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
                     
+                    {/* Timeline (Avances) */}
+                    <div>
+                        <div
+                            onClick={() => setTimelineExpanded(!timelineExpanded)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', cursor: 'pointer', userSelect: 'none' }}
+                        >
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0 }}>
+                                <Clock size={18} /> Registro de Avances
+                            </h3>
+                            {timelineExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
+                        </div>
+
+                        {timelineExpanded && (
+                            <div style={{ paddingLeft: '0.5rem' }}>
+                                <Timeline entries={project.timeline} />
+
+                                {/* Add Timeline entry */}
+                                {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
+                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '1rem' }}>
+                                        <input
+                                            className="form-input"
+                                            placeholder="Escribe y registra un avance..."
+                                            value={newEntry}
+                                            onChange={e => setNewEntry(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddEntry()}
+                                            style={{ fontSize: '0.875rem' }}
+                                        />
+                                        <button className="btn btn-primary btn-sm" onClick={handleAddEntry}>
+                                            <Plus size={14} /> Registrar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Status Box */}
                     <div style={{ 
                         padding: '0.75rem 1rem', 
@@ -459,7 +479,7 @@ export default function ProjectDetailPage() {
                         background: 'var(--gray-50)',
                         border: '1px solid var(--gray-200)',
                         borderRadius: 'var(--radius-lg)',
-                        marginBottom: '1.5rem'
+                        marginTop: '0.5rem'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--gray-700)' }}>
@@ -497,42 +517,6 @@ export default function ProjectDetailPage() {
                                     <option value="en-proceso">En Proceso</option>
                                     <option value="finalizado">Finalizado</option>
                                 </select>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Timeline (Avances) */}
-                    <div>
-                        <div
-                            onClick={() => setTimelineExpanded(!timelineExpanded)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', cursor: 'pointer', userSelect: 'none' }}
-                        >
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0 }}>
-                                <Clock size={18} /> Registro de Avances
-                            </h3>
-                            {timelineExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
-                        </div>
-
-                        {timelineExpanded && (
-                            <div style={{ paddingLeft: '0.5rem' }}>
-                                <Timeline entries={project.timeline} />
-
-                                {/* Add Timeline entry */}
-                                {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
-                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '1rem' }}>
-                                        <input
-                                            className="form-input"
-                                            placeholder="Escribe y registra un avance..."
-                                            value={newEntry}
-                                            onChange={e => setNewEntry(e.target.value)}
-                                            onKeyDown={e => e.key === 'Enter' && handleAddEntry()}
-                                            style={{ fontSize: '0.875rem' }}
-                                        />
-                                        <button className="btn btn-primary btn-sm" onClick={handleAddEntry}>
-                                            <Plus size={14} /> Registrar
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>
@@ -656,8 +640,8 @@ function ProjectChatSection({ projectId }) {
         <div className="animate-fadeIn" style={{ padding: 'var(--space-2) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '450px' }}>
             <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MessageSquare size={14} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MessageSquare size={16} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
                     </h3>
                     <button
                         type="button"
