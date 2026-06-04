@@ -3129,14 +3129,18 @@ a.step-card:hover {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 6px 12px;
+  padding: 6px 8px;
   font-size: 11px;
   font-weight: 500;
   color: var(--gray-400);
   text-decoration: none;
   transition: color 0.2s, transform 0.2s;
-  min-width: 64px;
+  min-width: 60px;
   border-radius: var(--radius-md);
+}
+
+.bottom-nav-item span {
+  white-space: nowrap;
 }
 
 .bottom-nav-item:hover {
