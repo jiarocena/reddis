@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import uy.gub.registro.model.*;
 import uy.gub.registro.repository.UsuarioRepository;
 import uy.gub.registro.repository.RoleRequestRepository;
+import uy.gub.registro.repository.ChatMessageRepository;
 import uy.gub.registro.service.ReddisService;
 
 import java.time.LocalDate;
@@ -20,11 +21,13 @@ public class ProyectoRestController {
     private final ReddisService reddisService;
     private final UsuarioRepository usuarioRepo;
     private final RoleRequestRepository roleRequestRepo;
+    private final ChatMessageRepository chatMessageRepo;
 
-    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo, RoleRequestRepository roleRequestRepo) {
+    public ProyectoRestController(ReddisService reddisService, UsuarioRepository usuarioRepo, RoleRequestRepository roleRequestRepo, ChatMessageRepository chatMessageRepo) {
         this.reddisService = reddisService;
         this.usuarioRepo = usuarioRepo;
         this.roleRequestRepo = roleRequestRepo;
+        this.chatMessageRepo = chatMessageRepo;
     }
 
     @GetMapping("/diagnostico")
@@ -413,5 +416,79 @@ public class ProyectoRestController {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @GetMapping("/proyectos/{id}/chat")
+    public ResponseEntity<?> obtenerChat(@PathVariable Long id) {
+        Usuario user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isMember = proyecto.getCollaborators().stream()
+                .anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (!isMember) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes acceso a este chat porque no eres integrante del proyecto"));
+        }
+
+        List<Map<String, Object>> messages = chatMessageRepo.findByProyectoIdOrderByCreatedAtAsc(id).stream().map(m -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", m.getId());
+            map.put("text", m.getText());
+            map.put("senderName", m.getSenderName());
+            map.put("senderId", m.getSenderId());
+            map.put("createdAt", m.getCreatedAt().toString());
+            return map;
+        }).toList();
+
+        return ResponseEntity.ok(messages);
+    }
+
+    @PostMapping("/proyectos/{id}/chat")
+    public ResponseEntity<?> enviarMensajeChat(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        Usuario user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        Proyecto proyecto = reddisService.obtenerProyecto(id);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isMember = proyecto.getCollaborators().stream()
+                .anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (!isMember) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes acceso a este chat porque no eres integrante del proyecto"));
+        }
+
+        String text = body.get("text");
+        if (text == null || text.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El mensaje no puede estar vacío"));
+        }
+
+        ChatMessage message = ChatMessage.builder()
+                .text(text.trim())
+                .proyecto(proyecto)
+                .senderName(user.getNombreCompleto())
+                .senderId(user.getId())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ChatMessage saved = chatMessageRepo.save(message);
+
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", saved.getId());
+        map.put("text", saved.getText());
+        map.put("senderName", saved.getSenderName());
+        map.put("senderId", saved.getSenderId());
+        map.put("createdAt", saved.getCreatedAt().toString());
+
+        return ResponseEntity.ok(map);
     }
 }

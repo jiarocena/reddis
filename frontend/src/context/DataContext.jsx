@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { SEED_BARRIERS, SEED_PROJECTS } from '../data/seedData';
 import * as api from '../api/api';
+import { useAuth } from './AuthContext';
 
 const DataContext = createContext(null);
 
@@ -321,6 +322,154 @@ export function DataProvider({ children }) {
         showToast('Datos reiniciados', 'info');
     }
 
+    // ═══════════════ NOTIFICATIONS PERMISSION ═══════════════
+
+    useEffect(() => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().catch(() => {});
+        }
+    }, []);
+
+    // ═══════════════ CHAT OPERATIONS ═══════════════
+
+    const auth = useAuth();
+    const user = auth?.user;
+    const isAuthenticated = auth?.isAuthenticated;
+
+    const triggerNativeNotification = useCallback((title, body) => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification(title, { body });
+            } catch (err) {
+                console.warn('Native notification failed, attempting SW:', err);
+                navigator.serviceWorker?.ready.then(registration => {
+                    registration.showNotification(title, { body });
+                }).catch(() => {});
+            }
+        }
+        showToast(`${title}: ${body}`, 'info');
+    }, []);
+
+    async function getChatMessages(projectId) {
+        if (backendAvailable) {
+            try {
+                return await api.fetchChatMessages(projectId);
+            } catch (err) {
+                console.error('Error fetching chat messages:', err);
+                return [];
+            }
+        } else {
+            return loadFromStorage(`reddis_chat_messages_${projectId}`, []);
+        }
+    }
+
+    async function sendProjectMessage(projectId, text) {
+        if (backendAvailable) {
+            try {
+                return await api.sendChatMessage(projectId, text);
+            } catch (err) {
+                console.error('Error sending chat message:', err);
+                showToast(err.message || 'Error al enviar mensaje', 'error');
+                return null;
+            }
+        } else {
+            const newMsg = {
+                id: Date.now(),
+                text: text,
+                senderName: user?.nombre || 'Usuario Local',
+                senderId: user?.id || 999,
+                createdAt: new Date().toISOString(),
+            };
+            const currentMsgs = loadFromStorage(`reddis_chat_messages_${projectId}`, []);
+            const updated = [...currentMsgs, newMsg];
+            saveToStorage(`reddis_chat_messages_${projectId}`, updated);
+
+            // Trigger self-reply for wow/demo effect in local mode
+            setTimeout(() => {
+                const replyMsg = {
+                    id: Date.now() + 1,
+                    text: `¡Hola! Mensaje recibido. Vamos a coordinar el próximo avance.`,
+                    senderName: 'Coordinador del Proyecto',
+                    senderId: 888,
+                    createdAt: new Date().toISOString(),
+                };
+                const updatedWithReply = [...updated, replyMsg];
+                saveToStorage(`reddis_chat_messages_${projectId}`, updatedWithReply);
+            }, 3000);
+
+            return newMsg;
+        }
+    }
+
+    // Background polling for project chat notifications
+    useEffect(() => {
+        if (!isAuthenticated || !user || projects.length === 0) return;
+
+        const myProjects = projects.filter(p => p.collaborators?.some(c => Number(c.userId) === Number(user.id)));
+        if (myProjects.length === 0) return;
+
+        const lastMsgIdsKey = `reddis_last_msg_ids_${user.id}`;
+        let lastMsgIds = loadFromStorage(lastMsgIdsKey, {});
+
+        const initLastMsgIds = async () => {
+            for (const p of myProjects) {
+                if (lastMsgIds[p.id] === undefined) {
+                    try {
+                        let msgs = [];
+                        if (backendAvailable) {
+                            msgs = await api.fetchChatMessages(p.id);
+                        } else {
+                            msgs = loadFromStorage(`reddis_chat_messages_${p.id}`, []);
+                        }
+                        if (msgs.length > 0) {
+                            lastMsgIds[p.id] = msgs[msgs.length - 1].id;
+                        } else {
+                            lastMsgIds[p.id] = 0;
+                        }
+                    } catch (err) {
+                        lastMsgIds[p.id] = 0;
+                    }
+                }
+            }
+            saveToStorage(lastMsgIdsKey, lastMsgIds);
+        };
+        initLastMsgIds();
+
+        const interval = setInterval(async () => {
+            for (const p of myProjects) {
+                try {
+                    let msgs = [];
+                    if (backendAvailable) {
+                        msgs = await api.fetchChatMessages(p.id);
+                    } else {
+                        msgs = loadFromStorage(`reddis_chat_messages_${p.id}`, []);
+                    }
+
+                    if (msgs.length > 0) {
+                        const lastKnownId = lastMsgIds[p.id];
+                        const lastMsg = msgs[msgs.length - 1];
+
+                        if (lastKnownId !== undefined && lastMsg.id > lastKnownId) {
+                            const newMsgs = msgs.filter(m => m.id > lastKnownId && Number(m.senderId) !== Number(user.id));
+                            for (const nm of newMsgs) {
+                                triggerNativeNotification(
+                                    `Proyecto: ${p.title}`,
+                                    `${nm.senderName}: ${nm.text}`
+                                );
+                            }
+                        }
+                        lastMsgIds[p.id] = lastMsg.id;
+                    }
+                } catch (err) {
+                    // Ignore errors during background polling
+                }
+            }
+            saveToStorage(lastMsgIdsKey, lastMsgIds);
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [isAuthenticated, user, projects, backendAvailable, triggerNativeNotification]);
+
     const value = {
         barriers,
         projects,
@@ -340,6 +489,8 @@ export function DataProvider({ children }) {
         resetData,
         refreshData: loadData,
         showToast,
+        getChatMessages,
+        sendProjectMessage,
     };
 
     return (

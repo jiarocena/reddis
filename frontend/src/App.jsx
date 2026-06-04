@@ -163,11 +163,11 @@ function AppContent() {
 export default function App() {
     return (
         <BrowserRouter>
-            <DataProvider>
-                <AuthProvider>
+            <AuthProvider>
+                <DataProvider>
                     <AppContent />
-                </AuthProvider>
-            </DataProvider>
+                </DataProvider>
+            </AuthProvider>
         </BrowserRouter>
     );
 }

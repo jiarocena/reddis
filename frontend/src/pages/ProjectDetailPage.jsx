@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
@@ -6,7 +6,7 @@ import Timeline from '../components/Project/Timeline';
 import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
 import {
     ArrowLeft, CheckCircle, Circle, Clock, Users, Plus, Target,
-    Package, HelpCircle, ChevronDown, ChevronUp, Briefcase, Activity
+    Package, HelpCircle, ChevronDown, ChevronUp, Briefcase, Activity, MessageSquare
 } from 'lucide-react';
 
 export default function ProjectDetailPage() {
@@ -149,6 +149,15 @@ export default function ProjectDetailPage() {
                 >
                     <Activity size={16} /> Ejecución
                 </button>
+                {isCollaborator && (
+                    <button
+                        className={`admin-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('chat')}
+                        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', outline: 'none', whiteSpace: 'nowrap' }}
+                    >
+                        <MessageSquare size={16} /> Chat Interno
+                    </button>
+                )}
             </div>
 
             {/* TAB CONTENT: PROYECTO */}
@@ -439,6 +448,121 @@ export default function ProjectDetailPage() {
 
                 </div>
             )}
+
+            {/* TAB CONTENT: CHAT */}
+            {activeTab === 'chat' && isCollaborator && (
+                <ProjectChatSection projectId={project.id} />
+            )}
+        </div>
+    );
+}
+
+function ProjectChatSection({ projectId }) {
+    const { getChatMessages, sendProjectMessage } = useData();
+    const { user } = useAuth();
+    const [messages, setMessages] = useState([]);
+    const [text, setText] = useState('');
+    const [sending, setSending] = useState(false);
+    const messagesEndRef = useRef(null);
+
+    const loadMessages = useCallback(async () => {
+        const msgs = await getChatMessages(projectId);
+        setMessages(msgs);
+    }, [projectId, getChatMessages]);
+
+    useEffect(() => {
+        loadMessages();
+        const interval = setInterval(loadMessages, 3000);
+        return () => clearInterval(interval);
+    }, [loadMessages]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const handleSend = async (e) => {
+        e.preventDefault();
+        if (!text.trim()) return;
+        setSending(true);
+        const sent = await sendProjectMessage(projectId, text.trim());
+        setSending(false);
+        if (sent) {
+            setText('');
+            setMessages(prev => [...prev, sent]);
+        }
+    };
+
+    return (
+        <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '450px', background: 'var(--white)' }}>
+            <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MessageSquare size={18} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
+                </h3>
+                <p style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-400)', margin: '4px 0 0 0' }}>
+                    Solo los integrantes autorizados de este proyecto pueden ver e intercambiar mensajes aquí.
+                </p>
+            </div>
+
+            {/* Messages box */}
+            <div style={{ flexGrow: 1, height: '350px', overflowY: 'auto', background: 'var(--gray-50)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {messages.length === 0 ? (
+                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)', gap: 'var(--space-2)' }}>
+                        <MessageSquare size={32} />
+                        <span style={{ fontSize: 'var(--font-sm)' }}>No hay mensajes aún. ¡Comenzá la conversación!</span>
+                    </div>
+                ) : (
+                    messages.map((m, idx) => {
+                        const isMe = Number(m.senderId) === Number(user?.id);
+                        return (
+                            <div key={m.id || idx} style={{ display: 'flex', flexDirection: 'column', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%' }}>
+                                <span style={{ fontSize: '10px', color: 'var(--gray-400)', alignSelf: isMe ? 'flex-end' : 'flex-start', marginBottom: '2px', fontWeight: 500 }}>
+                                    {isMe ? 'Tú' : m.senderName}
+                                </span>
+                                <div style={{
+                                    background: isMe ? 'var(--primary-600)' : 'var(--white)',
+                                    color: isMe ? 'var(--white)' : 'var(--gray-800)',
+                                    padding: 'var(--space-2) var(--space-4)',
+                                    borderRadius: '16px',
+                                    borderTopRightRadius: isMe ? '4px' : '16px',
+                                    borderTopLeftRadius: isMe ? '16px' : '4px',
+                                    border: isMe ? 'none' : '1px solid var(--gray-200)',
+                                    fontSize: 'var(--font-sm)',
+                                    boxShadow: 'var(--shadow-sm)',
+                                    wordBreak: 'break-word',
+                                    lineHeight: '1.4'
+                                }}>
+                                    {m.text}
+                                </div>
+                                <span style={{ fontSize: '8px', color: 'var(--gray-400)', alignSelf: isMe ? 'flex-end' : 'flex-start', marginTop: '2px' }}>
+                                    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            </div>
+                        );
+                    })
+                )}
+                <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input area */}
+            <form onSubmit={handleSend} style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+                <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Escribí un mensaje..."
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    disabled={sending}
+                    style={{ flexGrow: 1, fontSize: 'var(--font-sm)' }}
+                />
+                <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={sending || !text.trim()}
+                    style={{ padding: '0 var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                    Enviar
+                </button>
+            </form>
         </div>
     );
 }

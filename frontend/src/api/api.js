@@ -219,3 +219,17 @@ export async function checkBackendHealth() {
         return false;
     }
 }
+
+// ═══════════════ CHAT ═══════════════
+
+export async function fetchChatMessages(projectId) {
+    return request(`/proyectos/${projectId}/chat`);
+}
+
+export async function sendChatMessage(projectId, text) {
+    return request(`/proyectos/${projectId}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+    });
+}
+
