@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import InteractiveMap from '../components/Map/InteractiveMap';
@@ -12,6 +12,7 @@ export default function MapPage() {
     const { user, isAuthenticated, loading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const isGestion = location.pathname.startsWith('/gestion');
 
     // If user is logged in, default to their department
@@ -21,7 +22,7 @@ export default function MapPage() {
     const isListPath = location.pathname === '/gestion/barreras';
     const [viewMode, setViewMode] = useState(isListPath ? 'list' : 'map'); // 'map' or 'list'
     const [selectedCategory, setSelectedCategory] = useState('todas');
-    const [selectedStatus, setSelectedStatus] = useState('todos');
+    const [selectedStatus, setSelectedStatus] = useState(searchParams.get('status') || 'todos');
     const [selectedDepartamento, setSelectedDepartamento] = useState(userDepto || 'todos');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedBarrierId, setSelectedBarrierId] = useState(null);

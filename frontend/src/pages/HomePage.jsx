@@ -87,18 +87,18 @@ export default function HomePage() {
             <section className="section" style={{ background: 'var(--gray-100)', borderTop: '1px solid var(--gray-200)', borderBottom: '1px solid var(--gray-200)' }}>
                 <div className="container">
                     <div className="stats-grid" style={{ marginTop: 0, marginBottom: 0 }}>
-                        <div className="stat-card animate-fadeInUp animate-delay-1">
+                        <Link to="/barreras" className="stat-card animate-fadeInUp animate-delay-1" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                             <div className="stat-number">{stats.totalBarriers}</div>
                             <div className="stat-label">Barreras Reportadas</div>
-                        </div>
-                        <div className="stat-card animate-fadeInUp animate-delay-2">
+                        </Link>
+                        <Link to="/gestion/proyectos" className="stat-card animate-fadeInUp animate-delay-2" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                             <div className="stat-number">{stats.activeProjects}</div>
                             <div className="stat-label">Proyectos Activos</div>
-                        </div>
-                        <div className="stat-card animate-fadeInUp animate-delay-3">
+                        </Link>
+                        <Link to="/barreras?status=finalizado" className="stat-card animate-fadeInUp animate-delay-3" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                             <div className="stat-number">{stats.resolvedProjects}</div>
                             <div className="stat-label">Barreras Resueltas</div>
-                        </div>
+                        </Link>
                         <div className="stat-card animate-fadeInUp animate-delay-4">
                             <div className="stat-number">{stats.totalCollaborators}</div>
                             <div className="stat-label">Actores Involucrados</div>
