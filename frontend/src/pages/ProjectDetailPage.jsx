@@ -555,6 +555,7 @@ function ProjectChatSection({ projectId }) {
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState('');
     const [sending, setSending] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     const containerRef = useRef(null);
     const prevCountRef = useRef(0);
     const isFirstLoadRef = useRef(true);
@@ -596,12 +597,33 @@ function ProjectChatSection({ projectId }) {
     return (
         <div className="card animate-fadeIn" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '450px', background: 'var(--white)' }}>
             <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <MessageSquare size={18} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
-                </h3>
-                <p style={{ fontSize: 'var(--font-xs)', color: 'var(--gray-400)', margin: '4px 0 0 0' }}>
-                    Solo los integrantes autorizados de este proyecto pueden ver e intercambiar mensajes aquí.
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <MessageSquare size={18} style={{ color: 'var(--primary-500)' }} /> Chat del Equipo del Proyecto
+                    </h3>
+                    <button
+                        type="button"
+                        onClick={() => setShowHelp(!showHelp)}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: showHelp ? 'var(--accent-600)' : 'var(--gray-400)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '2px',
+                            outline: 'none'
+                        }}
+                        title="Ayuda sobre privacidad"
+                    >
+                        <HelpCircle size={16} />
+                    </button>
+                </div>
+                {showHelp && (
+                    <p className="animate-fadeIn" style={{ fontSize: 'var(--font-xs)', color: 'var(--accent-700)', background: 'var(--accent-50)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--accent-100)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+                        Solo los integrantes autorizados de este proyecto pueden ver e intercambiar mensajes aquí.
+                    </p>
+                )}
             </div>
 
             {/* Messages box */}
