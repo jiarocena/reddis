@@ -139,16 +139,7 @@ export default function ReportPage() {
             <h1>Reportar una Barrera</h1>
             <p className="subtitle">Tu reporte es el primer paso hacia la solución. Completá el formulario para registrar la barrera.</p>
 
-            {/* Department badge */}
-            <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: 'var(--primary-50)', color: 'var(--primary-700)',
-                padding: '6px 14px', borderRadius: 'var(--radius-full)',
-                fontSize: 'var(--font-sm)', fontWeight: 600, marginBottom: 'var(--space-4)'
-            }}>
-                <MapPin size={14} />
-                Reportando en: {userDepto}
-            </div>
+
 
 
 
