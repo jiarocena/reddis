@@ -78,6 +78,7 @@ function AppContent() {
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
 
     const [installPrompt, setInstallPrompt] = useState(null);
+    const [installDismissed, setInstallDismissed] = useState(false);
 
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
@@ -183,39 +184,86 @@ function AppContent() {
                     <Route path="/perfil" element={<Navigate to="/gestion/perfil" replace />} />
                 </Routes>
 
-                {/* Install App Promotion */}
-                {installPrompt && (
+                {/* Install App Promotion - Floating banner */}
+                {installPrompt && !installDismissed && (
                     <div style={{
-                        padding: '1.25rem var(--space-6)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
+                        position: 'fixed',
+                        bottom: showGestionLayout ? '20px' : '80px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 1001,
                         background: 'var(--white)',
-                        borderTop: '1px solid var(--gray-200)',
-                        textAlign: 'center',
-                        gap: '0.5rem',
-                        marginTop: '2rem'
-                    }} className="animate-fadeIn">
-                        <p style={{ fontSize: '0.8rem', color: 'var(--gray-500)', margin: 0 }}>
-                            ¿Querés acceder más rápido? Instalá REDDIS en tu pantalla de inicio.
-                        </p>
-                        <button
-                            onClick={handleInstallClick}
-                            className="btn btn-primary"
-                            style={{
-                                width: '100%',
-                                maxWidth: '350px',
+                        borderRadius: 'var(--radius-xl)',
+                        border: '1px solid var(--gray-200)',
+                        boxShadow: 'var(--shadow-xl)',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        width: 'calc(100% - 32px)',
+                        maxWidth: '420px',
+                        boxSizing: 'border-box'
+                    }} className="animate-fadeInUp">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexGrow: 1, textAlign: 'left' }}>
+                            <div style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                background: 'var(--primary-50)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '8px',
-                                padding: '0.65rem 1.25rem',
-                                fontSize: '0.85rem',
-                                borderRadius: 'var(--radius-lg)'
-                            }}
-                        >
-                            Instalar app
-                        </button>
+                                fontSize: '1.2rem',
+                                flexShrink: 0
+                            }}>
+                                📲
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>
+                                    Instalar REDDIS
+                                </span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', lineHeight: 1.2 }}>
+                                    Accedé más rápido desde tu pantalla
+                                </span>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                            <button
+                                onClick={handleInstallClick}
+                                className="btn btn-primary"
+                                style={{
+                                    padding: '6px 14px',
+                                    fontSize: '0.78rem',
+                                    minHeight: '32px',
+                                    borderRadius: 'var(--radius-lg)',
+                                    fontWeight: 600
+                                }}
+                            >
+                                Instalar
+                            </button>
+                            <button
+                                onClick={() => setInstallDismissed(true)}
+                                aria-label="Cerrar banner de instalación"
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--gray-400)',
+                                    fontSize: '1.3rem',
+                                    cursor: 'pointer',
+                                    padding: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    transition: 'background-color 0.2s, color 0.2s'
+                                }}
+                            >
+                                ×
+                            </button>
+                        </div>
                     </div>
                 )}
             </main>
