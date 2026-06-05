@@ -6,7 +6,7 @@ import { MapPin, List, Clock, AlertTriangle } from 'lucide-react';
 import { CATEGORIES } from '../data/seedData';
 
 export default function BarrerasPage() {
-    const { barriers } = useData();
+    const { barriers, loading } = useData();
     const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
 
     return (
@@ -37,7 +37,12 @@ export default function BarrerasPage() {
             {/* List View */}
             {viewMode === 'list' && (
                 <div className="barreras-list-container">
-                    {barriers.length === 0 ? (
+                    {loading ? (
+                        <div className="pending-empty" style={{ padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', textAlign: 'center' }}>
+                            <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+                            <p style={{ margin: 0, color: 'var(--gray-500)', fontWeight: 500 }}>Cargando barreras...</p>
+                        </div>
+                    ) : barriers.length === 0 ? (
                         <div className="empty-state">
                             <AlertTriangle size={48} />
                             <p>No hay barreras reportadas aún</p>

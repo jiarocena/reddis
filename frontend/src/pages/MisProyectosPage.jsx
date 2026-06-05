@@ -6,7 +6,7 @@ import { PROJECT_STATUSES } from '../data/seedData';
 import { Briefcase, Search, ChevronRight, Users, CheckCircle, Clock } from 'lucide-react';
 
 export default function MisProyectosPage() {
-    const { projects, barriers } = useData();
+    const { projects, barriers, loading } = useData();
     const { user } = useAuth();
     const [search, setSearch] = useState('');
 
@@ -55,7 +55,12 @@ export default function MisProyectosPage() {
 
             {/* Project List */}
             <div className="pending-list">
-                {filtered.length === 0 ? (
+                {loading ? (
+                    <div className="pending-empty" style={{ padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', textAlign: 'center' }}>
+                        <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+                        <p style={{ margin: 0, color: 'var(--gray-500)', fontWeight: 500 }}>Cargando mis proyectos...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
                     <div className="pending-empty" style={{ padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', textAlign: 'center' }}>
                         <Briefcase size={40} color="var(--gray-300)" style={{ marginBottom: '1rem' }} />
                         {myCollaborations.length === 0 ? (

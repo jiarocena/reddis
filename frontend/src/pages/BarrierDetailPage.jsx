@@ -32,8 +32,9 @@ export default function BarrierDetailPage() {
 
     if (loading) {
         return (
-            <div className="barrier-detail" style={{ textAlign: 'center', padding: 'var(--space-16) 0' }}>
-                <p>Cargando...</p>
+            <div className="barrier-detail animate-fadeIn" style={{ textAlign: 'center', padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', margin: '2rem 0' }}>
+                <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+                <p style={{ margin: 0, color: 'var(--gray-500)', fontWeight: 500 }}>Cargando barrera...</p>
             </div>
         );
     }

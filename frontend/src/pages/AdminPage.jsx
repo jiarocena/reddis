@@ -9,7 +9,7 @@ import {
 import * as api from '../api/api';
 
 export default function AdminPage() {
-    const { barriers, projects, stats, resetData, deleteBarrier, deleteProject, backendAvailable, showToast } = useData();
+    const { barriers, projects, stats, resetData, deleteBarrier, deleteProject, backendAvailable, showToast, loading } = useData();
 
     const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'barriers' | 'projects' | 'users'
 
@@ -170,20 +170,27 @@ export default function AdminPage() {
                     </button>
                     <button className={`admin-tab-btn ${activeTab === 'barriers' ? 'active' : ''}`} onClick={() => setActiveTab('barriers')}>
                         <AlertTriangle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
-                        Barreras ({barriers.length})
+                        Barreras ({loading ? '...' : barriers.length})
                     </button>
                     <button className={`admin-tab-btn ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => setActiveTab('projects')}>
                         <Briefcase size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
-                        Proyectos ({projects.length})
+                        Proyectos ({loading ? '...' : projects.length})
                     </button>
                     <button className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
                         <Users size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
-                        Usuarios ({usersList.length || '...'})
+                        Usuarios ({loadingUsers || loading ? '...' : usersList.length})
                     </button>
                 </div>
 
-                {/* TAB 1: DASHBOARD */}
-                {activeTab === 'dashboard' && (
+                {loading ? (
+                    <div className="pending-empty" style={{ padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', textAlign: 'center', marginTop: '1.5rem' }}>
+                        <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+                        <p style={{ margin: 0, color: 'var(--gray-500)', fontWeight: 500 }}>Cargando información del panel...</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* TAB 1: DASHBOARD */}
+                        {activeTab === 'dashboard' && (
                     <div className="animate-fadeIn">
                         {/* Stats Grid */}
                         <div className="admin-grid">
@@ -434,7 +441,10 @@ export default function AdminPage() {
                         </div>
 
                         {loadingUsers ? (
-                            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--gray-400)' }}>Cargando usuarios...</div>
+                            <div className="pending-empty" style={{ padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', textAlign: 'center' }}>
+                                <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+                                <p style={{ margin: 0, color: 'var(--gray-500)', fontWeight: 500 }}>Cargando usuarios...</p>
+                            </div>
                         ) : (
                             <table>
                                 <thead>
@@ -512,6 +522,8 @@ export default function AdminPage() {
                             </table>
                         )}
                     </div>
+                )}
+                    </>
                 )}
             </div>
         </div>

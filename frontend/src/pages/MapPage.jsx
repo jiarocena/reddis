@@ -8,7 +8,7 @@ import { CATEGORIES, PROJECT_STATUSES, DEPARTAMENTOS } from '../data/seedData';
 import { Filter, X, Search, MapPin } from 'lucide-react';
 
 export default function MapPage() {
-    const { barriers } = useData();
+    const { barriers, loading: dataLoading } = useData();
     const { user, isAuthenticated, loading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -250,23 +250,32 @@ export default function MapPage() {
 
                         {/* Responsive grid of barrier cards */}
                         <div className="list-cards-grid">
-                            {filteredBarriers.map(barrier => (
-                                <div
-                                    key={barrier.id}
-                                    id={`barrier-${barrier.id}`}
-                                    className="grid-card-wrapper"
-                                    style={{
-                                        border: selectedBarrierId === barrier.id ? '2px solid var(--primary-400)' : undefined,
-                                        borderRadius: selectedBarrierId === barrier.id ? 'var(--radius-lg)' : undefined,
-                                    }}
-                                >
-                                    <BarrierCard barrier={barrier} />
+                            {dataLoading ? (
+                                <div className="pending-empty" style={{ padding: '3rem 1.5rem', background: 'var(--white)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--gray-200)', textAlign: 'center', gridColumn: '1 / -1' }}>
+                                    <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+                                    <p style={{ margin: 0, color: 'var(--gray-500)', fontWeight: 500 }}>Cargando barreras...</p>
                                 </div>
-                            ))}
-                            {filteredBarriers.length === 0 && (
-                                <div className="empty-state-container">
-                                    <p>No se encontraron barreras con estos filtros.</p>
-                                </div>
+                            ) : (
+                                <>
+                                    {filteredBarriers.map(barrier => (
+                                        <div
+                                            key={barrier.id}
+                                            id={`barrier-${barrier.id}`}
+                                            className="grid-card-wrapper"
+                                            style={{
+                                                border: selectedBarrierId === barrier.id ? '2px solid var(--primary-400)' : undefined,
+                                                borderRadius: selectedBarrierId === barrier.id ? 'var(--radius-lg)' : undefined,
+                                            }}
+                                        >
+                                            <BarrierCard barrier={barrier} />
+                                        </div>
+                                    ))}
+                                    {filteredBarriers.length === 0 && (
+                                        <div className="empty-state-container">
+                                            <p>No se encontraron barreras con estos filtros.</p>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
