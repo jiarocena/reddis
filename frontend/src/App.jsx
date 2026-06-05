@@ -239,12 +239,12 @@ function AppContent() {
                             }}>
                                 📲
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gray-800)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                     Instalar REDDIS
                                 </span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', lineHeight: 1.2 }}>
-                                    Accedé más rápido desde tu pantalla
+                                <span style={{ fontSize: '0.7rem', color: 'var(--gray-500)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    Acceso más rápido
                                 </span>
                             </div>
                         </div>
