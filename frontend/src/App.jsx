@@ -209,20 +209,20 @@ function AppContent() {
                     <div style={{
                         position: 'fixed',
                         bottom: showGestionLayout ? '20px' : '80px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
+                        left: '12px',
+                        right: '12px',
                         zIndex: 1001,
                         background: 'var(--white)',
                         borderRadius: 'var(--radius-xl)',
                         border: '1px solid var(--gray-200)',
                         boxShadow: 'var(--shadow-xl)',
-                        padding: '12px 16px',
+                        padding: '12px 14px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        gap: '12px',
-                        width: 'calc(100% - 32px)',
+                        gap: '10px',
                         maxWidth: '420px',
+                        margin: '0 auto',
                         boxSizing: 'border-box'
                     }} className="animate-fadeInUp">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexGrow: 1, textAlign: 'left' }}>
