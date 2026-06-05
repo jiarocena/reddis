@@ -102,6 +102,20 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="project-panel animate-fadeIn" style={{ maxWidth: '100%', width: '100%' }}>
+            {/* Title Section */}
+            <div className="pending-header" style={{ marginTop: 0, marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                        <Briefcase size={24} /> {project.title}
+                    </h1>
+                </div>
+                {barrier && (
+                    <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginTop: '0.25rem', margin: 0 }}>
+                        Barrera vinculada: {barrier.title}
+                    </p>
+                )}
+            </div>
+
             {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
             <div style={{ display: 'flex', margin: '0 0 1.25rem 0', width: '100%', borderBottom: 'none' }}>
                 <div style={{ 
@@ -229,14 +243,7 @@ export default function ProjectDetailPage() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', padding: 'var(--space-2) 0' }}>
-                            
-                            {/* Título */}
-                            <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
-                                    <Briefcase size={16} /> Título del Proyecto
-                                </h3>
-                                <p style={{ fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.7, margin: 0 }}>{project.title}</p>
-                            </div>
+
 
                             {/* Descripción */}
                             <div>

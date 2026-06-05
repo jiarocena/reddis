@@ -111,26 +111,6 @@ export default function MisProyectosPage() {
                                         </span>
                                     </div>
 
-                                    {/* Last timeline entry */}
-                                    {lastEntry && (
-                                        <div style={{
-                                            fontSize: '0.75rem',
-                                            padding: '0.5rem 0.75rem',
-                                            background: 'var(--primary-600)',
-                                            borderRadius: 'var(--radius-md)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            justifyContent: 'space-between',
-                                            color: 'var(--white)'
-                                        }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Clock size={12} />
-                                                Último avance: {lastEntry.text?.substring(0, 60)}{lastEntry.text?.length > 60 ? '...' : ''}
-                                            </span>
-                                            <ChevronRight size={14} />
-                                        </div>
-                                    )}
                                 </div>
                             </Link>
                         );
