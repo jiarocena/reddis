@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import * as api from '../api/api';
 import Timeline from '../components/Project/Timeline';
 import { PROJECT_STATUSES, CATEGORIES } from '../data/seedData';
 import {
@@ -581,9 +582,7 @@ function ProjectChatSection({ projectId }) {
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') return;
 
-                const keyRes = await fetch('/api/reddis/push/vapid-public-key');
-                if (!keyRes.ok) throw new Error('VAPID key error');
-                const keyData = await keyRes.json();
+                const keyData = await api.getVapidPublicKey();
                 
                 const registration = await navigator.serviceWorker.ready;
                 let subscription = await registration.pushManager.getSubscription();
@@ -595,11 +594,7 @@ function ProjectChatSection({ projectId }) {
                     });
                 }
 
-                await fetch('/api/reddis/push/subscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subscription)
-                });
+                await api.subscribePush(subscription);
             } catch (err) {
                 console.error('Push notification registration error:', err);
             }

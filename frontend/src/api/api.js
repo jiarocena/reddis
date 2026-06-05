@@ -231,6 +231,19 @@ export async function checkBackendHealth() {
     }
 }
 
+// ═══════════════ PUSH NOTIFICATIONS ═══════════════
+
+export async function getVapidPublicKey() {
+    return request('/push/vapid-public-key');
+}
+
+export async function subscribePush(subscription) {
+    return request('/push/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(subscription),
+    });
+}
+
 // ═══════════════ CHAT ═══════════════
 
 export async function fetchChatMessages(projectId) {
