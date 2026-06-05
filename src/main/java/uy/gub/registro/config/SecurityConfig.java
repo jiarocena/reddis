@@ -58,8 +58,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/reddis/auth/**").permitAll()
 
                         // --- REDDIS Public reads ---
-                        .requestMatchers(HttpMethod.GET, "/api/reddis/barreras/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reddis/proyectos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reddis/barreras", "/api/reddis/barreras/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reddis/proyectos", "/api/reddis/proyectos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reddis/stats").permitAll()
 
                         // --- REDDIS Admin (REFERENTE or ADMIN) ---

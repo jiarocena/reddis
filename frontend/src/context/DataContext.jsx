@@ -53,12 +53,23 @@ export function DataProvider({ children }) {
                 // If user has a token, fetch all barriers (including unapproved for staff)
                 // Otherwise fetch only public/approved barriers
                 const hasToken = !!localStorage.getItem('reddis_token');
-                const [barreras, proyectos] = await Promise.all([
-                    hasToken ? api.fetchBarreras() : api.fetchBarrerasPublic(),
-                    api.fetchProyectos(),
-                ]);
-                setBarriers(barreras);
-                setProjects(proyectos);
+                let barreras = [];
+                let proyectos = [];
+                
+                try {
+                    barreras = await (hasToken ? api.fetchBarreras() : api.fetchBarrerasPublic());
+                } catch (bErr) {
+                    console.error('Error cargando barreras:', bErr);
+                }
+                
+                try {
+                    proyectos = await api.fetchProyectos();
+                } catch (pErr) {
+                    console.error('Error cargando proyectos:', pErr);
+                }
+                
+                setBarriers(barreras || []);
+                setProjects(proyectos || []);
             } else {
                 console.warn('Backend no disponible.');
                 setBarriers([]);
