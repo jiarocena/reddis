@@ -9,6 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uy.gub.registro.model.Usuario;
+import uy.gub.registro.repository.UsuarioRepository;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,9 +19,11 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UsuarioRepository usuarioRepo;
 
-    public JwtFilter(JwtUtil jwtUtil) {
+    public JwtFilter(JwtUtil jwtUtil, UsuarioRepository usuarioRepo) {
         this.jwtUtil = jwtUtil;
+        this.usuarioRepo = usuarioRepo;
     }
 
     @Override
@@ -31,8 +35,12 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtUtil.isValid(token)) {
                 String username = jwtUtil.getUsername(token);
-                String role = jwtUtil.getRole(token);
                 Long userId = jwtUtil.getUserId(token);
+
+                // Fetch the actual current role from database to support real-time role changes
+                String role = usuarioRepo.findById(userId)
+                        .map(Usuario::getRol)
+                        .orElseGet(() -> jwtUtil.getRole(token));
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         username, null,

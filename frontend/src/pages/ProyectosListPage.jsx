@@ -47,7 +47,7 @@ export default function ProyectosListPage() {
     const [orgInput, setOrgInput] = useState('');
     const [motiveInput, setMotiveInput] = useState('');
     const [showHelp, setShowHelp] = useState(false);
-    const isUsuarioComun = user?.rol === 'USUARIO';
+    const isUsuarioComun = user?.rol === 'USUARIO' || user?.rol === 'COLABORADOR';
 
     const handleButtonClick = (e, project) => {
         e.preventDefault();

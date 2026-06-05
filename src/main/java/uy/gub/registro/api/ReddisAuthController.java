@@ -275,9 +275,11 @@ public class ReddisAuthController {
 
         roleRequestRepo.save(req);
 
-        // Update user's system role to COLABORADOR
-        usuario.setRol("COLABORADOR");
-        usuarioRepo.save(usuario);
+        // Update user's system role to COLABORADOR only if they are currently a regular USUARIO
+        if ("USUARIO".equalsIgnoreCase(usuario.getRol())) {
+            usuario.setRol("COLABORADOR");
+            usuarioRepo.save(usuario);
+        }
 
         // Also add the collaborator to the project immediately
         if (message.contains("[PROYECTO_ID:")) {
