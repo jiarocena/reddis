@@ -72,7 +72,7 @@ export default function HomePage() {
                             </p>
                         </Link>
 
-                        <Link to="/gestion/proyectos" className="step-card step-4 animate-fadeInUp animate-delay-4">
+                        <Link to="/gestion/mis-proyectos" className="step-card step-4 animate-fadeInUp animate-delay-4">
                             <div className="step-number">4</div>
                             <h3>Resolver</h3>
                             <p>

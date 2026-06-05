@@ -32,7 +32,7 @@ export default function BottomNav() {
             {isAuthenticated ? (
                 <NavLink to="/gestion/mis-proyectos" className="bottom-nav-item">
                     <Briefcase size={20} />
-                    <span>Proyectos</span>
+                    <span>Resolver</span>
                 </NavLink>
             ) : (
                 <NavLink to="/gestion" className="bottom-nav-item">
