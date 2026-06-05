@@ -102,88 +102,32 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="project-panel animate-fadeIn" style={{ maxWidth: '100%', width: '100%' }}>
-            {/* Title Section */}
-            <div className="pending-header" style={{ marginTop: 0, marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-                        <Briefcase size={24} /> {project.title}
-                    </h1>
+            {/* Sticky Header: Title and Tab Menu */}
+            <div className="project-sticky-header">
+                {/* Title Section */}
+                <div className="pending-header" style={{ marginTop: 0, marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                            <Briefcase size={24} /> {project.title}
+                        </h1>
+                    </div>
                 </div>
-                {barrier && (
-                    <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-sm)', marginTop: '0.25rem', margin: 0 }}>
-                        Barrera vinculada: {barrier.title}
-                    </p>
-                )}
-            </div>
 
-            {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
-            <div style={{ display: 'flex', margin: '0 0 1.25rem 0', width: '100%', borderBottom: 'none' }}>
-                <div style={{ 
-                    display: 'flex', 
-                    width: '100%',
-                    background: 'var(--gray-100)', 
-                    padding: '4px', 
-                    borderRadius: 'var(--radius-lg)', 
-                    gap: '4px',
-                    border: '1px solid var(--gray-200)'
-                }}>
-                    <button
-                        type="button"
-                        className={`project-menu-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('proyecto')}
-                        style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            gap: '6px', 
-                            padding: '8px 12px', 
-                            fontSize: '0.95rem', 
-                            fontWeight: 600, 
-                            border: 'none', 
-                            borderRadius: 'var(--radius-md)', 
-                            cursor: 'pointer',
-                            background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
-                            color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
-                            boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
-                            transition: 'all 0.15s',
-                            outline: 'none',
-                            whiteSpace: 'nowrap',
-                            flex: 1
-                        }}
-                    >
-                        <Briefcase size={14} /> Proyecto
-                    </button>
-                    <button
-                        type="button"
-                        className={`project-menu-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('ejecucion')}
-                        style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            gap: '6px', 
-                            padding: '8px 12px', 
-                            fontSize: '0.95rem', 
-                            fontWeight: 600, 
-                            border: 'none', 
-                            borderRadius: 'var(--radius-md)', 
-                            cursor: 'pointer',
-                            background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
-                            color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
-                            boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
-                            transition: 'all 0.15s',
-                            outline: 'none',
-                            whiteSpace: 'nowrap',
-                            flex: 1
-                        }}
-                    >
-                        <Activity size={14} /> Ejecución
-                    </button>
-                    {isCollaborator && (
+                {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
+                <div style={{ display: 'flex', width: '100%', borderBottom: 'none' }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        width: '100%',
+                        background: 'var(--gray-100)', 
+                        padding: '4px', 
+                        borderRadius: 'var(--radius-lg)', 
+                        gap: '4px',
+                        border: '1px solid var(--gray-200)'
+                    }}>
                         <button
                             type="button"
-                            className={`project-menu-btn ${activeTab === 'chat' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('chat')}
+                            className={`project-menu-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('proyecto')}
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
@@ -195,18 +139,72 @@ export default function ProjectDetailPage() {
                                 border: 'none', 
                                 borderRadius: 'var(--radius-md)', 
                                 cursor: 'pointer',
-                                background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
-                                color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
+                                background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
+                                color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
                                 transition: 'all 0.15s',
                                 outline: 'none',
                                 whiteSpace: 'nowrap',
                                 flex: 1
                             }}
                         >
-                            <MessageSquare size={14} /> Chat
+                            <Briefcase size={14} /> Proyecto
                         </button>
-                    )}
+                        <button
+                            type="button"
+                            className={`project-menu-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('ejecucion')}
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                gap: '6px', 
+                                padding: '8px 12px', 
+                                fontSize: '0.95rem', 
+                                fontWeight: 600, 
+                                border: 'none', 
+                                borderRadius: 'var(--radius-md)', 
+                                cursor: 'pointer',
+                                background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
+                                color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
+                                transition: 'all 0.15s',
+                                outline: 'none',
+                                whiteSpace: 'nowrap',
+                                flex: 1
+                            }}
+                        >
+                            <Activity size={14} /> Ejecución
+                        </button>
+                        {isCollaborator && (
+                            <button
+                                type="button"
+                                className={`project-menu-btn ${activeTab === 'chat' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('chat')}
+                                style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    gap: '6px', 
+                                    padding: '8px 12px', 
+                                    fontSize: '0.95rem', 
+                                    fontWeight: 600, 
+                                    border: 'none', 
+                                    borderRadius: 'var(--radius-md)', 
+                                    cursor: 'pointer',
+                                    background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
+                                    color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
+                                    boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
+                                    transition: 'all 0.15s',
+                                    outline: 'none',
+                                    whiteSpace: 'nowrap',
+                                    flex: 1
+                                }}
+                            >
+                                <MessageSquare size={14} /> Chat
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
