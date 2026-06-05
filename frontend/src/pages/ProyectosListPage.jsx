@@ -65,7 +65,7 @@ export default function ProyectosListPage() {
                     orgInput.trim(),
                     motiveInput.trim()
                 );
-                showToast('¡Postulación enviada con éxito! Un referente la revisará.', 'success');
+                showToast('¡Te sumaste al proyecto como colaborador!', 'success');
                 setPostulateProject(null);
             } catch (err) {
                 console.error(err);

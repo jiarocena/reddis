@@ -113,6 +113,17 @@ export async function deleteUsuario(id) {
     return request(`/admin/users/${id}`, { method: 'DELETE' });
 }
 
+export async function removeCollaborator(id) {
+    return request(`/admin/collaborators/${id}`, { method: 'DELETE' });
+}
+
+export async function addCollaboratorToProject(projectId, userId, organization) {
+    return request(`/admin/projects/${projectId}/collaborators`, {
+        method: 'POST',
+        body: JSON.stringify({ userId, organization }),
+    });
+}
+
 export async function confirmUsuarioEmail(email) {
     return request('/admin/confirm-user', {
         method: 'POST',

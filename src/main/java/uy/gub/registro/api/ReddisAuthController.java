@@ -7,9 +7,14 @@ import org.springframework.web.bind.annotation.*;
 import uy.gub.registro.config.JwtUtil;
 import uy.gub.registro.model.RoleRequest;
 import uy.gub.registro.model.Usuario;
+import uy.gub.registro.model.Proyecto;
+import uy.gub.registro.model.Colaborador;
 import uy.gub.registro.repository.RoleRequestRepository;
 import uy.gub.registro.repository.UsuarioRepository;
+import uy.gub.registro.repository.ProyectoRepository;
+import uy.gub.registro.repository.ColaboradorRepository;
 import uy.gub.registro.service.EmailService;
+import java.time.LocalDateTime;
 
 import java.security.Principal;
 import java.util.*;
@@ -26,14 +31,19 @@ public class ReddisAuthController {
     private final JwtUtil jwtUtil;
     private final RoleRequestRepository roleRequestRepo;
     private final EmailService emailService;
+    private final ProyectoRepository proyectoRepo;
+    private final ColaboradorRepository colaboradorRepo;
 
     public ReddisAuthController(UsuarioRepository usuarioRepo, PasswordEncoder passwordEncoder,
-            JwtUtil jwtUtil, RoleRequestRepository roleRequestRepo, EmailService emailService) {
+            JwtUtil jwtUtil, RoleRequestRepository roleRequestRepo, EmailService emailService,
+            ProyectoRepository proyectoRepo, ColaboradorRepository colaboradorRepo) {
         this.usuarioRepo = usuarioRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.roleRequestRepo = roleRequestRepo;
         this.emailService = emailService;
+        this.proyectoRepo = proyectoRepo;
+        this.colaboradorRepo = colaboradorRepo;
     }
 
     // ═══════ REGISTER ═══════
@@ -250,50 +260,66 @@ public class ReddisAuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Usuario no encontrado"));
         }
 
-        // Already has the role?
-        if (usuario.hasRole("COLABORADOR")) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ya tenés el rol de Colaborador o superior"));
-        }
-
         String message = body.getOrDefault("message", "");
-        // Check if there is already a pending request for this exact project for this user
-        List<RoleRequest> requests = roleRequestRepo.findByUsuarioIdOrderByCreatedAtDesc(userId);
-        boolean alreadyPendingThisProject = false;
         
-        String projTag = "";
-        if (message.contains("[PROYECTO_ID:")) {
-            int start = message.indexOf("[PROYECTO_ID:");
-            int end = message.indexOf("]", start);
-            if (end > start) {
-                projTag = message.substring(start, end + 1); // e.g. "[PROYECTO_ID:2]"
-            }
-        }
-        
-        if (!projTag.isEmpty()) {
-            final String targetTag = projTag;
-            alreadyPendingThisProject = requests.stream()
-                .filter(r -> "PENDIENTE".equals(r.getStatus()))
-                .anyMatch(r -> r.getMessage() != null && r.getMessage().contains(targetTag));
-        }
-        
-        if (alreadyPendingThisProject) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ya tenés una postulación pendiente para este proyecto"));
-        }
-
+        // Auto-approve the role request immediately
         RoleRequest req = RoleRequest.builder()
                 .usuario(usuario)
                 .requestedRole("COLABORADOR")
                 .message(message)
                 .organization(body.get("organization"))
                 .motive(body.get("motive"))
+                .status("APROBADA")
+                .reviewedAt(LocalDateTime.now())
                 .build();
 
         roleRequestRepo.save(req);
 
-        System.out.println(
-                "📋 SOLICITUD DE ROL: " + usuario.getNombreCompleto() + " (" + usuario.getEmail() + ") → COLABORADOR");
+        // Update user's system role to COLABORADOR
+        usuario.setRol("COLABORADOR");
+        usuarioRepo.save(usuario);
 
-        return ResponseEntity.ok(Map.of("message", "Solicitud enviada. Un referente departamental la revisará."));
+        // Also add the collaborator to the project immediately
+        if (message.contains("[PROYECTO_ID:")) {
+            try {
+                int start = message.indexOf("[PROYECTO_ID:") + 13;
+                int end = message.indexOf("]", start);
+                if (end > start) {
+                    Long projectId = Long.parseLong(message.substring(start, end));
+                    Optional<Proyecto> projOpt = proyectoRepo.findById(projectId);
+                    if (projOpt.isPresent()) {
+                        Proyecto proj = projOpt.get();
+                        
+                        // Check if not already a collaborator
+                        boolean alreadyCollab = proj.getCollaborators().stream()
+                                .anyMatch(c -> usuario.getId().equals(c.getUserId()));
+                        if (!alreadyCollab) {
+                            String name = usuario.getNombreCompleto();
+                            String initials = name.contains(" ")
+                                    ? ("" + name.split(" ")[0].charAt(0) + name.split(" ")[1].charAt(0)).toUpperCase()
+                                    : name.substring(0, Math.min(2, name.length())).toUpperCase();
+
+                            Colaborador col = Colaborador.builder()
+                                    .name(name)
+                                    .role("Colaborador")
+                                    .initials(initials)
+                                    .proyecto(proj)
+                                    .userId(usuario.getId())
+                                    .organization(req.getOrganization())
+                                    .build();
+                            colaboradorRepo.save(col);
+                            System.out.println("👥 COLABORADOR ASOCIADO AUTOMÁTICAMENTE: " + name + " al proyecto #" + projectId);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error al asociar colaborador automáticamente al proyecto: " + e.getMessage());
+            }
+        }
+
+        System.out.println("📋 AUTO-APROBACIÓN DE ROL: " + usuario.getNombreCompleto() + " (" + usuario.getEmail() + ") → COLABORADOR");
+
+        return ResponseEntity.ok(Map.of("message", "¡Te sumaste al proyecto como colaborador exitosamente!"));
     }
 
     // ═══════ HELPERS ═══════

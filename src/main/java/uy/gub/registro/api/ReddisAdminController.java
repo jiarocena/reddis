@@ -122,8 +122,10 @@ public class ReddisAdminController {
         req.setReviewedAt(LocalDateTime.now());
         roleRequestRepo.save(req);
 
-        // Keep the user's system role as USUARIO (collaboration is project-based)
+        // Update the user's system role to COLABORADOR
         Usuario user = req.getUsuario();
+        user.setRol("COLABORADOR");
+        usuarioRepo.save(user);
 
         // Dynamic project collaboration linking
         String message = req.getMessage() != null ? req.getMessage() : "";
@@ -326,5 +328,72 @@ public class ReddisAdminController {
         System.out.println("🗑️ PROYECTO ELIMINADO: #" + id);
 
         return ResponseEntity.ok(Map.of("message", "Proyecto eliminado con éxito"));
+    }
+
+    @DeleteMapping("/collaborators/{id}")
+    public ResponseEntity<?> removeCollaborator(@PathVariable Long id) {
+        Optional<Colaborador> opt = colaboradorRepo.findById(id);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Colaborador col = opt.get();
+        colaboradorRepo.delete(col);
+        System.out.println("👥 COLABORADOR REMOVIDO: #" + id + " (" + col.getName() + ") del proyecto #" + col.getProyecto().getId());
+        return ResponseEntity.ok(Map.of("message", "Colaborador removido con éxito"));
+    }
+
+    @PostMapping("/projects/{projectId}/collaborators")
+    public ResponseEntity<?> addProjectCollaborator(@PathVariable Long projectId,
+            @RequestBody Map<String, Object> body) {
+        Optional<Proyecto> projOpt = proyectoRepo.findById(projectId);
+        if (projOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Proyecto proj = projOpt.get();
+        
+        if (body.get("userId") == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "userId es obligatorio"));
+        }
+        Long userId = Long.parseLong(body.get("userId").toString());
+        Optional<Usuario> userOpt = usuarioRepo.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Usuario no encontrado"));
+        }
+        Usuario user = userOpt.get();
+        
+        // Check if not already a collaborator
+        boolean alreadyCollab = proj.getCollaborators().stream()
+                .anyMatch(c -> user.getId().equals(c.getUserId()));
+        if (alreadyCollab) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El usuario ya es colaborador de este proyecto"));
+        }
+        
+        String name = user.getNombreCompleto();
+        String initials = name.contains(" ")
+                ? ("" + name.split(" ")[0].charAt(0) + name.split(" ")[1].charAt(0)).toUpperCase()
+                : name.substring(0, Math.min(2, name.length())).toUpperCase();
+                
+        String organization = (String) body.get("organization");
+        
+        Colaborador col = Colaborador.builder()
+                .name(name)
+                .role("Colaborador")
+                .initials(initials)
+                .proyecto(proj)
+                .userId(user.getId())
+                .organization(organization)
+                .build();
+                
+        colaboradorRepo.save(col);
+        
+        // Force upgrade user's system role to COLABORADOR if they are currently just USUARIO
+        if ("USUARIO".equals(user.getRol())) {
+            user.setRol("COLABORADOR");
+            usuarioRepo.save(user);
+        }
+        
+        System.out.println("👥 COLABORADOR ASOCIADO POR REFERENTE: " + name + " al proyecto #" + projectId);
+        
+        return ResponseEntity.ok(Map.of("message", "Usuario asociado como colaborador exitosamente"));
     }
 }
