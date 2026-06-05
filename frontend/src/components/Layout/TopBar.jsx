@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, User, Handshake } from 'lucide-react';
+import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, User, Handshake, Briefcase } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/': { title: 'REDDIS (piloto)', subtitle: 'Red Digital de Inclusión Social', icon: Network },
@@ -12,6 +12,10 @@ const PAGE_TITLES = {
     '/gestion/confirmar': { title: 'Confirmar Cuenta', subtitle: 'Verificá tu dirección de correo', icon: Info },
     '/gestion/perfil': { title: 'Mi Cuenta', subtitle: 'Detalles de tu cuenta REDDIS', icon: User },
     '/gestion/proyectos': { title: 'Colaborar', subtitle: 'Sumate a colaborar en proyectos activos', icon: Handshake },
+    '/gestion/mis-proyectos': { title: 'Resolver', subtitle: 'Mis proyectos activos y colaboraciones', icon: Briefcase },
+    '/gestion/mapa': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
+    '/gestion/barreras': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
+    '/gestion/reportar': { title: 'Reportar Barrera', subtitle: 'Identificá una barrera de accesibilidad', icon: AlertTriangle },
 };
 
 export default function TopBar() {
@@ -20,9 +24,9 @@ export default function TopBar() {
     let page = PAGE_TITLES[location.pathname];
 
     if (!page) {
-        if (location.pathname.startsWith('/barrera/')) {
+        if (location.pathname.startsWith('/barrera/') || location.pathname.startsWith('/gestion/barrera/')) {
             page = { title: 'Barrera reportada', subtitle: 'Detalle de la barrera de accesibilidad', icon: AlertTriangle };
-        } else if (location.pathname.startsWith('/proyecto/')) {
+        } else if (location.pathname.startsWith('/proyecto/') || location.pathname.startsWith('/gestion/proyecto/')) {
             page = { title: 'Proyecto de resolución', subtitle: 'Detalle del proyecto colaborativo', icon: Users };
         } else {
             page = PAGE_TITLES['/'];

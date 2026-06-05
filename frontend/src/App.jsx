@@ -139,8 +139,8 @@ function AppContent() {
         return () => clearInterval(interval);
     }, [isAuthenticated, refreshUser, refreshData]);
 
-    // Show administrative layout only if user is on a /gestion path AND is authenticated AND is at least a COLABORADOR
-    const showGestionLayout = isGestion && isAuthenticated && hasRole('COLABORADOR');
+    // Show administrative layout only if user is on a /gestion path AND is authenticated AND is at least a REFERENTE
+    const showGestionLayout = isGestion && isAuthenticated && hasRole('REFERENTE');
 
     return (
         <>

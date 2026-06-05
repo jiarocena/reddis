@@ -7,8 +7,8 @@ export default function BottomNav() {
     const { isAuthenticated, hasRole } = useAuth();
     const isGestion = location.pathname.startsWith('/gestion');
 
-    // Don't show on gestion routes once authenticated as at least a COLABORADOR
-    const showGestionLayout = isGestion && isAuthenticated && hasRole('COLABORADOR');
+    // Don't show on gestion routes once authenticated as at least a REFERENTE
+    const showGestionLayout = isGestion && isAuthenticated && hasRole('REFERENTE');
     if (showGestionLayout) return null;
 
     return (
