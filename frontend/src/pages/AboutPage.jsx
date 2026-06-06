@@ -1,113 +1,46 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-    Play, Pause, RotateCcw, Volume2, VolumeX, ArrowRight,
+    Play, Pause, RotateCcw, ArrowRight,
     MapPin, Users, CheckCircle, MessageSquare, Settings, 
-    Sparkles, PlusCircle, Shield, Network, Info, Smartphone, Film
+    Sparkles, PlusCircle, Shield, Network, Info, Smartphone, Film,
+    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen
 } from 'lucide-react';
 
-const TOTAL_DURATION = 100; // Slower explainer duration in seconds (20s per scene)
+const TOTAL_DURATION = 100; // Explainer duration in seconds (20s per scene)
 
 const NARRATOR_TRANSCRIPTS = [
     { 
         start: 0, 
         end: 20, 
-        text: "Te damos la bienvenida a REDDIS, la Red Digital de Inclusión Social. Una plataforma diseñada para conectar a ciudadanos con referentes departamentales y organizaciones, con un único fin: identificar, visibilizar y resolver las barreras de accesibilidad que limitan la inclusión de personas con discapacidad en nuestro entorno. En este video interactivo te mostraremos en detalle cómo se desarrolla este proceso colaborativo." 
+        text: "Te damos la bienvenida a REDDIS, la Red Digital de Inclusión Social. Una plataforma diseñada para conectar a ciudadanos con referentes departamentales y organizaciones, con un único fin: identificar, visibilizar y resolver las barreras de accesibilidad que limitan la inclusión de personas con discapacidad en nuestro entorno. En este video interactivo te mostramos cómo funciona paso a paso." 
     },
     { 
         start: 20, 
         end: 40, 
-        text: "Paso 1: Identificación Ciudadana. Cuando caminas por tu ciudad y encuentras una barrera de accesibilidad —como una rampa rota, la falta de señalización en braille, o un acceso institucional bloqueado— puedes reportarlo inmediatamente desde tu celular. Tomas una foto, describes la situación brevemente, y el sistema utiliza el GPS de tu dispositivo para geolocalizar la barrera con precisión y colocarla en el mapa público." 
+        text: "Paso 1: Identificación Ciudadana. Cuando encontrás una barrera de accesibilidad, ingresás a 'Reportar'. Primero seleccionás la categoría (Física, Comunicacional, etc.) y luego ingresás los detalles como el título y la descripción detallada. Finalmente, seleccionás la ubicación real en el mapa, adjuntás una foto de la barrera y enviás el reporte para su revisión." 
     },
     { 
         start: 40, 
         end: 60, 
-        text: "Paso 2: Evaluación del Referente. Cada reporte enviado es recibido por el referente departamental del área de inclusión social. El referente evalúa la validez de la barrera reportada. Si es correcta, aprueba el caso y crea un proyecto de resolución público en la plataforma, definiendo los objetivos, el equipo de trabajo y las metas para eliminar el obstáculo." 
+        text: "Paso 2: Evaluación y Organización. El referente departamental recibe tu reporte en su 'Panel de Gestión' bajo la pestaña 'Identificación de barreras'. Revisa la solicitud y, si es válida, la aprueba. Luego, desde la ficha de la barrera aprobada en el mapa, crea el 'Proyecto de Resolución' asociándole una organización líder." 
     },
     { 
         start: 60, 
         end: 80, 
-        text: "Paso 3: Colaboración Comunitaria. Una vez abierto el proyecto, cualquier ciudadano u organización puede postularse para colaborar en la solución. Al sumarse, los colaboradores forman parte de un chat integrado en tiempo real para coordinar el trabajo, conseguir materiales o planificar jornadas de voluntariado de forma totalmente abierta." 
+        text: "Paso 3: Colaboración Comunitaria. Una vez que se crea el proyecto, cualquier colaborador puede ingresar a la ficha y sumarse de forma inmediata ingresando su organización. Esto le da acceso automático al chat en tiempo real del proyecto, donde el equipo se organiza, coordina materiales y planifica las jornadas." 
     },
     { 
         start: 80, 
         end: 100, 
-        text: "Paso 4: Resolución y Registro de Logros. El progreso del proyecto se actualiza en el checklist del equipo. Una vez completadas las acciones físicas de resolución, el referente marca el caso como Resuelto. La barrera en el mapa cambia a color verde y se archiva como un caso de éxito. Esto incrementa las estadísticas públicas de accesibilidad del departamento." 
+        text: "Paso 4: Resolver e Impactar. En la pestaña 'Ejecución' del proyecto, el equipo sigue el checklist de tareas. Cuando se completan las acciones de resolución de la barrera física, el referente marca el proyecto como Resuelto. El estado global se actualiza a Finalizado, la barrera en el mapa cambia a verde y se guarda como caso de éxito." 
     }
 ];
 
 export default function AboutPage() {
     const [time, setTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [isMuted, setIsMuted] = useState(false);
     const intervalRef = useRef(null);
-    const lastSpokenIndexRef = useRef(-1);
-
-    // Speech Synthesis helper
-    const speakText = (text) => {
-        if (!('speechSynthesis' in window)) return;
-        
-        window.speechSynthesis.cancel();
-        if (!text || isMuted) return;
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'es-ES';
-        utterance.rate = 0.95; // Slightly slower, more didactic reading rate
-        utterance.pitch = 1.0;
-
-        // Try to find a standard Spanish voice
-        const voices = window.speechSynthesis.getVoices();
-        const spanishVoice = voices.find(v => v.lang.startsWith('es'));
-        if (spanishVoice) {
-            utterance.voice = spanishVoice;
-        }
-
-        window.speechSynthesis.speak(utterance);
-    };
-
-    // Keep Web Speech API synchronized with state
-    useEffect(() => {
-        if (!isPlaying || isMuted) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-            lastSpokenIndexRef.current = -1; // Reset to allow repeating on play
-            return;
-        }
-
-        const index = NARRATOR_TRANSCRIPTS.findIndex(t => time >= t.start && time < t.end);
-        if (index !== -1 && index !== lastSpokenIndexRef.current) {
-            lastSpokenIndexRef.current = index;
-            speakText(NARRATOR_TRANSCRIPTS[index].text);
-        }
-    }, [isPlaying, isMuted, time]);
-
-    // Handle voices loaded event for some browsers
-    useEffect(() => {
-        if ('speechSynthesis' in window) {
-            const handleVoicesChanged = () => {
-                if (isPlaying && !isMuted) {
-                    const index = NARRATOR_TRANSCRIPTS.findIndex(t => time >= t.start && time < t.end);
-                    if (index !== -1) {
-                        speakText(NARRATOR_TRANSCRIPTS[index].text);
-                    }
-                }
-            };
-            window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-            return () => {
-                window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
-            };
-        }
-    }, [isPlaying, isMuted, time]);
-
-    // Cleanup speech synthesis on unmount
-    useEffect(() => {
-        return () => {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-        };
-    }, []);
 
     useEffect(() => {
         if (isPlaying) {
@@ -136,10 +69,6 @@ export default function AboutPage() {
         setIsPlaying(true);
     };
 
-    const toggleMute = () => {
-        setIsMuted(!isMuted);
-    };
-
     // Find current narrator text
     const currentTranscript = NARRATOR_TRANSCRIPTS.find(t => time >= t.start && time < t.end)?.text || "";
 
@@ -162,7 +91,7 @@ export default function AboutPage() {
         return fullText.substring(0, charCount);
     };
 
-    // Calculate cursor positions dynamically based on time to simulate clicks
+    // Calculate cursor positions dynamically based on time to simulate click interactions
     const getCursorStyle = () => {
         let left = -100;
         let top = -100;
@@ -170,98 +99,141 @@ export default function AboutPage() {
         let scale = 1;
         let transition = "none";
 
-        // Scene 1: Click "Reportar Barrera" (20s - 40s)
-        if (time >= 20.5 && time < 22.5) {
-            // Move cursor from bottom right to button
-            const t = (time - 20.5) / 2.0;
-            left = 140 - (140 - 75) * t;
-            top = 220 - (220 - 130) * t;
+        // Scene 1: Reportar Barrera (20s - 40s)
+        // 20.5s to 21.8s: moves to category card "Física" (75, 115)
+        if (time >= 20.5 && time < 21.8) {
+            const t = (time - 20.5) / 1.3;
+            left = 130 - (130 - 75) * t;
+            top = 220 - (220 - 115) * t;
             opacity = 1;
-            transition = "none";
-        } else if (time >= 22.5 && time < 23.5) {
-            // Click effect
+        } else if (time >= 21.8 && time < 22.4) {
             left = 75;
-            top = 130;
+            top = 115;
             opacity = 1;
-            scale = 0.8;
-            transition = "transform 0.1s ease";
-        } else if (time >= 33.0 && time < 35.0) {
-            // Move to Enviar button
-            const t = (time - 33.0) / 2.0;
-            left = 75 + (100 - 75) * t;
-            top = 130 + (220 - 130) * t;
-            opacity = 1;
-        } else if (time >= 35.0 && time < 36.0) {
-            // Click Enviar
-            left = 100;
-            top = 220;
-            opacity = 1;
-            scale = 0.8;
+            scale = 0.85;
             transition = "transform 0.1s ease";
         }
-        // Scene 2: Click "Evaluar" (40s - 60s)
-        else if (time >= 44.5 && time < 46.5) {
-            const t = (time - 44.5) / 2.0;
-            left = 150 - (150 - 120) * t;
-            top = 230 - (230 - 85) * t;
+        // 22.4s to 23.4s: moves to "Siguiente" button (130, 245)
+        else if (time >= 22.4 && time < 23.4) {
+            const t = (time - 22.4) / 1.0;
+            left = 75 + (130 - 75) * t;
+            top = 115 + (245 - 115) * t;
             opacity = 1;
-        } else if (time >= 46.5 && time < 47.5) {
-            left = 120;
-            top = 85;
+        } else if (time >= 23.4 && time < 24.0) {
+            left = 130;
+            top = 245;
             opacity = 1;
-            scale = 0.8;
+            scale = 0.85;
             transition = "transform 0.1s ease";
         }
-        else if (time >= 50.0 && time < 52.5) {
-            // Move to "Aprobar y Crear Proyecto" button
-            const t = (time - 50.0) / 2.5;
-            left = 120 - (120 - 80) * t;
-            top = 85 + (160 - 85) * t;
+        // 32.2s to 33.6s: moves to "Enviar Reporte" button (110, 245)
+        else if (time >= 32.2 && time < 33.6) {
+            const t = (time - 32.2) / 1.4;
+            left = 80 + (110 - 80) * t;
+            top = 180 + (245 - 180) * t;
             opacity = 1;
-        } else if (time >= 52.5 && time < 53.5) {
-            left = 80;
-            top = 160;
-            opacity = 1;
-            scale = 0.8;
-            transition = "transform 0.1s ease";
-        }
-        // Scene 3: Click "Colaborar" (60s - 80s)
-        else if (time >= 61.0 && time < 63.0) {
-            const t = (time - 61.0) / 2.0;
-            left = 50 + (100 - 50) * t;
-            top = 220 - (220 - 140) * t;
-            opacity = 1;
-        } else if (time >= 63.0 && time < 64.0) {
-            left = 100;
-            top = 140;
-            opacity = 1;
-            scale = 0.8;
-            transition = "transform 0.1s ease";
-        }
-        else if (time >= 64.8 && time < 66.2) {
-            // Click "Confirmar" in modal
-            const t = (time - 64.8) / 1.4;
-            left = 100;
-            top = 140 + (185 - 140) * t;
-            opacity = 1;
-        } else if (time >= 66.2 && time < 67.2) {
-            left = 100;
-            top = 185;
-            opacity = 1;
-            scale = 0.8;
-            transition = "transform 0.1s ease";
-        }
-        // Scene 4: Click "Marcar como Resuelto" (80s - 100s)
-        else if (time >= 86.5 && time < 88.5) {
-            const t = (time - 86.5) / 2.0;
-            left = 40 + (110 - 40) * t;
-            top = 80 + (165 - 80) * t;
-            opacity = 1;
-        } else if (time >= 88.5 && time < 89.5) {
+        } else if (time >= 33.6 && time < 34.2) {
             left = 110;
-            top = 165;
+            top = 245;
             opacity = 1;
-            scale = 0.8;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+        // 37.8s to 39.0s: moves to Success modal CTA button (85, 195)
+        else if (time >= 37.8 && time < 39.0) {
+            const t = (time - 37.8) / 1.2;
+            left = 110 - (110 - 85) * t;
+            top = 245 - (245 - 195) * t;
+            opacity = 1;
+        } else if (time >= 39.0 && time < 39.6) {
+            left = 85;
+            top = 195;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+
+        // Scene 2: Evaluar y Organizar (40s - 60s)
+        // 43.5s to 45.0s: moves to "Aprobar" button (50, 180)
+        else if (time >= 43.5 && time < 45.0) {
+            const t = (time - 43.5) / 1.5;
+            left = 140 - (140 - 50) * t;
+            top = 240 - (240 - 180) * t;
+            opacity = 1;
+        } else if (time >= 45.0 && time < 45.6) {
+            left = 50;
+            top = 180;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+        // 48.5s to 50.0s: moves to "Trabajar en esto" button (85, 150)
+        else if (time >= 48.5 && time < 50.0) {
+            const t = (time - 48.5) / 1.5;
+            left = 50 + (85 - 50) * t;
+            top = 180 - (180 - 150) * t;
+            opacity = 1;
+        } else if (time >= 50.0 && time < 50.6) {
+            left = 85;
+            top = 150;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+        // 53.5s to 55.0s: moves to "Confirmar" in claim Modal (85, 205)
+        else if (time >= 53.5 && time < 55.0) {
+            const t = (time - 53.5) / 1.5;
+            left = 85;
+            top = 150 + (205 - 150) * t;
+            opacity = 1;
+        } else if (time >= 55.0 && time < 55.6) {
+            left = 85;
+            top = 205;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+
+        // Scene 3: Colaborar en Chat (60s - 80s)
+        // 62.0s to 63.5s: moves to "Postularse para colaborar" button (85, 235)
+        else if (time >= 62.0 && time < 63.5) {
+            const t = (time - 62.0) / 1.5;
+            left = 130 - (130 - 85) * t;
+            top = 120 + (235 - 120) * t;
+            opacity = 1;
+        } else if (time >= 63.5 && time < 64.1) {
+            left = 85;
+            top = 235;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+        // 67.5s to 69.0s: moves to "chat" tab pill (135, 75)
+        else if (time >= 67.5 && time < 69.0) {
+            const t = (time - 67.5) / 1.5;
+            left = 85 + (135 - 85) * t;
+            top = 235 - (235 - 75) * t;
+            opacity = 1;
+        } else if (time >= 69.0 && time < 69.6) {
+            left = 135;
+            top = 75;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+
+        // Scene 4: Resolver Barrera (80s - 100s)
+        // 86.2s to 87.8s: moves to "Marcar como Resuelto" button (85, 120)
+        else if (time >= 86.2 && time < 87.8) {
+            const t = (time - 86.2) / 1.6;
+            left = 135 - (135 - 85) * t;
+            top = 75 + (120 - 75) * t;
+            opacity = 1;
+        } else if (time >= 87.8 && time < 88.4) {
+            left = 85;
+            top = 120;
+            opacity = 1;
+            scale = 0.85;
             transition = "transform 0.1s ease";
         }
 
@@ -272,18 +244,18 @@ export default function AboutPage() {
             opacity: opacity,
             transform: `translate(-50%, -50%) scale(${scale})`,
             transition: transition,
-            width: '20px',
-            height: '20px',
+            width: '18px',
+            height: '18px',
             borderRadius: '50%',
-            background: 'rgba(245, 158, 11, 0.8)',
+            background: 'rgba(245, 158, 11, 0.85)',
             border: '2px solid white',
-            boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
             zIndex: 999,
             pointerEvents: 'none'
         };
     };
 
-    // Helper to render the interactive UI inside the simulated smartphone screen
+    // Helper to render the interactive UI matching the REAL screens of REDDIS
     const renderPhoneScreen = () => {
         // Scene 0: Introduction (0s - 20s)
         if (time >= 0 && time < 20) {
@@ -314,18 +286,18 @@ export default function AboutPage() {
                         <Network size={32} color="var(--accent-400)" />
                     </div>
                     <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 4px', letterSpacing: '-0.02em' }}>REDDIS</h2>
-                    <p style={{ fontSize: '0.65rem', opacity: 0.9, lineHeight: 1.3, maxWidth: '160px' }}>
+                    <p style={{ fontSize: '0.62rem', opacity: 0.9, lineHeight: 1.3, maxWidth: '160px' }}>
                         Red Digital de Inclusión Social
                     </p>
                     <div style={{
                         position: 'absolute',
                         bottom: '24px',
-                        fontSize: '0.55rem',
+                        fontSize: '0.52rem',
                         background: 'rgba(255, 255, 255, 0.15)',
                         padding: '4px 10px',
                         borderRadius: 'var(--radius-full)'
                     }}>
-                        Experiencia Piloto
+                        Piloto Uruguay
                     </div>
                 </div>
             );
@@ -333,81 +305,118 @@ export default function AboutPage() {
 
         // Scene 1: Reportar Barrera (20s - 40s)
         if (time >= 20 && time < 40) {
-            const isFormView = time >= 23 && time < 36.2;
-            const isSuccessView = time >= 36.2;
+            const isStep1 = time >= 20 && time < 23.8;
+            const isStep2 = time >= 23.8 && time < 34.0;
+            const isSuccess = time >= 34.0;
 
-            if (isFormView) {
-                const typedTitle = getTypedText("Rampa bloqueada por cantero", 23.5, 4.5);
-                const showTypeSelected = time >= 28.0;
-                const showGPSLoading = time >= 28.5 && time < 31.0;
-                const showLocation = time >= 31.0;
-                const showPhoto = time >= 31.5;
-
+            // 1. STEP 1: CATEGORY GRID
+            if (isStep1) {
+                const categorySelected = time >= 22.0;
                 return (
-                    <div style={{
-                        height: '100%',
-                        background: 'var(--gray-50)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        fontSize: '9px',
-                        color: 'var(--gray-800)',
-                        position: 'relative'
-                    }}>
-                        {/* Header */}
-                        <div style={{ background: 'var(--white)', padding: '8px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <PlusCircle size={10} color="var(--primary-500)" />
-                            <span>Reportar Barrera</span>
+                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
+                        <div style={{ background: 'var(--white)', padding: '8px 10px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, fontSize: '10px' }}>
+                            Reportar una Barrera
                         </div>
-                        {/* Form Body */}
-                        <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px', textAlign: 'left' }}>
+                        <div style={{ padding: '8px 10px' }}>
+                            <div style={{ fontWeight: 600, fontSize: '8px', color: 'var(--gray-800)', marginBottom: '6px' }}>¿Qué tipo de barrera es?</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                {/* Category Option: FISICA */}
+                                <div style={{
+                                    border: categorySelected ? '1px solid var(--primary-400)' : '1px solid var(--gray-200)',
+                                    background: categorySelected ? 'var(--primary-50)' : 'var(--white)',
+                                    padding: '5px',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    gap: '6px',
+                                    alignItems: 'center'
+                                }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--barrier-fisica)' }} />
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: '7.5px' }}>Física</div>
+                                        <div style={{ fontSize: '6px', color: 'var(--gray-400)' }}>Obstáculos en el entorno físico...</div>
+                                    </div>
+                                </div>
+                                {/* Category Option: COMUNICACIONAL */}
+                                <div style={{
+                                    border: '1px solid var(--gray-200)',
+                                    background: 'var(--white)',
+                                    padding: '5px',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    gap: '6px',
+                                    alignItems: 'center',
+                                    opacity: 0.6
+                                }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--barrier-comunicacional)' }} />
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: '7.5px' }}>Comunicacional</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Footer button */}
+                        <div style={{ marginTop: 'auto', padding: '8px 10px', borderTop: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button style={{ background: categorySelected ? 'var(--primary-600)' : 'var(--gray-300)', color: 'white', border: 'none', padding: '3px 8px', borderRadius: '3px', fontWeight: 700, fontSize: '8px' }}>
+                                Siguiente →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 2. STEP 2: FORM DETAILS
+            if (isStep2) {
+                const typedTitle = getTypedText("Rampa rota en vereda", 24.2, 4.0);
+                const typedDesc = getTypedText("La rampa está rota en la esquina.", 28.5, 3.5);
+                const showLocation = time >= 31.0;
+                return (
+                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '8px', textAlign: 'left', overflow: 'hidden' }}>
+                        <div style={{ background: 'var(--white)', padding: '6px 8px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, fontSize: '9px' }}>
+                            Describí la barrera
+                        </div>
+                        <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Título</label>
-                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', minHeight: '14px', fontSize: '8px' }}>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Título *</label>
+                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', minHeight: '12px' }}>
                                     {typedTitle}
                                 </div>
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Tipo de Barrera</label>
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                    <span style={{ 
-                                        padding: '2px 4px', 
-                                        borderRadius: '2px', 
-                                        border: showTypeSelected ? '1px solid var(--barrier-fisica)' : '1px solid var(--gray-300)',
-                                        background: showTypeSelected ? '#fef2f2' : 'var(--white)',
-                                        color: showTypeSelected ? 'var(--barrier-fisica)' : 'var(--gray-500)',
-                                        fontSize: '7px',
-                                        fontWeight: 600
-                                    }}>Física</span>
-                                    <span style={{ padding: '2px 4px', borderRadius: '2px', border: '1px solid var(--gray-300)', background: 'var(--white)', color: 'var(--gray-400)', fontSize: '7px' }}>Visual</span>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Descripción detallada *</label>
+                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', minHeight: '20px' }}>
+                                    {typedDesc}
                                 </div>
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Ubicación</label>
-                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', color: showLocation ? 'var(--gray-700)' : 'var(--gray-400)', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '7.5px', minHeight: '14px' }}>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Ubicación *</label>
+                                <div style={{
+                                    border: '1px solid var(--gray-300)',
+                                    background: 'var(--gray-50)',
+                                    padding: '3px',
+                                    borderRadius: '3px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    color: showLocation ? 'var(--gray-800)' : 'var(--gray-400)'
+                                }}>
                                     <MapPin size={8} />
-                                    {showGPSLoading ? (
-                                        <span style={{ fontStyle: 'italic', color: 'var(--primary-500)' }}>Obteniendo coordenadas GPS...</span>
-                                    ) : (
-                                        <span>{showLocation ? "Av. Italia 2450, Montevideo" : "Esperando ubicación..."}</span>
-                                    )}
+                                    <span>{showLocation ? "Av. Italia 2450, MVD" : "Seleccionar en el mapa..."}</span>
                                 </div>
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Foto Adjunta</label>
-                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px', fontSize: '7.5px', color: 'var(--gray-400)' }}>
-                                    {showPhoto ? "📷 foto_rampa.jpg cargada" : "Sin adjuntos"}
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Foto de la barrera</label>
+                                <div style={{ background: 'var(--gray-50)', border: '1.5px dashed var(--gray-300)', padding: '4px', borderRadius: '3px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+                                    <Camera size={10} color="var(--gray-400)" />
+                                    <span style={{ color: 'var(--gray-400)', fontSize: '7px' }}>foto_vereda.jpg</span>
                                 </div>
                             </div>
-                            <button style={{
-                                marginTop: '6px',
-                                background: 'var(--primary-600)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '4px',
-                                borderRadius: '3px',
-                                fontWeight: 700,
-                                fontSize: '8px'
-                            }}>
+                        </div>
+                        {/* Footer button */}
+                        <div style={{ marginTop: 'auto', padding: '6px 8px', borderTop: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'space-between' }}>
+                            <button style={{ background: 'transparent', border: '1px solid var(--gray-300)', padding: '2px 6px', borderRadius: '2px', fontSize: '7.5px' }}>
+                                ← Anterior
+                            </button>
+                            <button style={{ background: 'var(--success-500)', color: 'white', border: 'none', padding: '3px 8px', borderRadius: '2px', fontWeight: 700, fontSize: '8px' }}>
                                 Enviar Reporte
                             </button>
                         </div>
@@ -415,41 +424,25 @@ export default function AboutPage() {
                 );
             }
 
-            if (isSuccessView) {
-                const showMapPin = time >= 37.6;
-                const showLoader = time >= 36.2 && time < 37.6;
+            // 3. SUCCESS / REDIRECT TO MAP
+            if (isSuccess) {
+                const showLoader = time >= 34.0 && time < 35.5;
+                const showMapPin = time >= 38.0;
 
                 if (showLoader) {
                     return (
-                        <div style={{
-                            height: '100%',
-                            background: 'var(--white)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            fontSize: '8px',
-                            color: 'var(--gray-500)'
-                        }}>
-                            <div className="loading-spinner" style={{ width: '24px', height: '24px', borderWidth: '2.5px', marginBottom: '6px' }} />
-                            <span>Subiendo reporte a la base de datos...</span>
+                        <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', fontSize: '8px', color: 'var(--gray-500)' }}>
+                            <div className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2.5px', marginBottom: '6px' }} />
+                            <span>Registrando barrera...</span>
                         </div>
                     );
                 }
 
+                // Show success modal overlay
+                const showModal = time >= 35.5 && time < 39.0;
                 return (
-                    <div style={{
-                        height: '100%',
-                        background: '#e0f2fe',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        position: 'relative',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        fontSize: '9px',
-                        color: 'var(--gray-800)'
-                    }}>
-                        {/* Simulated Map View */}
+                    <div style={{ height: '100%', background: '#e2e8f0', position: 'relative' }}>
+                        {/* Fake Map background */}
                         <div style={{
                             position: 'absolute',
                             inset: 0,
@@ -458,227 +451,255 @@ export default function AboutPage() {
                             backgroundSize: '16px 16px',
                             backgroundPosition: '0 0, 8px 8px'
                         }} />
-                        
-                        {/* Map lines */}
                         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-                            <line x1="0" y1="120" x2="200" y2="120" stroke="var(--white)" strokeWidth="8" />
-                            <line x1="80" y1="0" x2="80" y2="300" stroke="var(--white)" strokeWidth="8" />
+                            <line x1="0" y1="120" x2="200" y2="120" stroke="var(--white)" strokeWidth="6" />
+                            <line x1="80" y1="0" x2="80" y2="300" stroke="var(--white)" strokeWidth="6" />
                         </svg>
 
                         {showMapPin && (
-                            <div className="bouncing-pin" style={{
-                                position: 'absolute',
-                                left: '80px',
-                                top: '120px',
-                                color: 'var(--barrier-fisica)',
-                                transform: 'translate(-50%, -100%)',
-                                zIndex: 10
-                            }}>
-                                <MapPin size={24} fill="rgba(239, 68, 68, 0.3)" />
+                            <div className="bouncing-pin" style={{ position: 'absolute', left: '80px', top: '120px', color: 'var(--barrier-fisica)', transform: 'translate(-50%, -100%)' }}>
+                                <MapPin size={22} fill="rgba(239, 68, 68, 0.35)" />
                                 <div className="pin-radar" />
                             </div>
                         )}
 
-                        {/* Top banner success */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '8px',
-                            left: '8px',
-                            right: '8px',
-                            background: 'var(--white)',
-                            border: '1px solid var(--success-200)',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            boxShadow: 'var(--shadow-md)',
-                            zIndex: 100
-                        }}>
-                            <CheckCircle size={10} color="var(--success-500)" />
-                            <span style={{ fontWeight: 600, fontSize: '7.5px' }}>¡Reporte publicado en el mapa!</span>
+                        {showModal && (
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(15, 23, 42, 0.65)',
+                                backdropFilter: 'blur(3px)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '12px',
+                                zIndex: 100
+                            }} className="animate-fadeIn">
+                                <div style={{
+                                    background: 'var(--white)',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    boxShadow: 'var(--shadow-lg)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    width: '100%'
+                                }}>
+                                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#d1fae5', color: 'var(--success-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CheckCircle size={16} />
+                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '9px', fontWeight: 800, color: 'var(--gray-900)' }}>¡Reporte recibido!</h3>
+                                    <p style={{ margin: 0, fontSize: '6.5px', color: 'var(--gray-500)', lineHeight: 1.3 }}>
+                                        Tu barrera ha sido registrada exitosamente. Un referente la evaluará a la brevedad.
+                                    </p>
+                                    <button style={{
+                                        background: 'var(--primary-600)',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '4px 10px',
+                                        borderRadius: '3px',
+                                        fontWeight: 700,
+                                        fontSize: '7.5px',
+                                        marginTop: '4px'
+                                    }}>
+                                        Ver en el mapa
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+        }
+
+        // Scene 2: Evaluar y Organizar (40s - 60s)
+        if (time >= 40 && time < 60) {
+            const isApproved = time >= 45.6;
+            const isClaimView = time >= 48.0 && time < 55.6;
+            const isProjectCreated = time >= 55.6;
+
+            // 1. PROJECT CREATION / PROJECT DETAIL DISPLAY
+            if (isProjectCreated) {
+                return (
+                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
+                        {/* Top navigation header */}
+                        <div style={{ background: 'var(--primary-800)', color: 'white', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 700, fontSize: '7.5px' }}>Proyecto de resolución</span>
+                            <Settings size={10} />
+                        </div>
+                        {/* Project Page */}
+                        <div style={{ padding: '8px' }}>
+                            <span style={{
+                                background: 'var(--primary-50)',
+                                color: 'var(--primary-600)',
+                                padding: '1px 4px',
+                                borderRadius: '2px',
+                                fontSize: '6px',
+                                fontWeight: 700,
+                                textTransform: 'uppercase'
+                            }}>
+                                INICIANDO
+                            </span>
+                            <h3 style={{ margin: '3px 0 2px 0', fontSize: '9px', fontWeight: 800 }}>Proyecto Rampa Av. Italia</h3>
+                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0 0 8px 0' }}>Av. Italia 2450 · Montevideo</p>
+
+                            <div style={{ background: 'var(--gray-50)', border: '1px solid var(--gray-200)', borderRadius: '4px', padding: '6px' }}>
+                                <div style={{ fontSize: '7px', color: 'var(--gray-700)', marginBottom: '4px' }}>
+                                    <strong>Organización líder:</strong> Mesa Montevideo
+                                </div>
+                                <div style={{ fontSize: '7px', color: 'var(--gray-700)' }}>
+                                    <strong>Colaboradores:</strong> 1 integrante
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
             }
 
-            // Normal Home View (20s - 23s)
-            return (
-                <div style={{
-                    height: '100%',
-                    background: 'var(--white)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    fontSize: '9px',
-                    color: 'var(--gray-800)'
-                }}>
-                    {/* Fake Navbar */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', borderBottom: '1px solid var(--gray-200)' }}>
-                        <span style={{ fontWeight: 800, color: 'var(--primary-600)' }}>REDDIS</span>
-                        <Network size={10} color="var(--primary-500)" />
-                    </div>
-                    {/* Content */}
-                    <div style={{ padding: '10px 8px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ background: 'var(--primary-50)', padding: '12px 6px', borderRadius: '4px' }}>
-                            <h3 style={{ margin: '0 0 2px', fontSize: '10px', color: 'var(--primary-900)' }}>Comunidad sin barreras</h3>
-                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: 0 }}>Reportá barreras de accesibilidad hoy mismo.</p>
+            // 2. CLAIM PROJECT VIEW
+            if (isClaimView) {
+                const showClaimModal = time >= 50.6;
+                return (
+                    <div style={{ height: '100%', background: 'var(--gray-50)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left', position: 'relative' }}>
+                        {/* Header */}
+                        <div style={{ background: 'var(--white)', padding: '6px 8px', borderBottom: '1px solid var(--gray-200)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
+                            <ArrowLeft size={10} />
+                            <span>Detalle de Barrera</span>
                         </div>
-                        <button style={{
-                            background: 'var(--accent-500)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '6px',
-                            borderRadius: '4px',
-                            fontWeight: 700,
-                            fontSize: '8px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '2px'
-                        }}>
-                            <PlusCircle size={8} /> Reportar Barrera
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Scene 2: Evaluar y Organizar (40s - 60s)
-        if (time >= 40 && time < 60) {
-            const showDetails = time >= 46.5;
-            const isApproved = time >= 52.5;
-
-            return (
-                <div style={{
-                    height: '100%',
-                    background: 'var(--gray-50)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    fontSize: '9px',
-                    color: 'var(--gray-800)'
-                }}>
-                    {/* Header */}
-                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 600 }}>Gestión Referente</span>
-                        <Shield size={10} />
-                    </div>
-
-                    {/* Pending list */}
-                    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', textAlign: 'left' }}>
-                            Reportes recibidos
-                        </div>
-                        
-                        <div style={{
-                            background: 'white',
-                            border: '1px solid var(--gray-200)',
-                            borderRadius: '4px',
-                            padding: '6px',
-                            textAlign: 'left',
-                            position: 'relative'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                                <span style={{ fontWeight: 700, fontSize: '8px' }}>Rampa por cantero</span>
-                                <span style={{ 
-                                    fontSize: '6px', 
-                                    padding: '1px 3px', 
-                                    borderRadius: '2px',
-                                    background: isApproved ? 'var(--success-50)' : 'var(--warning-50)',
-                                    color: isApproved ? 'var(--success-600)' : 'var(--warning-600)',
-                                    fontWeight: 700
-                                }}>
-                                    {isApproved ? "APROBADO" : "PENDIENTE"}
-                                </span>
+                        {/* Detail card */}
+                        <div style={{ padding: '6px' }}>
+                            <div style={{ display: 'flex', gap: '3px', marginBottom: '4px' }}>
+                                <span style={{ background: '#fef2f2', color: 'var(--barrier-fisica)', padding: '1px 4px', borderRadius: '2px', fontSize: '6px', fontWeight: 700 }}>Física</span>
+                                <span style={{ background: 'var(--success-50)', color: 'var(--success-600)', padding: '1px 4px', borderRadius: '2px', fontSize: '6px', fontWeight: 700 }}>APROBADA</span>
                             </div>
-                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0' }}>
-                                Av. Italia 2450 — Física
-                            </p>
-                            
-                            {!showDetails && !isApproved && (
-                                <button style={{
-                                    background: 'var(--primary-500)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '3px 6px',
-                                    borderRadius: '2px',
-                                    fontWeight: 600,
-                                    fontSize: '7px',
-                                    cursor: 'pointer',
-                                    marginTop: '4px'
-                                }}>
-                                    Evaluar reporte
-                                </button>
-                            )}
-                        </div>
+                            <h3 style={{ margin: '0 0 2px 0', fontSize: '9px', fontWeight: 800 }}>Rampa rota en vereda</h3>
+                            <p style={{ fontSize: '7.5px', color: 'var(--gray-500)', margin: '0 0 6px 0' }}>Av. Italia 2450 · Montevideo</p>
 
-                        {showDetails && !isApproved && (
-                            <div className="animate-fadeIn" style={{
-                                background: 'white',
-                                border: '1px solid var(--gray-200)',
-                                borderRadius: '4px',
-                                padding: '6px',
-                                textAlign: 'left',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px'
-                            }}>
-                                <div style={{ fontWeight: 700, fontSize: '8px', color: 'var(--primary-800)' }}>Detalle del Reporte</div>
-                                <div style={{ fontSize: '7px', color: 'var(--gray-600)' }}>
-                                    <strong>Comentario:</strong> Impide el paso de sillas de ruedas por la esquina.
-                                </div>
-                                <button style={{
-                                    background: 'var(--success-500)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '4px',
-                                    borderRadius: '2px',
-                                    fontWeight: 700,
-                                    fontSize: '7.5px',
-                                    cursor: 'pointer',
-                                    marginTop: '2px',
-                                    textAlign: 'center'
-                                }}>
-                                    Aprobar y Crear Proyecto
-                                </button>
-                            </div>
-                        )}
-
-                        {isApproved && (
+                            {/* Project Box Claim */}
                             <div style={{
-                                background: 'white',
-                                border: '1px solid var(--primary-100)',
-                                borderRadius: '4px',
-                                padding: '6px',
-                                textAlign: 'left',
+                                background: 'var(--accent-50)',
+                                border: '1.5px dashed var(--accent-300)',
+                                borderRadius: '6px',
+                                padding: '8px',
+                                textAlign: 'center',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '4px',
                                 marginTop: '4px'
-                            }} className="animate-fadeIn">
-                                <div style={{ fontWeight: 700, fontSize: '8px', color: 'var(--primary-800)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                    <Settings size={8} />
-                                    <span>Proyecto Creado</span>
-                                </div>
-                                <div style={{ fontSize: '7px', color: 'var(--gray-600)' }}>
-                                    <strong>Nombre:</strong> Proyecto Rampa Av. Italia
-                                </div>
-                                <div style={{ fontSize: '7px', color: 'var(--gray-600)' }}>
-                                    <strong>Referente:</strong> Mesa Montevideo
-                                </div>
-                                <span style={{
-                                    fontSize: '6px',
-                                    alignSelf: 'flex-start',
-                                    padding: '1px 3px',
-                                    borderRadius: '2px',
-                                    background: 'var(--primary-50)',
-                                    color: 'var(--primary-600)',
-                                    fontWeight: 700
+                            }}>
+                                <h4 style={{ margin: 0, fontSize: '8px', color: 'var(--gray-800)', fontWeight: 700 }}>Esta barrera aún no tiene un proyecto asociado</h4>
+                                <p style={{ margin: 0, fontSize: '6.5px', color: 'var(--gray-500)' }}>¿Tu organización puede trabajar en esta barrera?</p>
+                                <button style={{
+                                    background: 'var(--accent-500)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px',
+                                    borderRadius: '3px',
+                                    fontWeight: 700,
+                                    fontSize: '8px',
+                                    cursor: 'pointer',
+                                    marginTop: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '2px'
                                 }}>
-                                    INICIANDO
-                                </span>
+                                    <Handshake size={8} /> Trabajar en esto
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Claim Modal popup */}
+                        {showClaimModal && (
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(15, 23, 42, 0.65)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '12px',
+                                zIndex: 100
+                            }} className="animate-fadeIn">
+                                <div style={{
+                                    background: 'white',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    width: '100%',
+                                    boxShadow: 'var(--shadow-lg)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '5px'
+                                }}>
+                                    <h3 style={{ margin: 0, fontSize: '9px', fontWeight: 800 }}>Crear Proyecto de Resolución</h3>
+                                    <div>
+                                        <label style={{ fontSize: '7px', color: 'var(--gray-500)', display: 'block', marginBottom: '2px' }}>Título del proyecto</label>
+                                        <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7.5px' }}>
+                                            Proyecto Rampa Av. Italia
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '7px', color: 'var(--gray-500)', display: 'block', marginBottom: '2px' }}>Organización líder</label>
+                                        <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7.5px' }}>
+                                            Mesa Montevideo
+                                        </div>
+                                    </div>
+                                    <button style={{
+                                        background: 'var(--primary-600)',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '4px',
+                                        borderRadius: '3px',
+                                        fontWeight: 700,
+                                        fontSize: '7.5px',
+                                        marginTop: '4px',
+                                        textAlign: 'center'
+                                    }}>
+                                        Confirmar
+                                    </button>
+                                </div>
                             </div>
                         )}
+                    </div>
+                );
+            }
+
+            // 3. REFERENTE MANAGEMENT VIEW
+            return (
+                <div style={{ height: '100%', background: 'var(--gray-50)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
+                    {/* Header */}
+                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700 }}>Panel de Gestión</span>
+                        <Shield size={10} />
+                    </div>
+                    {/* Tabs */}
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'white' }}>
+                        <div style={{ flex: 1, padding: '4px', borderBottom: '2px solid var(--primary-500)', color: 'var(--primary-600)', fontWeight: 700, textAlign: 'center', fontSize: '7.5px' }}>
+                            Identificación de barreras
+                        </div>
+                        <div style={{ flex: 1, padding: '4px', color: 'var(--gray-400)', textAlign: 'center', fontSize: '7.5px', opacity: 0.6 }}>
+                            Gestión de Colaboradores
+                        </div>
+                    </div>
+                    {/* Pending list */}
+                    <div style={{ padding: '8px' }}>
+                        <div style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: '4px', padding: '6px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                <span style={{ fontWeight: 800, fontSize: '8px' }}>Rampa rota en vereda</span>
+                                <span style={{ fontSize: '6px', padding: '1px 3px', borderRadius: '2px', background: isApproved ? 'var(--success-50)' : 'var(--warning-50)', color: isApproved ? 'var(--success-600)' : 'var(--warning-600)', fontWeight: 700 }}>
+                                    {isApproved ? "APROBADA" : "PENDIENTE"}
+                                </span>
+                            </div>
+                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0 0 5px 0' }}>Av. Italia 2450 · Física</p>
+                            
+                            {!isApproved && (
+                                <button style={{ background: 'var(--success-500)', color: 'white', border: 'none', padding: '3px 6px', borderRadius: '2px', fontWeight: 700, fontSize: '7px' }}>
+                                    Aprobar
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             );
@@ -686,114 +707,99 @@ export default function AboutPage() {
 
         // Scene 3: Colaborar en Chat (60s - 80s)
         if (time >= 60 && time < 80) {
-            const showModal = time >= 63.5 && time < 66.2;
-            const isCollaborator = time >= 66.2;
+            const hasJoined = time >= 64.1;
+            const activeTab = time >= 69.6 ? 'chat' : 'proyecto';
             const showMsg1 = time >= 68.0;
             const showMsg2 = time >= 72.0;
             const showMsg3 = time >= 76.0;
 
             return (
-                <div style={{
-                    height: '100%',
-                    background: 'var(--gray-50)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    fontSize: '9px',
-                    color: 'var(--gray-800)',
-                    position: 'relative'
-                }}>
+                <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left', position: 'relative' }}>
                     {/* Header */}
-                    <div style={{ background: 'var(--primary-600)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                            <span style={{ fontWeight: 700, fontSize: '8px' }}>Proyecto Rampa Av. Italia</span>
-                            <span style={{ fontSize: '6px', opacity: 0.8 }}>{isCollaborator ? "4 Colaboradores" : "3 Colaboradores"}</span>
-                        </div>
-                        <Users size={10} />
+                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '6px 8px', display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                        <span style={{ fontWeight: 700, fontSize: '8px' }}>Proyecto Rampa Av. Italia</span>
+                        <span style={{ fontSize: '6px', opacity: 0.8 }}>{hasJoined ? "2 colaboradores" : "1 colaborador"}</span>
                     </div>
 
-                    {/* Join screen or Chat view */}
-                    {!isCollaborator ? (
-                        <div style={{ flex: 1, padding: '16px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', textAlign: 'center' }}>
-                            <div style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                background: 'var(--primary-50)',
-                                color: 'var(--primary-500)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyStyle: 'center',
-                                margin: '0 auto'
-                            }}>
-                                <Users size={16} style={{ margin: 'auto' }} />
-                            </div>
-                            <div style={{ fontWeight: 700 }}>¿Querés colaborar?</div>
-                            <p style={{ fontSize: '7.5px', color: 'var(--gray-500)', margin: 0 }}>Sumate al equipo del proyecto y coordiná en el chat.</p>
-                            <button style={{
-                                background: 'var(--accent-500)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '5px',
-                                borderRadius: '3px',
-                                fontWeight: 700,
-                                fontSize: '8px',
-                                marginTop: '4px'
-                            }}>
-                                Postularse a Colaborar
-                            </button>
+                    {/* Tab Navigation Menu (proyecto | ejecucion | chat) */}
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', padding: '2px' }}>
+                        <div style={{ flex: 1, padding: '3px', borderRadius: '3px', background: activeTab === 'proyecto' ? 'white' : 'transparent', textAlign: 'center', fontSize: '7px', fontWeight: activeTab === 'proyecto' ? 700 : 500, color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-500)', boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none' }}>
+                            proyecto
+                        </div>
+                        <div style={{ flex: 1, padding: '3px', textAlign: 'center', fontSize: '7px', color: 'var(--gray-500)', opacity: 0.6 }}>
+                            ejecucion
+                        </div>
+                        <div style={{ flex: 1, padding: '3px', borderRadius: '3px', background: activeTab === 'chat' ? 'white' : 'transparent', textAlign: 'center', fontSize: '7px', fontWeight: activeTab === 'chat' ? 700 : 500, color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-500)', boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none' }}>
+                            chat
+                        </div>
+                    </div>
 
-                            {/* Simulated Modal */}
-                            {showModal && (
+                    {/* Tab Content */}
+                    {activeTab === 'proyecto' && (
+                        <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ fontSize: '7px', color: 'var(--gray-600)' }}>
+                                <strong>Líder:</strong> Mesa Montevideo
+                            </div>
+                            <div style={{ fontSize: '7px', color: 'var(--gray-600)', marginBottom: '4px' }}>
+                                <strong>Detalle:</strong> Eliminación de escalón en vereda.
+                            </div>
+
+                            {/* Join Project card */}
+                            {!hasJoined && (
                                 <div style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    background: 'rgba(0,0,0,0.5)',
+                                    background: 'var(--primary-50)',
+                                    border: '1px solid var(--primary-100)',
+                                    borderRadius: '4px',
+                                    padding: '6px',
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '12px',
-                                    zIndex: 100
+                                    flexDirection: 'column',
+                                    gap: '3px',
+                                    marginTop: '4px'
                                 }}>
-                                    <div style={{
-                                        background: 'white',
-                                        borderRadius: '4px',
-                                        padding: '8px',
-                                        textAlign: 'left',
-                                        width: '100%',
-                                        boxShadow: 'var(--shadow-lg)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '4px'
-                                    }}>
-                                        <div style={{ fontWeight: 700, fontSize: '8.5px' }}>Sumarse a Colaborar</div>
-                                        <div style={{ fontSize: '6.5px', color: 'var(--gray-500)' }}>¿A qué organización representás?</div>
-                                        <div style={{ background: 'var(--gray-50)', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7px' }}>
-                                            Vecinos de la zona
-                                        </div>
-                                        <button style={{
-                                            background: 'var(--primary-600)',
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '4px',
-                                            borderRadius: '2px',
-                                            fontWeight: 700,
-                                            fontSize: '7.5px',
-                                            marginTop: '2px',
-                                            textAlign: 'center'
-                                        }}>
-                                            Confirmar
-                                        </button>
+                                    <span style={{ fontWeight: 700, fontSize: '7.5px' }}>¡Sumate a colaborar en este proyecto!</span>
+                                    <div style={{ background: 'white', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7.5px' }}>
+                                        Vecinos Zona 3
                                     </div>
+                                    <button style={{
+                                        background: 'var(--primary-600)',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '4px',
+                                        borderRadius: '3px',
+                                        fontWeight: 700,
+                                        fontSize: '7.5px',
+                                        cursor: 'pointer',
+                                        marginTop: '2px'
+                                    }}>
+                                        Postularse para colaborar
+                                    </button>
+                                </div>
+                            )}
+
+                            {hasJoined && (
+                                <div style={{
+                                    background: 'var(--success-50)',
+                                    border: '1px solid var(--success-200)',
+                                    borderRadius: '4px',
+                                    padding: '4px 6px',
+                                    color: 'var(--success-700)',
+                                    fontSize: '7.5px',
+                                    fontWeight: 700,
+                                    textAlign: 'center',
+                                    marginTop: '4px'
+                                }}>
+                                    ✓ ¡Te sumaste al proyecto como colaborador!
                                 </div>
                             )}
                         </div>
-                    ) : (
+                    )}
+
+                    {activeTab === 'chat' && (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '6px' }}>
-                            {/* Chat messages */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
                                 {showMsg1 && (
-                                    <div className="animate-fadeInUp" style={{ background: 'white', border: '1px solid var(--gray-200)', padding: '4px 6px', borderRadius: '4px 4px 4px 0', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Referente:</strong> ¡Bienvenidos! Organizamos la jornada para el sábado.
+                                    <div className="animate-fadeInUp" style={{ background: 'var(--gray-100)', padding: '4px 6px', borderRadius: '4px 4px 4px 0', maxWidth: '140px', fontSize: '7px' }}>
+                                        <strong>Mesa MVD:</strong> ¡Bienvenidos! Organizamos la jornada para el sábado.
                                     </div>
                                 )}
                                 {showMsg2 && (
@@ -803,12 +809,11 @@ export default function AboutPage() {
                                 )}
                                 {showMsg3 && (
                                     <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '4px 6px', borderRadius: '4px 4px 0 4px', alignSelf: 'flex-end', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Ana:</strong> Yo llevo herramientas y carteles.
+                                        <strong>Tú:</strong> ¡Excelente! Yo ayudo a colocar el cemento el sábado.
                                     </div>
                                 )}
                             </div>
-                            
-                            {/* Message input */}
+                            {/* Fake input message bar */}
                             <div style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: '3px', padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <span style={{ color: 'var(--gray-400)', fontSize: '7px' }}>Mensaje enviado...</span>
                                 <MessageSquare size={8} color="var(--primary-500)" />
@@ -841,8 +846,8 @@ export default function AboutPage() {
                         padding: '12px'
                     }}>
                         <div className="scale-pulse" style={{
-                            width: '48px',
-                            height: '48px',
+                            width: '44px',
+                            height: '44px',
                             borderRadius: '50%',
                             background: 'rgba(255, 255, 255, 0.2)',
                             display: 'flex',
@@ -853,19 +858,19 @@ export default function AboutPage() {
                             <CheckCircle size={28} color="var(--white)" />
                         </div>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 2px' }}>¡Resuelto!</h3>
-                        <p style={{ fontSize: '7.5px', opacity: 0.9, maxWidth: '140px', margin: 0 }}>
+                        <p style={{ fontSize: '7px', opacity: 0.9, maxWidth: '140px', margin: 0, lineHeight: 1.2 }}>
                             La rampa en Av. Italia está terminada y habilitada.
                         </p>
 
                         <div style={{
-                            marginTop: '12px',
-                            fontSize: '7px',
+                            marginTop: '10px',
+                            fontSize: '6.5px',
                             background: 'rgba(0, 0, 0, 0.2)',
                             padding: '3px 8px',
                             borderRadius: '2px',
                             fontWeight: 600
                         }}>
-                            +1 Logro Comunitario
+                            Estado: FINALIZADO
                         </div>
 
                         {/* Confetti particles */}
@@ -878,51 +883,29 @@ export default function AboutPage() {
             }
 
             return (
-                <div style={{
-                    height: '100%',
-                    background: 'var(--white)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    fontSize: '9px',
-                    color: 'var(--gray-800)'
-                }}>
+                <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
                     {/* Header */}
-                    <div style={{ background: 'var(--primary-600)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700 }}>Tareas del Proyecto</span>
-                        <CheckCircle size={10} />
+                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '8px' }}>Proyecto Rampa Av. Italia</span>
+                        <Settings size={10} />
+                    </div>
+
+                    {/* Tab Navigation Menu */}
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', padding: '2px' }}>
+                        <div style={{ flex: 1, padding: '3px', textAlign: 'center', fontSize: '7px', color: 'var(--gray-500)' }}>
+                            proyecto
+                        </div>
+                        <div style={{ flex: 1, padding: '3px', borderRadius: '3px', background: 'white', textAlign: 'center', fontSize: '7px', fontWeight: 700, color: 'var(--primary-700)', boxShadow: 'var(--shadow-sm)' }}>
+                            ejecucion
+                        </div>
+                        <div style={{ flex: 1, padding: '3px', textAlign: 'center', fontSize: '7px', color: 'var(--gray-500)' }}>
+                            chat
+                        </div>
                     </div>
 
                     {/* Task checklist */}
-                    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
-                        <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist de Avance</div>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {isT1Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
-                            </span>
-                            <span style={{ textDecoration: isT1Done ? 'line-through' : 'none', color: isT1Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '8px' }}>
-                                Conseguir materiales
-                            </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {isT2Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
-                            </span>
-                            <span style={{ textDecoration: isT2Done ? 'line-through' : 'none', color: isT2Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '8px' }}>
-                                Preparar mezcla
-                            </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {isT3Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
-                            </span>
-                            <span style={{ textDecoration: isT3Done ? 'line-through' : 'none', color: isT3Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '8px' }}>
-                                Construir rampa de cemento
-                            </span>
-                        </div>
-
+                    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        {/* Title button resolution (Only for Referente role) */}
                         {isT3Done && (
                             <button style={{
                                 background: 'var(--success-500)',
@@ -932,15 +915,44 @@ export default function AboutPage() {
                                 borderRadius: '3px',
                                 fontWeight: 700,
                                 fontSize: '8px',
-                                marginTop: '6px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '2px'
+                                gap: '2px',
+                                marginBottom: '6px'
                             }}>
                                 <CheckCircle size={8} /> Marcar como Resuelto
                             </button>
                         )}
+
+                        <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist de Avance</div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '3px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                {isT1Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
+                            </span>
+                            <span style={{ textDecoration: isT1Done ? 'line-through' : 'none', color: isT1Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '7.5px' }}>
+                                Conseguir materiales
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '3px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                {isT2Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
+                            </span>
+                            <span style={{ textDecoration: isT2Done ? 'line-through' : 'none', color: isT2Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '7.5px' }}>
+                                Preparar mezcla
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '3px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                {isT3Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
+                            </span>
+                            <span style={{ textDecoration: isT3Done ? 'line-through' : 'none', color: isT3Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '7.5px' }}>
+                                Construir rampa de cemento
+                            </span>
+                        </div>
                     </div>
                 </div>
             );
@@ -1021,30 +1033,6 @@ export default function AboutPage() {
                     z-index: 99;
                 }
 
-                /* Sound Equalizer waves */
-                .eq-bar-container {
-                    display: flex;
-                    align-items: flex-end;
-                    gap: 2px;
-                    height: 14px;
-                    width: 20px;
-                }
-                .eq-bar {
-                    width: 3px;
-                    height: 2px;
-                    background: var(--accent-400);
-                    border-radius: 1px;
-                }
-                .eq-active .eq-bar:nth-child(1) { animation: eqJump 0.8s ease-in-out infinite alternate; }
-                .eq-active .eq-bar:nth-child(2) { animation: eqJump 0.5s ease-in-out infinite alternate 0.1s; }
-                .eq-active .eq-bar:nth-child(3) { animation: eqJump 0.9s ease-in-out infinite alternate 0.2s; }
-                .eq-active .eq-bar:nth-child(4) { animation: eqJump 0.6s ease-in-out infinite alternate 0.05s; }
-
-                @keyframes eqJump {
-                    0% { height: 2px; }
-                    100% { height: 14px; }
-                }
-
                 /* Logo float animation */
                 .v-logo-float {
                     animation: floatLogo 3s ease-in-out infinite alternate;
@@ -1108,7 +1096,7 @@ export default function AboutPage() {
                         ¿Cómo funciona <span className="text-gradient">REDDIS</span>?
                     </h1>
                     <p style={{ fontSize: 'var(--font-sm)', color: 'var(--gray-500)', margin: 0 }}>
-                        Escuchá y mirá este video didáctico interactivo para conocer los objetivos y el uso de la app paso a paso.
+                        Mirá este video didáctico interactivo para conocer los objetivos y el uso de la app paso a paso.
                     </p>
                 </div>
 
@@ -1167,17 +1155,10 @@ export default function AboutPage() {
                                 {currentScene === 4 && "Marcá las tareas como resueltas y celebrá la eliminación de la barrera de accesibilidad."}
                             </p>
                             
-                            {/* Speech Wave Equalizer & Status indicator */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
-                                <div className={`eq-bar-container ${isPlaying && !isMuted ? 'eq-active' : ''}`}>
-                                    <div className="eq-bar" />
-                                    <div className="eq-bar" />
-                                    <div className="eq-bar" />
-                                    <div className="eq-bar" />
-                                </div>
-                                <span style={{ fontSize: '0.68rem', color: isMuted ? '#ef4444' : '#64748b', fontWeight: 600 }}>
-                                    {isMuted ? "Narración silenciada" : "Narración de voz activa"}
-                                </span>
+                            {/* Subtitle / narrator wave visual indicator */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+                                <BookOpen size={16} color="var(--accent-400)" />
+                                <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Locución Narrada (Texto abajo)</span>
                             </div>
                         </div>
 
@@ -1329,28 +1310,6 @@ export default function AboutPage() {
                                     aria-label="Reiniciar"
                                 >
                                     <RotateCcw size={14} />
-                                </button>
-
-                                {/* Speech Synthesis toggle */}
-                                <button
-                                    onClick={toggleMute}
-                                    style={{
-                                        background: 'transparent',
-                                        color: isMuted ? '#ef4444' : '#94a3b8',
-                                        border: isMuted ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid #1e293b',
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                    aria-label={isMuted ? "Activar audio" : "Silenciar audio"}
-                                    title={isMuted ? "Activar locución de voz" : "Silenciar locución de voz"}
-                                >
-                                    {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
                                 </button>
                             </div>
 
