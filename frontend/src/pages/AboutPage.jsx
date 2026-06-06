@@ -1,25 +1,113 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-    Play, Pause, RotateCcw, Volume2, ArrowRight,
+    Play, Pause, RotateCcw, Volume2, VolumeX, ArrowRight,
     MapPin, Users, CheckCircle, MessageSquare, Settings, 
     Sparkles, PlusCircle, Shield, Network, Info, Smartphone, Film
 } from 'lucide-react';
 
-const TOTAL_DURATION = 50; // Total duration of the simulated video in seconds
+const TOTAL_DURATION = 100; // Slower explainer duration in seconds (20s per scene)
 
 const NARRATOR_TRANSCRIPTS = [
-    { start: 0, end: 8, text: "¡Bienvenidos a REDDIS! La Red Digital de Inclusión Social. Una plataforma colaborativa donde los ciudadanos, referentes y organizaciones se unen para identificar y eliminar barreras de accesibilidad en nuestras comunidades. Veamos cómo funciona en el día a día." },
-    { start: 8, end: 18, text: "Paso 1: Identificar y Reportar. Cuando te encuentres con una barrera, como la falta de una rampa, tomás una foto y la reportás en segundos. El sistema registra tu ubicación automáticamente y la posiciona de forma visible en el mapa público." },
-    { start: 18, end: 28, text: "Paso 2: Evaluar y Organizar. El referente departamental recibe el reporte, valida la información y crea un proyecto público para su resolución. Así, el problema se formaliza y se establece un plan de acción concreto." },
-    { start: 28, end: 40, text: "Paso 3: Colaborar en Equipo. ¡Cualquier persona u organización puede sumarse a colaborar de inmediato! Dentro del proyecto, se abre un chat en tiempo real para coordinar esfuerzos y un muro para registrar los compromisos." },
-    { start: 40, end: 50, text: "Paso 4: Resolver e Impactar. A medida que avanzan los trabajos, se marcan las tareas completadas. Al finalizar, la barrera se declara Resuelta. El caso queda documentado como éxito y las estadísticas de inclusión del departamento se actualizan." }
+    { 
+        start: 0, 
+        end: 20, 
+        text: "Te damos la bienvenida a REDDIS, la Red Digital de Inclusión Social. Una plataforma diseñada para conectar a ciudadanos con referentes departamentales y organizaciones, con un único fin: identificar, visibilizar y resolver las barreras de accesibilidad que limitan la inclusión de personas con discapacidad en nuestro entorno. En este video interactivo te mostraremos en detalle cómo se desarrolla este proceso colaborativo." 
+    },
+    { 
+        start: 20, 
+        end: 40, 
+        text: "Paso 1: Identificación Ciudadana. Cuando caminas por tu ciudad y encuentras una barrera de accesibilidad —como una rampa rota, la falta de señalización en braille, o un acceso institucional bloqueado— puedes reportarlo inmediatamente desde tu celular. Tomas una foto, describes la situación brevemente, y el sistema utiliza el GPS de tu dispositivo para geolocalizar la barrera con precisión y colocarla en el mapa público." 
+    },
+    { 
+        start: 40, 
+        end: 60, 
+        text: "Paso 2: Evaluación del Referente. Cada reporte enviado es recibido por el referente departamental del área de inclusión social. El referente evalúa la validez de la barrera reportada. Si es correcta, aprueba el caso y crea un proyecto de resolución público en la plataforma, definiendo los objetivos, el equipo de trabajo y las metas para eliminar el obstáculo." 
+    },
+    { 
+        start: 60, 
+        end: 80, 
+        text: "Paso 3: Colaboración Comunitaria. Una vez abierto el proyecto, cualquier ciudadano u organización puede postularse para colaborar en la solución. Al sumarse, los colaboradores forman parte de un chat integrado en tiempo real para coordinar el trabajo, conseguir materiales o planificar jornadas de voluntariado de forma totalmente abierta." 
+    },
+    { 
+        start: 80, 
+        end: 100, 
+        text: "Paso 4: Resolución y Registro de Logros. El progreso del proyecto se actualiza en el checklist del equipo. Una vez completadas las acciones físicas de resolución, el referente marca el caso como Resuelto. La barrera en el mapa cambia a color verde y se archiva como un caso de éxito. Esto incrementa las estadísticas públicas de accesibilidad del departamento." 
+    }
 ];
 
 export default function AboutPage() {
     const [time, setTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
     const intervalRef = useRef(null);
+    const lastSpokenIndexRef = useRef(-1);
+
+    // Speech Synthesis helper
+    const speakText = (text) => {
+        if (!('speechSynthesis' in window)) return;
+        
+        window.speechSynthesis.cancel();
+        if (!text || isMuted) return;
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.95; // Slightly slower, more didactic reading rate
+        utterance.pitch = 1.0;
+
+        // Try to find a standard Spanish voice
+        const voices = window.speechSynthesis.getVoices();
+        const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+        if (spanishVoice) {
+            utterance.voice = spanishVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // Keep Web Speech API synchronized with state
+    useEffect(() => {
+        if (!isPlaying || isMuted) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            lastSpokenIndexRef.current = -1; // Reset to allow repeating on play
+            return;
+        }
+
+        const index = NARRATOR_TRANSCRIPTS.findIndex(t => time >= t.start && time < t.end);
+        if (index !== -1 && index !== lastSpokenIndexRef.current) {
+            lastSpokenIndexRef.current = index;
+            speakText(NARRATOR_TRANSCRIPTS[index].text);
+        }
+    }, [isPlaying, isMuted, time]);
+
+    // Handle voices loaded event for some browsers
+    useEffect(() => {
+        if ('speechSynthesis' in window) {
+            const handleVoicesChanged = () => {
+                if (isPlaying && !isMuted) {
+                    const index = NARRATOR_TRANSCRIPTS.findIndex(t => time >= t.start && time < t.end);
+                    if (index !== -1) {
+                        speakText(NARRATOR_TRANSCRIPTS[index].text);
+                    }
+                }
+            };
+            window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+            return () => {
+                window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+            };
+        }
+    }, [isPlaying, isMuted, time]);
+
+    // Cleanup speech synthesis on unmount
+    useEffect(() => {
+        return () => {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (isPlaying) {
@@ -48,15 +136,19 @@ export default function AboutPage() {
         setIsPlaying(true);
     };
 
+    const toggleMute = () => {
+        setIsMuted(!isMuted);
+    };
+
     // Find current narrator text
     const currentTranscript = NARRATOR_TRANSCRIPTS.find(t => time >= t.start && time < t.end)?.text || "";
 
     // Determine current scene index (0 to 4)
-    const currentScene = Math.min(Math.floor(time / 10), 4);
+    const currentScene = Math.min(Math.floor(time / 20), 4);
     const sceneTitles = [
         "Introducción",
         "1. Reportar Barrera",
-        "2. Crear Proyecto",
+        "2. Evaluar y Organizar",
         "3. Colaborar en Chat",
         "4. Resolver Barrera"
     ];
@@ -78,28 +170,28 @@ export default function AboutPage() {
         let scale = 1;
         let transition = "none";
 
-        // Scene 1: Click "Reportar Barrera"
-        if (time >= 8.2 && time < 9.5) {
+        // Scene 1: Click "Reportar Barrera" (20s - 40s)
+        if (time >= 20.5 && time < 22.5) {
             // Move cursor from bottom right to button
-            const t = (time - 8.2) / 1.3;
+            const t = (time - 20.5) / 2.0;
             left = 140 - (140 - 75) * t;
             top = 220 - (220 - 130) * t;
             opacity = 1;
             transition = "none";
-        } else if (time >= 9.5 && time < 10.0) {
+        } else if (time >= 22.5 && time < 23.5) {
             // Click effect
             left = 75;
             top = 130;
             opacity = 1;
             scale = 0.8;
             transition = "transform 0.1s ease";
-        } else if (time >= 13.8 && time < 14.8) {
+        } else if (time >= 33.0 && time < 35.0) {
             // Move to Enviar button
-            const t = (time - 13.8) / 1.0;
+            const t = (time - 33.0) / 2.0;
             left = 75 + (100 - 75) * t;
             top = 130 + (220 - 130) * t;
             opacity = 1;
-        } else if (time >= 14.8 && time < 15.3) {
+        } else if (time >= 35.0 && time < 36.0) {
             // Click Enviar
             left = 100;
             top = 220;
@@ -107,39 +199,65 @@ export default function AboutPage() {
             scale = 0.8;
             transition = "transform 0.1s ease";
         }
-        // Scene 2: Click "Aprobar"
-        else if (time >= 20.0 && time < 21.2) {
-            const t = (time - 20.0) / 1.2;
+        // Scene 2: Click "Evaluar" (40s - 60s)
+        else if (time >= 44.5 && time < 46.5) {
+            const t = (time - 44.5) / 2.0;
             left = 150 - (150 - 120) * t;
             top = 230 - (230 - 85) * t;
             opacity = 1;
-        } else if (time >= 21.2 && time < 21.7) {
+        } else if (time >= 46.5 && time < 47.5) {
             left = 120;
             top = 85;
             opacity = 1;
             scale = 0.8;
             transition = "transform 0.1s ease";
         }
-        // Scene 3: Click "Colaborar"
-        else if (time >= 29.5 && time < 30.8) {
-            const t = (time - 29.5) / 1.3;
+        else if (time >= 50.0 && time < 52.5) {
+            // Move to "Aprobar y Crear Proyecto" button
+            const t = (time - 50.0) / 2.5;
+            left = 120 - (120 - 80) * t;
+            top = 85 + (160 - 85) * t;
+            opacity = 1;
+        } else if (time >= 52.5 && time < 53.5) {
+            left = 80;
+            top = 160;
+            opacity = 1;
+            scale = 0.8;
+            transition = "transform 0.1s ease";
+        }
+        // Scene 3: Click "Colaborar" (60s - 80s)
+        else if (time >= 61.0 && time < 63.0) {
+            const t = (time - 61.0) / 2.0;
             left = 50 + (100 - 50) * t;
             top = 220 - (220 - 140) * t;
             opacity = 1;
-        } else if (time >= 30.8 && time < 31.4) {
+        } else if (time >= 63.0 && time < 64.0) {
             left = 100;
             top = 140;
             opacity = 1;
             scale = 0.8;
             transition = "transform 0.1s ease";
         }
-        // Scene 4: Click "Marcar como Resuelto"
-        else if (time >= 42.5 && time < 43.8) {
-            const t = (time - 42.5) / 1.3;
+        else if (time >= 64.8 && time < 66.2) {
+            // Click "Confirmar" in modal
+            const t = (time - 64.8) / 1.4;
+            left = 100;
+            top = 140 + (185 - 140) * t;
+            opacity = 1;
+        } else if (time >= 66.2 && time < 67.2) {
+            left = 100;
+            top = 185;
+            opacity = 1;
+            scale = 0.8;
+            transition = "transform 0.1s ease";
+        }
+        // Scene 4: Click "Marcar como Resuelto" (80s - 100s)
+        else if (time >= 86.5 && time < 88.5) {
+            const t = (time - 86.5) / 2.0;
             left = 40 + (110 - 40) * t;
             top = 80 + (165 - 80) * t;
             opacity = 1;
-        } else if (time >= 43.8 && time < 44.4) {
+        } else if (time >= 88.5 && time < 89.5) {
             left = 110;
             top = 165;
             opacity = 1;
@@ -167,8 +285,8 @@ export default function AboutPage() {
 
     // Helper to render the interactive UI inside the simulated smartphone screen
     const renderPhoneScreen = () => {
-        // Scene 0: Introduction (0s - 8s)
-        if (time >= 0 && time < 8) {
+        // Scene 0: Introduction (0s - 20s)
+        if (time >= 0 && time < 20) {
             return (
                 <div style={{
                     height: '100%',
@@ -196,7 +314,7 @@ export default function AboutPage() {
                         <Network size={32} color="var(--accent-400)" />
                     </div>
                     <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 4px', letterSpacing: '-0.02em' }}>REDDIS</h2>
-                    <p style={{ fontSize: '0.62rem', opacity: 0.9, lineHeight: 1.3, maxWidth: '160px' }}>
+                    <p style={{ fontSize: '0.65rem', opacity: 0.9, lineHeight: 1.3, maxWidth: '160px' }}>
                         Red Digital de Inclusión Social
                     </p>
                     <div style={{
@@ -207,21 +325,23 @@ export default function AboutPage() {
                         padding: '4px 10px',
                         borderRadius: 'var(--radius-full)'
                     }}>
-                        Demo explicativa v1.0
+                        Experiencia Piloto
                     </div>
                 </div>
             );
         }
 
-        // Scene 1: Reportar Barrera (8s - 18s)
-        if (time >= 8 && time < 18) {
-            const isFormView = time >= 10 && time < 15.5;
-            const isSuccessView = time >= 15.5;
+        // Scene 1: Reportar Barrera (20s - 40s)
+        if (time >= 20 && time < 40) {
+            const isFormView = time >= 23 && time < 36.2;
+            const isSuccessView = time >= 36.2;
 
             if (isFormView) {
-                const typedTitle = getTypedText("Rampa bloqueada", 10.2, 1.8);
-                const showTypeSelected = time >= 12.2;
-                const showLocation = time >= 13.0;
+                const typedTitle = getTypedText("Rampa bloqueada por cantero", 23.5, 4.5);
+                const showTypeSelected = time >= 28.0;
+                const showGPSLoading = time >= 28.5 && time < 31.0;
+                const showLocation = time >= 31.0;
+                const showPhoto = time >= 31.5;
 
                 return (
                     <div style={{
@@ -239,7 +359,7 @@ export default function AboutPage() {
                             <span>Reportar Barrera</span>
                         </div>
                         {/* Form Body */}
-                        <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
+                        <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px', textAlign: 'left' }}>
                             <div>
                                 <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Título</label>
                                 <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', minHeight: '14px', fontSize: '8px' }}>
@@ -263,13 +383,23 @@ export default function AboutPage() {
                             </div>
                             <div>
                                 <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Ubicación</label>
-                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', color: showLocation ? 'var(--gray-700)' : 'var(--gray-400)', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '7.5px' }}>
+                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', color: showLocation ? 'var(--gray-700)' : 'var(--gray-400)', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '7.5px', minHeight: '14px' }}>
                                     <MapPin size={8} />
-                                    <span>{showLocation ? "Av. Italia 2450, MVD" : "Obteniendo ubicación..."}</span>
+                                    {showGPSLoading ? (
+                                        <span style={{ fontStyle: 'italic', color: 'var(--primary-500)' }}>Obteniendo coordenadas GPS...</span>
+                                    ) : (
+                                        <span>{showLocation ? "Av. Italia 2450, Montevideo" : "Esperando ubicación..."}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '2px', color: 'var(--gray-500)' }}>Foto Adjunta</label>
+                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px', fontSize: '7.5px', color: 'var(--gray-400)' }}>
+                                    {showPhoto ? "📷 foto_rampa.jpg cargada" : "Sin adjuntos"}
                                 </div>
                             </div>
                             <button style={{
-                                marginTop: '10px',
+                                marginTop: '6px',
                                 background: 'var(--primary-600)',
                                 color: 'white',
                                 border: 'none',
@@ -286,7 +416,27 @@ export default function AboutPage() {
             }
 
             if (isSuccessView) {
-                const showMapPin = time >= 16.5;
+                const showMapPin = time >= 37.6;
+                const showLoader = time >= 36.2 && time < 37.6;
+
+                if (showLoader) {
+                    return (
+                        <div style={{
+                            height: '100%',
+                            background: 'var(--white)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            fontSize: '8px',
+                            color: 'var(--gray-500)'
+                        }}>
+                            <div className="loading-spinner" style={{ width: '24px', height: '24px', borderWidth: '2.5px', marginBottom: '6px' }} />
+                            <span>Subiendo reporte a la base de datos...</span>
+                        </div>
+                    );
+                }
+
                 return (
                     <div style={{
                         height: '100%',
@@ -352,7 +502,7 @@ export default function AboutPage() {
                 );
             }
 
-            // Normal Home View (8s - 10s)
+            // Normal Home View (20s - 23s)
             return (
                 <div style={{
                     height: '100%',
@@ -394,9 +544,11 @@ export default function AboutPage() {
             );
         }
 
-        // Scene 2: Evaluar y Organizar (18s - 28s)
-        if (time >= 18 && time < 28) {
-            const isApproved = time >= 21.5;
+        // Scene 2: Evaluar y Organizar (40s - 60s)
+        if (time >= 40 && time < 60) {
+            const showDetails = time >= 46.5;
+            const isApproved = time >= 52.5;
+
             return (
                 <div style={{
                     height: '100%',
@@ -413,9 +565,9 @@ export default function AboutPage() {
                     </div>
 
                     {/* Pending list */}
-                    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', textAlign: 'left' }}>
-                            Reportes entrantes
+                            Reportes recibidos
                         </div>
                         
                         <div style={{
@@ -426,10 +578,10 @@ export default function AboutPage() {
                             textAlign: 'left',
                             position: 'relative'
                         }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                <span style={{ fontWeight: 700, fontSize: '8px' }}>Rampa bloqueada</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                <span style={{ fontWeight: 700, fontSize: '8px' }}>Rampa por cantero</span>
                                 <span style={{ 
-                                    fontSize: '6.5px', 
+                                    fontSize: '6px', 
                                     padding: '1px 3px', 
                                     borderRadius: '2px',
                                     background: isApproved ? 'var(--success-50)' : 'var(--warning-50)',
@@ -439,25 +591,58 @@ export default function AboutPage() {
                                     {isApproved ? "APROBADO" : "PENDIENTE"}
                                 </span>
                             </div>
-                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0 0 6px' }}>
+                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0' }}>
                                 Av. Italia 2450 — Física
                             </p>
                             
-                            {!isApproved && (
+                            {!showDetails && !isApproved && (
                                 <button style={{
-                                    background: 'var(--success-500)',
+                                    background: 'var(--primary-500)',
                                     color: 'white',
                                     border: 'none',
                                     padding: '3px 6px',
                                     borderRadius: '2px',
                                     fontWeight: 600,
                                     fontSize: '7px',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    marginTop: '4px'
                                 }}>
-                                    Aprobar y Crear Proyecto
+                                    Evaluar reporte
                                 </button>
                             )}
                         </div>
+
+                        {showDetails && !isApproved && (
+                            <div className="animate-fadeIn" style={{
+                                background: 'white',
+                                border: '1px solid var(--gray-200)',
+                                borderRadius: '4px',
+                                padding: '6px',
+                                textAlign: 'left',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
+                            }}>
+                                <div style={{ fontWeight: 700, fontSize: '8px', color: 'var(--primary-800)' }}>Detalle del Reporte</div>
+                                <div style={{ fontSize: '7px', color: 'var(--gray-600)' }}>
+                                    <strong>Comentario:</strong> Impide el paso de sillas de ruedas por la esquina.
+                                </div>
+                                <button style={{
+                                    background: 'var(--success-500)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px',
+                                    borderRadius: '2px',
+                                    fontWeight: 700,
+                                    fontSize: '7.5px',
+                                    cursor: 'pointer',
+                                    marginTop: '2px',
+                                    textAlign: 'center'
+                                }}>
+                                    Aprobar y Crear Proyecto
+                                </button>
+                            </div>
+                        )}
 
                         {isApproved && (
                             <div style={{
@@ -499,12 +684,13 @@ export default function AboutPage() {
             );
         }
 
-        // Scene 3: Colaborar en Chat (28s - 40s)
-        if (time >= 28 && time < 40) {
-            const isCollaborator = time >= 31.0;
-            const showMsg1 = time >= 32.5;
-            const showMsg2 = time >= 35.5;
-            const showMsg3 = time >= 38.0;
+        // Scene 3: Colaborar en Chat (60s - 80s)
+        if (time >= 60 && time < 80) {
+            const showModal = time >= 63.5 && time < 66.2;
+            const isCollaborator = time >= 66.2;
+            const showMsg1 = time >= 68.0;
+            const showMsg2 = time >= 72.0;
+            const showMsg3 = time >= 76.0;
 
             return (
                 <div style={{
@@ -513,13 +699,14 @@ export default function AboutPage() {
                     display: 'flex',
                     flexDirection: 'column',
                     fontSize: '9px',
-                    color: 'var(--gray-800)'
+                    color: 'var(--gray-800)',
+                    position: 'relative'
                 }}>
                     {/* Header */}
                     <div style={{ background: 'var(--primary-600)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
                             <span style={{ fontWeight: 700, fontSize: '8px' }}>Proyecto Rampa Av. Italia</span>
-                            <span style={{ fontSize: '6px', opacity: 0.8 }}>3 Colaboradores</span>
+                            <span style={{ fontSize: '6px', opacity: 0.8 }}>{isCollaborator ? "4 Colaboradores" : "3 Colaboradores"}</span>
                         </div>
                         <Users size={10} />
                     </div>
@@ -552,8 +739,53 @@ export default function AboutPage() {
                                 fontSize: '8px',
                                 marginTop: '4px'
                             }}>
-                                Sumarse a Colaborar
+                                Postularse a Colaborar
                             </button>
+
+                            {/* Simulated Modal */}
+                            {showModal && (
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    background: 'rgba(0,0,0,0.5)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '12px',
+                                    zIndex: 100
+                                }}>
+                                    <div style={{
+                                        background: 'white',
+                                        borderRadius: '4px',
+                                        padding: '8px',
+                                        textAlign: 'left',
+                                        width: '100%',
+                                        boxShadow: 'var(--shadow-lg)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '4px'
+                                    }}>
+                                        <div style={{ fontWeight: 700, fontSize: '8.5px' }}>Sumarse a Colaborar</div>
+                                        <div style={{ fontSize: '6.5px', color: 'var(--gray-500)' }}>¿A qué organización representás?</div>
+                                        <div style={{ background: 'var(--gray-50)', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7px' }}>
+                                            Vecinos de la zona
+                                        </div>
+                                        <button style={{
+                                            background: 'var(--primary-600)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '4px',
+                                            borderRadius: '2px',
+                                            fontWeight: 700,
+                                            fontSize: '7.5px',
+                                            marginTop: '2px',
+                                            textAlign: 'center'
+                                        }}>
+                                            Confirmar
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '6px' }}>
@@ -561,25 +793,25 @@ export default function AboutPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
                                 {showMsg1 && (
                                     <div className="animate-fadeInUp" style={{ background: 'white', border: '1px solid var(--gray-200)', padding: '4px 6px', borderRadius: '4px 4px 4px 0', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Referente:</strong> Hola equipo, gracias por sumarse.
+                                        <strong>Referente:</strong> ¡Bienvenidos! Organizamos la jornada para el sábado.
                                     </div>
                                 )}
                                 {showMsg2 && (
                                     <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '4px 6px', borderRadius: '4px 4px 0 4px', alignSelf: 'flex-end', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Juan:</strong> Yo llevo la bolsa de cemento el sábado.
+                                        <strong>Juan:</strong> Perfecto. Consigo cemento y arena.
                                     </div>
                                 )}
                                 {showMsg3 && (
                                     <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '4px 6px', borderRadius: '4px 4px 0 4px', alignSelf: 'flex-end', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Ana:</strong> Yo ayudo a colocar las maderas.
+                                        <strong>Ana:</strong> Yo llevo herramientas y carteles.
                                     </div>
                                 )}
                             </div>
                             
                             {/* Message input */}
                             <div style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: '3px', padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ color: 'var(--gray-400)', fontSize: '7px' }}>Escribí un mensaje...</span>
-                                <MessageSquare size={8} color="var(--gray-400)" />
+                                <span style={{ color: 'var(--gray-400)', fontSize: '7px' }}>Mensaje enviado...</span>
+                                <MessageSquare size={8} color="var(--primary-500)" />
                             </div>
                         </div>
                     )}
@@ -587,12 +819,12 @@ export default function AboutPage() {
             );
         }
 
-        // Scene 4: Resolver Barrera (40s - 50s)
-        if (time >= 40 && time <= 50) {
-            const isT1Done = time >= 41.0;
-            const isT2Done = time >= 42.0;
-            const isT3Done = time >= 43.0;
-            const isResolved = time >= 44.5;
+        // Scene 4: Resolver Barrera (80s - 100s)
+        if (time >= 80 && time <= 100) {
+            const isT1Done = time >= 81.5;
+            const isT2Done = time >= 83.5;
+            const isT3Done = time >= 85.5;
+            const isResolved = time >= 88.5;
 
             if (isResolved) {
                 return (
@@ -622,7 +854,7 @@ export default function AboutPage() {
                         </div>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 2px' }}>¡Resuelto!</h3>
                         <p style={{ fontSize: '7.5px', opacity: 0.9, maxWidth: '140px', margin: 0 }}>
-                            La barrera física en Av. Italia ha sido eliminada con éxito.
+                            La rampa en Av. Italia está terminada y habilitada.
                         </p>
 
                         <div style={{
@@ -656,20 +888,20 @@ export default function AboutPage() {
                 }}>
                     {/* Header */}
                     <div style={{ background: 'var(--primary-600)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700 }}>Tareas de Resolución</span>
+                        <span style={{ fontWeight: 700 }}>Tareas del Proyecto</span>
                         <CheckCircle size={10} />
                     </div>
 
                     {/* Task checklist */}
                     <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
-                        <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist</div>
+                        <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist de Avance</div>
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
                             <span style={{ display: 'flex', alignItems: 'center' }}>
                                 {isT1Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
                             </span>
                             <span style={{ textDecoration: isT1Done ? 'line-through' : 'none', color: isT1Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '8px' }}>
-                                Coordinar materiales
+                                Conseguir materiales
                             </span>
                         </div>
 
@@ -678,7 +910,7 @@ export default function AboutPage() {
                                 {isT2Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
                             </span>
                             <span style={{ textDecoration: isT2Done ? 'line-through' : 'none', color: isT2Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '8px' }}>
-                                Preparar encofrado
+                                Preparar mezcla
                             </span>
                         </div>
 
@@ -731,7 +963,7 @@ export default function AboutPage() {
                 }
 
                 .video-screen {
-                    height: 400px;
+                    min-height: 350px;
                     display: grid;
                     grid-template-columns: 1.1fr 0.9fr;
                     align-items: center;
@@ -744,7 +976,7 @@ export default function AboutPage() {
                 @media (max-width: 600px) {
                     .video-screen {
                         grid-template-columns: 1fr;
-                        height: 480px;
+                        min-height: 440px;
                         padding: 16px;
                         gap: 16px;
                     }
@@ -787,27 +1019,6 @@ export default function AboutPage() {
                     background: #1e293b;
                     border-radius: 0 0 8px 8px;
                     z-index: 99;
-                }
-
-                /* Dynamic subtitles */
-                .video-subtitles {
-                    position: absolute;
-                    bottom: 12px;
-                    left: 12px;
-                    right: 12px;
-                    background: rgba(15, 23, 42, 0.85);
-                    backdrop-filter: blur(8px);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                    padding: 10px 16px;
-                    border-radius: var(--radius-xl);
-                    color: #e2e8f0;
-                    font-size: 0.82rem;
-                    line-height: 1.4;
-                    min-height: 60px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center;
                 }
 
                 /* Sound Equalizer waves */
@@ -897,7 +1108,7 @@ export default function AboutPage() {
                         ¿Cómo funciona <span className="text-gradient">REDDIS</span>?
                     </h1>
                     <p style={{ fontSize: 'var(--font-sm)', color: 'var(--gray-500)', margin: 0 }}>
-                        Mirá este video animado explicativo para conocer los objetivos y el uso práctico de la app.
+                        Escuchá y mirá este video didáctico interactivo para conocer los objetivos y el uso de la app paso a paso.
                     </p>
                 </div>
 
@@ -932,7 +1143,7 @@ export default function AboutPage() {
                         </span>
                     </div>
 
-                    {/* Main Screen Content */}
+                    {/* Main Screen Content Grid */}
                     <div className="video-screen">
                         {/* Info Column (Left Side) */}
                         <div className="info-column" style={{ color: 'white', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -951,20 +1162,22 @@ export default function AboutPage() {
                             <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
                                 {currentScene === 0 && "Descubrí el impacto de la Red Digital de Inclusión Social en tu departamento."}
                                 {currentScene === 1 && "Cualquier persona puede geolocalizar y fotografiar barreras de accesibilidad en el momento."}
-                                {currentScene === 2 && "Los referentes departamentales crean proyectos específicos y los abren a la comunidad."}
-                                {currentScene === 3 && "Participá activamente en chats dedicados a coordinar acciones concretas."}
-                                {currentScene === 4 && "Registrá el éxito de la barrera resuelta y ayudá a documentar casos testigo."}
+                                {currentScene === 2 && "Los referentes departamentales evalúan los reportes y abren un proyecto de resolución público."}
+                                {currentScene === 3 && "Postulate a colaborar y coordiná acciones conjuntas mediante el chat en tiempo real."}
+                                {currentScene === 4 && "Marcá las tareas como resueltas y celebrá la eliminación de la barrera de accesibilidad."}
                             </p>
                             
-                            {/* Speech Wave Equalizer */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
-                                <div className={`eq-bar-container ${isPlaying ? 'eq-active' : ''}`}>
+                            {/* Speech Wave Equalizer & Status indicator */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                                <div className={`eq-bar-container ${isPlaying && !isMuted ? 'eq-active' : ''}`}>
                                     <div className="eq-bar" />
                                     <div className="eq-bar" />
                                     <div className="eq-bar" />
                                     <div className="eq-bar" />
                                 </div>
-                                <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Audio del Narrador</span>
+                                <span style={{ fontSize: '0.68rem', color: isMuted ? '#ef4444' : '#64748b', fontWeight: 600 }}>
+                                    {isMuted ? "Narración silenciada" : "Narración de voz activa"}
+                                </span>
                             </div>
                         </div>
 
@@ -979,12 +1192,25 @@ export default function AboutPage() {
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Narrator Transcripts Box (Subtitles) */}
-                        <div className="video-subtitles">
-                            <Volume2 size={16} style={{ minWidth: '16px', marginRight: '10px', color: 'var(--accent-400)' }} />
-                            <span>{currentTranscript}</span>
-                        </div>
+                    {/* DEDICATED SUBTITLES BAR (Never overlaps the smartphone graphic) */}
+                    <div style={{
+                        background: '#090d16',
+                        borderTop: '1px solid #1e293b',
+                        padding: '14px 20px',
+                        color: '#cbd5e1',
+                        fontSize: '0.82rem',
+                        lineHeight: 1.5,
+                        textAlign: 'center',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '68px',
+                        boxSizing: 'border-box'
+                    }}>
+                        <Volume2 size={16} style={{ minWidth: '16px', marginRight: '10px', color: 'var(--accent-400)' }} />
+                        <span style={{ maxWidth: '680px' }}>{currentTranscript}</span>
                     </div>
 
                     {/* Video Controls Bar */}
@@ -1056,13 +1282,13 @@ export default function AboutPage() {
                                     zIndex: 5
                                 }} />
                             </div>
-                            <span style={{ fontSize: '0.72rem', color: '#64748b', width: '30px' }}>
-                                0:{TOTAL_DURATION}
+                            <span style={{ fontSize: '0.72rem', color: '#64748b', width: '35px' }}>
+                                1:40
                             </span>
                         </div>
 
                         {/* Player Buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyStyle: 'space-between', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button
                                     onClick={handlePlayPause}
@@ -1104,11 +1330,33 @@ export default function AboutPage() {
                                 >
                                     <RotateCcw size={14} />
                                 </button>
+
+                                {/* Speech Synthesis toggle */}
+                                <button
+                                    onClick={toggleMute}
+                                    style={{
+                                        background: 'transparent',
+                                        color: isMuted ? '#ef4444' : '#94a3b8',
+                                        border: isMuted ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid #1e293b',
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    aria-label={isMuted ? "Activar audio" : "Silenciar audio"}
+                                    title={isMuted ? "Activar locución de voz" : "Silenciar locución de voz"}
+                                >
+                                    {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                                </button>
                             </div>
 
                             {/* Navigation steps indicators */}
                             <div style={{ display: 'flex', gap: '4px' }}>
-                                {[0, 10, 20, 30, 40].map((s, idx) => (
+                                {[0, 20, 40, 60, 80].map((s, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => {
