@@ -33,6 +33,14 @@ export default function HomePage() {
                             REDDIS conecta a quienes identifican barreras con quienes pueden resolverlas.
                             Un ciclo virtuoso de identificación, acción, seguimiento y aprendizaje colectivo.
                         </p>
+                        <div className="hero-actions" style={{ display: 'flex', gap: '12px', marginTop: 'var(--space-6)', flexWrap: 'wrap' }}>
+                            <Link to="/reportar" className="btn btn-primary" style={{ background: 'var(--accent-500)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)' }}>
+                                <PlusCircle size={16} /> Reportar Barrera
+                            </Link>
+                            <Link to="/acerca" className="btn btn-secondary" style={{ background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.3)', color: 'var(--white)' }}>
+                                <BookOpen size={16} /> Cómo funciona
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>

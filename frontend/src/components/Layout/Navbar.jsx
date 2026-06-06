@@ -100,6 +100,11 @@ export default function Navbar({ mode = 'public' }) {
                                     </NavLink>
                                 </li>
                             )}
+                            <li>
+                                <NavLink to="/acerca" onClick={() => setIsOpen(false)}>
+                                    <Info size={16} /> Acerca de
+                                </NavLink>
+                            </li>
                         </>
                     )}
 
