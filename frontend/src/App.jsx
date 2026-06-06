@@ -204,8 +204,6 @@ function AppContent() {
                     <Route path="/perfil" element={<Navigate to="/gestion/perfil" replace />} />
                 </Routes>
 
-                {!showGestionLayout && <Footer />}
-
                 {/* Install App Promotion - Floating banner */}
                 {installPrompt && !installDismissed && (
                     <div style={{

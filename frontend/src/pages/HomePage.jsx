@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { PlusCircle, MapPin, Users, CheckCircle, AlertTriangle, Zap, Eye, BookOpen, User } from 'lucide-react';
+import Footer from '../components/Layout/Footer';
 
 export default function HomePage() {
     const { stats } = useData();
@@ -147,6 +148,8 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+
+            <Footer />
         </div>
     );
 }
