@@ -4,7 +4,7 @@ import {
     Play, Pause, RotateCcw, ArrowRight,
     MapPin, Users, CheckCircle, MessageSquare, Settings, 
     Sparkles, PlusCircle, Shield, Network, Info, Smartphone, Film,
-    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen
+    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen, Volume2
 } from 'lucide-react';
 
 const TOTAL_DURATION = 100; // Explainer duration in seconds (20s per scene)
