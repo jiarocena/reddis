@@ -4,7 +4,8 @@ import {
     Play, Pause, RotateCcw, ArrowRight,
     MapPin, Users, CheckCircle, MessageSquare, Settings, 
     Sparkles, PlusCircle, Shield, Network, Info, Smartphone, Film,
-    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen, Volume2, Clock
+    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen, Volume2, Clock,
+    Maximize, Minimize
 } from 'lucide-react';
 
 const TOTAL_DURATION = 100; // Explainer duration in seconds (20s per scene)
@@ -41,6 +42,8 @@ export default function AboutPage() {
     const [time, setTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const intervalRef = useRef(null);
+    const containerRef = useRef(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     useEffect(() => {
         if (isPlaying) {
@@ -68,6 +71,31 @@ export default function AboutPage() {
         setTime(0);
         setIsPlaying(true);
     };
+
+    const toggleFullscreen = () => {
+        if (!containerRef.current) return;
+        if (!document.fullscreenElement) {
+            containerRef.current.requestFullscreen().then(() => {
+                setIsFullscreen(true);
+            }).catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                setIsFullscreen(false);
+            });
+        }
+    };
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
 
     // Find current narrator text
     const currentTranscript = NARRATOR_TRANSCRIPTS.find(t => time >= t.start && time < t.end)?.text || "";
@@ -1074,6 +1102,41 @@ export default function AboutPage() {
                 .animate-fadeInUp { animation: fadeInUp 0.4s ease-out forwards; }
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+                /* Fullscreen styles */
+                .video-container:fullscreen {
+                    max-width: 100% !important;
+                    width: 100vw;
+                    height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    justifyContent: space-between;
+                    background: #020617;
+                    border: none;
+                    border-radius: 0;
+                    box-shadow: none;
+                    padding: 0;
+                }
+
+                .video-container:fullscreen .video-screen {
+                    flex: 1;
+                    min-height: 0;
+                    height: 100%;
+                    padding: 40px 80px;
+                    display: grid;
+                    grid-template-columns: 1.2fr 0.8fr;
+                    align-items: center;
+                    background: radial-gradient(circle at 70% 30%, #0f172a 0%, #020617 100%);
+                }
+                
+                .video-container:fullscreen .info-column h2 {
+                    font-size: 2.2rem !important;
+                }
+
+                .video-container:fullscreen .info-column p {
+                    font-size: 1.15rem !important;
+                    line-height: 1.6 !important;
+                }
             `}</style>
 
             <div className="container" style={{ maxWidth: '920px' }}>
@@ -1087,7 +1150,7 @@ export default function AboutPage() {
                 </div>
 
                 {/* Video Explainer Player Card */}
-                <div className="video-container">
+                <div ref={containerRef} className="video-container">
                     
                     {/* Scene Indicator Header */}
                     <div style={{
@@ -1294,8 +1357,30 @@ export default function AboutPage() {
                                         transition: 'all 0.2s'
                                     }}
                                     aria-label="Reiniciar"
+                                    title="Reiniciar video"
                                 >
                                     <RotateCcw size={14} />
+                                </button>
+                                
+                                <button
+                                    onClick={toggleFullscreen}
+                                    style={{
+                                        background: 'transparent',
+                                        color: '#94a3b8',
+                                        border: '1px solid #1e293b',
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                                    title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                                >
+                                    {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
                                 </button>
                             </div>
 
