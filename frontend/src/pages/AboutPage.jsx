@@ -4,7 +4,7 @@ import {
     Play, Pause, RotateCcw, ArrowRight,
     MapPin, Users, CheckCircle, MessageSquare, Settings, 
     Sparkles, PlusCircle, Shield, Network, Info, Smartphone, Film,
-    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen, Volume2
+    ChevronRight, ArrowLeft, Camera, X, Handshake, AlertTriangle, BookOpen, Volume2, Clock
 } from 'lucide-react';
 
 const TOTAL_DURATION = 100; // Explainer duration in seconds (20s per scene)
@@ -13,27 +13,27 @@ const NARRATOR_TRANSCRIPTS = [
     { 
         start: 0, 
         end: 20, 
-        text: "Te damos la bienvenida a REDDIS, la Red Digital de Inclusión Social. Una plataforma diseñada para conectar a ciudadanos con referentes departamentales y organizaciones, con un único fin: identificar, visibilizar y resolver las barreras de accesibilidad que limitan la inclusión de personas con discapacidad en nuestro entorno. En este video interactivo te mostramos cómo funciona paso a paso." 
+        text: "Te damos la bienvenida a REDDIS, la Red Digital de Inclusión Social. Una plataforma diseñada para identificar y visibilizar de manera colaborativa las barreras de accesibilidad de nuestro entorno, impulsando la planificación y ejecución de soluciones reales entre ciudadanos y organizaciones." 
     },
     { 
         start: 20, 
         end: 40, 
-        text: "Paso 1: Identificación Ciudadana. Cuando encontrás una barrera de accesibilidad, ingresás a 'Reportar'. Primero seleccionás la categoría (Física, Comunicacional, etc.) y luego ingresás los detalles como el título y la descripción detallada. Finalmente, seleccionás la ubicación real en el mapa, adjuntás una foto de la barrera y enviás el reporte para su revisión." 
+        text: "Paso 1: Reportar Barrera. Cuando encontrás una barrera de accesibilidad, ingresás a 'Reportar'. Seleccionás la categoría (Física, Comunicacional, etc.), completás el título y la descripción, definís su ubicación real en el mapa, adjuntás una foto y enviás el reporte para su publicación." 
     },
     { 
         start: 40, 
         end: 60, 
-        text: "Paso 2: Evaluación y Organización. El referente departamental recibe tu reporte en su 'Panel de Gestión' bajo la pestaña 'Identificación de barreras'. Revisa la solicitud y, si es válida, la aprueba. Luego, desde la ficha de la barrera aprobada en el mapa, crea el 'Proyecto de Resolución' asociándole una organización líder." 
+        text: "Paso 2: Solicitar Colaboración. Para participar en la resolución de una barrera, ingresás a la pestaña 'Colaborar', seleccionás un proyecto activo y enviás tu solicitud de colaboración indicando tu organización y motivo. Una vez que el referente departamental la aprueba, te integrás formalmente al equipo." 
     },
     { 
         start: 60, 
         end: 80, 
-        text: "Paso 3: Colaboración Comunitaria. Una vez que se crea el proyecto, cualquier colaborador puede ingresar a la ficha y sumarse de forma inmediata ingresando su organización. Esto le da acceso automático al chat en tiempo real del proyecto, donde el equipo se organiza, coordina materiales y planifica las jornadas." 
+        text: "Paso 3: Pestañas de Colaboración. Dentro de la ficha del proyecto tenés tres pestañas clave: la pestaña 'Proyecto' detalla el diseño con objetivos y acciones previstas; la pestaña 'Ejecución' registra el avance de las tareas en la bitácora; y la pestaña 'Chat' permite la comunicación directa con el equipo." 
     },
     { 
         start: 80, 
         end: 100, 
-        text: "Paso 4: Resolver e Impactar. En la pestaña 'Ejecución' del proyecto, el equipo sigue el checklist de tareas. Cuando se completan las acciones de resolución de la barrera física, el referente marca el proyecto como Resuelto. El estado global se actualiza a Finalizado, la barrera en el mapa cambia a verde y se guarda como caso de éxito." 
+        text: "Paso 4: Resolver e Impactar. A medida que el equipo colabora, completan las tareas de la bitácora en la pestaña 'Ejecución'. Una vez finalizadas todas las acciones, el proyecto se marca como resuelto. La barrera en el mapa cambia a verde, celebrando el éxito de lograr un entorno accesible." 
     }
 ];
 
@@ -77,9 +77,9 @@ export default function AboutPage() {
     const sceneTitles = [
         "Introducción",
         "1. Reportar Barrera",
-        "2. Evaluar y Organizar",
-        "3. Colaborar en Chat",
-        "4. Resolver Barrera"
+        "2. Solicitar Colaboración",
+        "3. Pestañas de Colaboración",
+        "4. Resolver e Impactar"
     ];
 
     // Helper to calculate text typing effect in the mockup form
@@ -91,7 +91,7 @@ export default function AboutPage() {
         return fullText.substring(0, charCount);
     };
 
-    // Calculate cursor positions dynamically based on time to simulate click interactions
+    // Calculate cursor positions dynamically
     const getCursorStyle = () => {
         let left = -100;
         let top = -100;
@@ -100,138 +100,180 @@ export default function AboutPage() {
         let transition = "none";
 
         // Scene 1: Reportar Barrera (20s - 40s)
-        // 20.5s to 21.8s: moves to category card "Física" (75, 115)
         if (time >= 20.5 && time < 21.8) {
             const t = (time - 20.5) / 1.3;
-            left = 130 - (130 - 75) * t;
-            top = 220 - (220 - 115) * t;
+            left = 200 - (200 - 140) * t;
+            top = 380 - (380 - 190) * t;
             opacity = 1;
         } else if (time >= 21.8 && time < 22.4) {
-            left = 75;
-            top = 115;
+            left = 140;
+            top = 190;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
-        }
-        // 22.4s to 23.4s: moves to "Siguiente" button (130, 245)
-        else if (time >= 22.4 && time < 23.4) {
+        } else if (time >= 22.4 && time < 23.4) {
             const t = (time - 22.4) / 1.0;
-            left = 75 + (130 - 75) * t;
-            top = 115 + (245 - 115) * t;
+            left = 140 + (210 - 140) * t;
+            top = 190 + (470 - 190) * t;
             opacity = 1;
         } else if (time >= 23.4 && time < 24.0) {
-            left = 130;
-            top = 245;
+            left = 210;
+            top = 470;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
-        }
-        // 32.2s to 33.6s: moves to "Enviar Reporte" button (110, 245)
-        else if (time >= 32.2 && time < 33.6) {
-            const t = (time - 32.2) / 1.4;
-            left = 80 + (110 - 80) * t;
-            top = 180 + (245 - 180) * t;
+        } else if (time >= 24.0 && time < 24.5) {
+            const t = (time - 24.0) / 0.5;
+            left = 210 - (210 - 140) * t;
+            top = 470 - (470 - 130) * t;
             opacity = 1;
-        } else if (time >= 33.6 && time < 34.2) {
-            left = 110;
-            top = 245;
+        } else if (time >= 24.5 && time < 28.5) {
+            left = 140;
+            top = 130;
+            opacity = 1;
+        } else if (time >= 28.5 && time < 29.0) {
+            const t = (time - 28.5) / 0.5;
+            left = 140;
+            top = 130 + (220 - 130) * t;
+            opacity = 1;
+        } else if (time >= 29.0 && time < 32.5) {
+            left = 140;
+            top = 220;
+            opacity = 1;
+        } else if (time >= 32.5 && time < 33.5) {
+            const t = (time - 32.5) / 1.0;
+            left = 140;
+            top = 220 + (310 - 220) * t;
+            opacity = 1;
+        } else if (time >= 33.5 && time < 34.0) {
+            left = 140;
+            top = 310;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
-        }
-        // 37.8s to 39.0s: moves to Success modal CTA button (85, 195)
-        else if (time >= 37.8 && time < 39.0) {
-            const t = (time - 37.8) / 1.2;
-            left = 110 - (110 - 85) * t;
-            top = 245 - (245 - 195) * t;
+        } else if (time >= 34.0 && time < 35.0) {
+            const t = (time - 34.0) / 1.0;
+            left = 140 + (200 - 140) * t;
+            top = 310 + (470 - 310) * t;
+            opacity = 1;
+        } else if (time >= 35.0 && time < 35.5) {
+            left = 200;
+            top = 470;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        } else if (time >= 37.5 && time < 39.0) {
+            const t = (time - 37.5) / 1.5;
+            left = 200 - (200 - 140) * t;
+            top = 470 - (470 - 330) * t;
             opacity = 1;
         } else if (time >= 39.0 && time < 39.6) {
-            left = 85;
-            top = 195;
+            left = 140;
+            top = 330;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
         }
 
-        // Scene 2: Evaluar y Organizar (40s - 60s)
-        // 43.5s to 45.0s: moves to "Aprobar" button (50, 180)
-        else if (time >= 43.5 && time < 45.0) {
-            const t = (time - 43.5) / 1.5;
-            left = 140 - (140 - 50) * t;
-            top = 240 - (240 - 180) * t;
+        // Scene 2: Cómo postularse a Colaborar (40s - 60s)
+        else if (time >= 40.5 && time < 42.0) {
+            const t = (time - 40.5) / 1.5;
+            left = 140;
+            top = 330 - (330 - 160) * t;
             opacity = 1;
-        } else if (time >= 45.0 && time < 45.6) {
-            left = 50;
-            top = 180;
-            opacity = 1;
-            scale = 0.85;
-            transition = "transform 0.1s ease";
-        }
-        // 48.5s to 50.0s: moves to "Trabajar en esto" button (85, 150)
-        else if (time >= 48.5 && time < 50.0) {
-            const t = (time - 48.5) / 1.5;
-            left = 50 + (85 - 50) * t;
-            top = 180 - (180 - 150) * t;
-            opacity = 1;
-        } else if (time >= 50.0 && time < 50.6) {
-            left = 85;
-            top = 150;
+        } else if (time >= 42.0 && time < 42.6) {
+            left = 140;
+            top = 160;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
-        }
-        // 53.5s to 55.0s: moves to "Confirmar" in claim Modal (85, 205)
-        else if (time >= 53.5 && time < 55.0) {
-            const t = (time - 53.5) / 1.5;
-            left = 85;
-            top = 150 + (205 - 150) * t;
+        } else if (time >= 42.6 && time < 43.5) {
+            const t = (time - 42.6) / 0.9;
+            left = 140;
+            top = 160 + (260 - 160) * t;
             opacity = 1;
-        } else if (time >= 55.0 && time < 55.6) {
-            left = 85;
-            top = 205;
+        } else if (time >= 43.5 && time < 45.0) {
+            left = 140;
+            top = 260;
             opacity = 1;
-            scale = 0.85;
-            transition = "transform 0.1s ease";
-        }
-
-        // Scene 3: Colaborar en Chat (60s - 80s)
-        // 62.0s to 63.5s: moves to "Postularse para colaborar" button (85, 235)
-        else if (time >= 62.0 && time < 63.5) {
-            const t = (time - 62.0) / 1.5;
-            left = 130 - (130 - 85) * t;
-            top = 120 + (235 - 120) * t;
+        } else if (time >= 45.0 && time < 48.0) {
+            const t = (time - 45.0) / 3.0;
+            left = 140;
+            top = 260 + (330 - 260) * t;
             opacity = 1;
-        } else if (time >= 63.5 && time < 64.1) {
-            left = 85;
-            top = 235;
+        } else if (time >= 48.0 && time < 52.5) {
+            left = 140;
+            top = 330;
             opacity = 1;
-            scale = 0.85;
-            transition = "transform 0.1s ease";
-        }
-        // 67.5s to 69.0s: moves to "chat" tab pill (135, 75)
-        else if (time >= 67.5 && time < 69.0) {
-            const t = (time - 67.5) / 1.5;
-            left = 85 + (135 - 85) * t;
-            top = 235 - (235 - 75) * t;
+        } else if (time >= 52.5 && time < 54.0) {
+            const t = (time - 52.5) / 1.5;
+            left = 140;
+            top = 330 + (400 - 330) * t;
             opacity = 1;
-        } else if (time >= 69.0 && time < 69.6) {
-            left = 135;
-            top = 75;
+        } else if (time >= 54.0 && time < 54.6) {
+            left = 140;
+            top = 400;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
         }
 
-        // Scene 4: Resolver Barrera (80s - 100s)
-        // 86.2s to 87.8s: moves to "Marcar como Resuelto" button (85, 120)
-        else if (time >= 86.2 && time < 87.8) {
-            const t = (time - 86.2) / 1.6;
-            left = 135 - (135 - 85) * t;
-            top = 75 + (120 - 75) * t;
+        // Scene 3: Pestañas de Colaboración (60s - 80s)
+        else if (time >= 63.5 && time < 65.0) {
+            const t = (time - 63.5) / 1.5;
+            left = 140;
+            top = 400 - (400 - 88) * t;
             opacity = 1;
-        } else if (time >= 87.8 && time < 88.4) {
-            left = 85;
-            top = 120;
+        } else if (time >= 65.0 && time < 65.6) {
+            left = 140;
+            top = 88;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        } else if (time >= 70.0 && time < 71.5) {
+            const t = (time - 70.0) / 1.5;
+            left = 140 + (230 - 140) * t;
+            top = 88;
+            opacity = 1;
+        } else if (time >= 71.5 && time < 72.1) {
+            left = 230;
+            top = 88;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        } else if (time >= 77.5 && time < 79.0) {
+            const t = (time - 77.5) / 1.5;
+            left = 230 - (230 - 140) * t;
+            top = 88;
+            opacity = 1;
+        } else if (time >= 79.0 && time < 79.6) {
+            left = 140;
+            top = 88;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        }
+
+        // Scene 4: Resolver e Impactar (80s - 100s)
+        else if (time >= 81.0 && time < 83.0) {
+            const t = (time - 81.0) / 2.0;
+            left = 140 - (140 - 45) * t;
+            top = 88 + (230 - 88) * t;
+            opacity = 1;
+        } else if (time >= 83.0 && time < 83.6) {
+            left = 45;
+            top = 230;
+            opacity = 1;
+            scale = 0.85;
+            transition = "transform 0.1s ease";
+        } else if (time >= 84.5 && time < 86.5) {
+            const t = (time - 84.5) / 2.0;
+            left = 45 + (140 - 45) * t;
+            top = 230 - (230 - 130) * t;
+            opacity = 1;
+        } else if (time >= 86.5 && time < 87.1) {
+            left = 140;
+            top = 130;
             opacity = 1;
             scale = 0.85;
             transition = "transform 0.1s ease";
@@ -244,8 +286,8 @@ export default function AboutPage() {
             opacity: opacity,
             transform: `translate(-50%, -50%) scale(${scale})`,
             transition: transition,
-            width: '18px',
-            height: '18px',
+            width: '20px',
+            height: '20px',
             borderRadius: '50%',
             background: 'rgba(245, 158, 11, 0.85)',
             border: '2px solid white',
@@ -267,35 +309,36 @@ export default function AboutPage() {
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    padding: '12px',
+                    padding: '20px',
                     color: 'white',
                     textAlign: 'center',
                     position: 'relative'
                 }}>
                     <div className="v-logo-float" style={{
-                        width: '56px',
-                        height: '56px',
+                        width: '80px',
+                        height: '80px',
                         borderRadius: '50%',
                         background: 'rgba(255, 255, 255, 0.2)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: '12px',
+                        marginBottom: '16px',
                         boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
                     }}>
-                        <Network size={32} color="var(--accent-400)" />
+                        <Network size={44} color="var(--accent-400)" />
                     </div>
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 4px', letterSpacing: '-0.02em' }}>REDDIS</h2>
-                    <p style={{ fontSize: '0.62rem', opacity: 0.9, lineHeight: 1.3, maxWidth: '160px' }}>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' }}>REDDIS</h2>
+                    <p style={{ fontSize: '0.82rem', opacity: 0.9, lineHeight: 1.4, maxWidth: '200px' }}>
                         Red Digital de Inclusión Social
                     </p>
                     <div style={{
                         position: 'absolute',
-                        bottom: '24px',
-                        fontSize: '0.52rem',
+                        bottom: '40px',
+                        fontSize: '0.72rem',
                         background: 'rgba(255, 255, 255, 0.15)',
-                        padding: '4px 10px',
-                        borderRadius: 'var(--radius-full)'
+                        padding: '6px 12px',
+                        borderRadius: 'var(--radius-full)',
+                        fontWeight: 600
                     }}>
                         Piloto Uruguay
                     </div>
@@ -309,54 +352,54 @@ export default function AboutPage() {
             const isStep2 = time >= 23.8 && time < 34.0;
             const isSuccess = time >= 34.0;
 
-            // 1. STEP 1: CATEGORY GRID
+            // 1. STEP 1: CATEGORY SELECTION
             if (isStep1) {
-                const categorySelected = time >= 22.0;
+                const categorySelected = time >= 21.8;
                 return (
-                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
-                        <div style={{ background: 'var(--white)', padding: '8px 10px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, fontSize: '10px' }}>
+                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '12px', textAlign: 'left' }}>
+                        <div style={{ background: 'var(--white)', padding: '12px 14px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, fontSize: '13px' }}>
                             Reportar una Barrera
                         </div>
-                        <div style={{ padding: '8px 10px' }}>
-                            <div style={{ fontWeight: 600, fontSize: '8px', color: 'var(--gray-800)', marginBottom: '6px' }}>¿Qué tipo de barrera es?</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div style={{ padding: '12px 14px' }}>
+                            <div style={{ fontWeight: 600, fontSize: '11px', color: 'var(--gray-800)', marginBottom: '10px' }}>¿Qué tipo de barrera es?</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {/* Category Option: FISICA */}
                                 <div style={{
-                                    border: categorySelected ? '1px solid var(--primary-400)' : '1px solid var(--gray-200)',
+                                    border: categorySelected ? '2px solid var(--primary-400)' : '1px solid var(--gray-200)',
                                     background: categorySelected ? 'var(--primary-50)' : 'var(--white)',
-                                    padding: '5px',
-                                    borderRadius: '4px',
+                                    padding: '8px 10px',
+                                    borderRadius: '6px',
                                     display: 'flex',
-                                    gap: '6px',
+                                    gap: '8px',
                                     alignItems: 'center'
                                 }}>
-                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--barrier-fisica)' }} />
+                                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--barrier-fisica)', minWidth: '10px' }} />
                                     <div>
-                                        <div style={{ fontWeight: 700, fontSize: '7.5px' }}>Física</div>
-                                        <div style={{ fontSize: '6px', color: 'var(--gray-400)' }}>Obstáculos en el entorno físico...</div>
+                                        <div style={{ fontWeight: 700, fontSize: '11px' }}>Física</div>
+                                        <div style={{ fontSize: '8.5px', color: 'var(--gray-400)', marginTop: '1px' }}>Obstáculos en el entorno físico...</div>
                                     </div>
                                 </div>
                                 {/* Category Option: COMUNICACIONAL */}
                                 <div style={{
                                     border: '1px solid var(--gray-200)',
                                     background: 'var(--white)',
-                                    padding: '5px',
-                                    borderRadius: '4px',
+                                    padding: '8px 10px',
+                                    borderRadius: '6px',
                                     display: 'flex',
-                                    gap: '6px',
+                                    gap: '8px',
                                     alignItems: 'center',
-                                    opacity: 0.6
+                                    opacity: 0.5
                                 }}>
-                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--barrier-comunicacional)' }} />
+                                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--barrier-comunicacional)', minWidth: '10px' }} />
                                     <div>
-                                        <div style={{ fontWeight: 700, fontSize: '7.5px' }}>Comunicacional</div>
+                                        <div style={{ fontWeight: 700, fontSize: '11px' }}>Comunicacional</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         {/* Footer button */}
-                        <div style={{ marginTop: 'auto', padding: '8px 10px', borderTop: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button style={{ background: categorySelected ? 'var(--primary-600)' : 'var(--gray-300)', color: 'white', border: 'none', padding: '3px 8px', borderRadius: '3px', fontWeight: 700, fontSize: '8px' }}>
+                        <div style={{ marginTop: 'auto', padding: '12px 14px', borderTop: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button style={{ background: categorySelected ? 'var(--primary-600)' : 'var(--gray-300)', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', fontWeight: 700, fontSize: '11px' }}>
                                 Siguiente →
                             </button>
                         </div>
@@ -366,57 +409,58 @@ export default function AboutPage() {
 
             // 2. STEP 2: FORM DETAILS
             if (isStep2) {
-                const typedTitle = getTypedText("Rampa rota en vereda", 24.2, 4.0);
-                const typedDesc = getTypedText("La rampa está rota en la esquina.", 28.5, 3.5);
-                const showLocation = time >= 31.0;
+                const typedTitle = getTypedText("Rampa rota en vereda", 24.5, 4.0);
+                const typedDesc = getTypedText("La rampa está rota en la esquina.", 29.0, 3.5);
+                const showLocation = time >= 33.5;
                 return (
-                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '8px', textAlign: 'left', overflow: 'hidden' }}>
-                        <div style={{ background: 'var(--white)', padding: '6px 8px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, fontSize: '9px' }}>
+                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '11px', textAlign: 'left', overflow: 'hidden' }}>
+                        <div style={{ background: 'var(--white)', padding: '10px 12px', borderBottom: '1px solid var(--gray-200)', fontWeight: 700, fontSize: '12px' }}>
                             Describí la barrera
                         </div>
-                        <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <div>
-                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Título *</label>
-                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', minHeight: '12px' }}>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '2px', fontSize: '10px' }}>Título *</label>
+                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '6px', borderRadius: '4px', minHeight: '26px', fontSize: '11px' }}>
                                     {typedTitle}
                                 </div>
                             </div>
                             <div>
-                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Descripción detallada *</label>
-                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '3px', borderRadius: '3px', minHeight: '20px' }}>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '2px', fontSize: '10px' }}>Descripción detallada *</label>
+                                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '6px', borderRadius: '4px', minHeight: '48px', fontSize: '11px', lineHeight: 1.3 }}>
                                     {typedDesc}
                                 </div>
                             </div>
                             <div>
-                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Ubicación *</label>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '2px', fontSize: '10px' }}>Ubicación *</label>
                                 <div style={{
                                     border: '1px solid var(--gray-300)',
                                     background: 'var(--gray-50)',
-                                    padding: '3px',
-                                    borderRadius: '3px',
+                                    padding: '6px',
+                                    borderRadius: '4px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '3px',
-                                    color: showLocation ? 'var(--gray-800)' : 'var(--gray-400)'
+                                    gap: '4px',
+                                    color: showLocation ? 'var(--gray-800)' : 'var(--gray-400)',
+                                    fontSize: '11px'
                                 }}>
-                                    <MapPin size={8} />
+                                    <MapPin size={12} />
                                     <span>{showLocation ? "Av. Italia 2450, MVD" : "Seleccionar en el mapa..."}</span>
                                 </div>
                             </div>
                             <div>
-                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '1px' }}>Foto de la barrera</label>
-                                <div style={{ background: 'var(--gray-50)', border: '1.5px dashed var(--gray-300)', padding: '4px', borderRadius: '3px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-                                    <Camera size={10} color="var(--gray-400)" />
-                                    <span style={{ color: 'var(--gray-400)', fontSize: '7px' }}>foto_vereda.jpg</span>
+                                <label style={{ fontWeight: 700, color: 'var(--gray-600)', display: 'block', marginBottom: '2px', fontSize: '10px' }}>Foto de la barrera</label>
+                                <div style={{ background: 'var(--gray-50)', border: '1.5px dashed var(--gray-300)', padding: '8px', borderRadius: '4px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                    <Camera size={14} color="var(--gray-400)" />
+                                    <span style={{ color: 'var(--gray-400)', fontSize: '9.5px' }}>foto_vereda.jpg</span>
                                 </div>
                             </div>
                         </div>
                         {/* Footer button */}
-                        <div style={{ marginTop: 'auto', padding: '6px 8px', borderTop: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'space-between' }}>
-                            <button style={{ background: 'transparent', border: '1px solid var(--gray-300)', padding: '2px 6px', borderRadius: '2px', fontSize: '7.5px' }}>
+                        <div style={{ marginTop: 'auto', padding: '10px 12px', borderTop: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'space-between' }}>
+                            <button style={{ background: 'transparent', border: '1px solid var(--gray-300)', padding: '4px 10px', borderRadius: '3px', fontSize: '10.5px' }}>
                                 ← Anterior
                             </button>
-                            <button style={{ background: 'var(--success-500)', color: 'white', border: 'none', padding: '3px 8px', borderRadius: '2px', fontWeight: 700, fontSize: '8px' }}>
+                            <button style={{ background: 'var(--success-500)', color: 'white', border: 'none', padding: '5px 12px', borderRadius: '3px', fontWeight: 700, fontSize: '11px' }}>
                                 Enviar Reporte
                             </button>
                         </div>
@@ -427,19 +471,19 @@ export default function AboutPage() {
             // 3. SUCCESS / REDIRECT TO MAP
             if (isSuccess) {
                 const showLoader = time >= 34.0 && time < 35.5;
-                const showMapPin = time >= 38.0;
+                const showMapPin = time >= 37.0;
 
                 if (showLoader) {
                     return (
-                        <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', fontSize: '8px', color: 'var(--gray-500)' }}>
-                            <div className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2.5px', marginBottom: '6px' }} />
+                        <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', fontSize: '11px', color: 'var(--gray-500)' }}>
+                            <div className="loading-spinner" style={{ width: '28px', height: '28px', borderWidth: '3px', marginBottom: '8px' }} />
                             <span>Registrando barrera...</span>
                         </div>
                     );
                 }
 
                 // Show success modal overlay
-                const showModal = time >= 35.5 && time < 39.0;
+                const showModal = time >= 35.5;
                 return (
                     <div style={{ height: '100%', background: '#e2e8f0', position: 'relative' }}>
                         {/* Fake Map background */}
@@ -452,14 +496,14 @@ export default function AboutPage() {
                             backgroundPosition: '0 0, 8px 8px'
                         }} />
                         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-                            <line x1="0" y1="120" x2="200" y2="120" stroke="var(--white)" strokeWidth="6" />
-                            <line x1="80" y1="0" x2="80" y2="300" stroke="var(--white)" strokeWidth="6" />
+                            <line x1="0" y1="180" x2="280" y2="180" stroke="var(--white)" strokeWidth="8" />
+                            <line x1="120" y1="0" x2="120" y2="520" stroke="var(--white)" strokeWidth="8" />
                         </svg>
 
                         {showMapPin && (
-                            <div className="bouncing-pin" style={{ position: 'absolute', left: '80px', top: '120px', color: 'var(--barrier-fisica)', transform: 'translate(-50%, -100%)' }}>
-                                <MapPin size={22} fill="rgba(239, 68, 68, 0.35)" />
-                                <div className="pin-radar" />
+                            <div className="bouncing-pin" style={{ position: 'absolute', left: '120px', top: '180px', color: 'var(--barrier-fisica)', transform: 'translate(-50%, -100%)' }}>
+                                <MapPin size={32} fill="rgba(239, 68, 68, 0.35)" />
+                                <div className="pin-radar" style={{ top: '75%', width: '30px', height: '12px' }} />
                             </div>
                         )}
 
@@ -472,37 +516,37 @@ export default function AboutPage() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                padding: '12px',
+                                padding: '16px',
                                 zIndex: 100
                             }} className="animate-fadeIn">
                                 <div style={{
                                     background: 'var(--white)',
-                                    borderRadius: '8px',
-                                    padding: '10px',
+                                    borderRadius: '12px',
+                                    padding: '16px',
                                     textAlign: 'center',
                                     boxShadow: 'var(--shadow-lg)',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    gap: '6px',
+                                    gap: '8px',
                                     width: '100%'
                                 }}>
-                                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#d1fae5', color: 'var(--success-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <CheckCircle size={16} />
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#d1fae5', color: 'var(--success-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CheckCircle size={20} />
                                     </div>
-                                    <h3 style={{ margin: 0, fontSize: '9px', fontWeight: 800, color: 'var(--gray-900)' }}>¡Reporte recibido!</h3>
-                                    <p style={{ margin: 0, fontSize: '6.5px', color: 'var(--gray-500)', lineHeight: 1.3 }}>
+                                    <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: 'var(--gray-900)' }}>¡Reporte recibido!</h3>
+                                    <p style={{ margin: 0, fontSize: '10px', color: 'var(--gray-500)', lineHeight: 1.4 }}>
                                         Tu barrera ha sido registrada exitosamente. Un referente la evaluará a la brevedad.
                                     </p>
                                     <button style={{
                                         background: 'var(--primary-600)',
                                         color: 'white',
                                         border: 'none',
-                                        padding: '4px 10px',
-                                        borderRadius: '3px',
+                                        padding: '6px 14px',
+                                        borderRadius: '4px',
                                         fontWeight: 700,
-                                        fontSize: '7.5px',
-                                        marginTop: '4px'
+                                        fontSize: '11px',
+                                        marginTop: '6px'
                                     }}>
                                         Ver en el mapa
                                     </button>
@@ -514,309 +558,331 @@ export default function AboutPage() {
             }
         }
 
-        // Scene 2: Evaluar y Organizar (40s - 60s)
+        // Scene 2: Cómo postularse a Colaborar (40s - 60s)
         if (time >= 40 && time < 60) {
-            const isApproved = time >= 45.6;
-            const isClaimView = time >= 48.0 && time < 55.6;
-            const isProjectCreated = time >= 55.6;
+            const isModalOpen = time >= 42.6 && time < 54.6;
+            const isPending = time >= 54.6 && time < 57.5;
+            const isApproved = time >= 57.5;
 
-            // 1. PROJECT CREATION / PROJECT DETAIL DISPLAY
-            if (isProjectCreated) {
+            // 1. APPROVED / JOINED BANNER STAGE
+            if (isApproved) {
                 return (
-                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
-                        {/* Top navigation header */}
-                        <div style={{ background: 'var(--primary-800)', color: 'white', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 700, fontSize: '7.5px' }}>Proyecto de resolución</span>
-                            <Settings size={10} />
+                    <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '11px', textAlign: 'left' }}>
+                        {/* Header */}
+                        <div style={{ background: 'var(--primary-800)', color: 'white', padding: '10px 14px', display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 700, fontSize: '13px' }}>Proyecto Rampa Av. Italia</span>
+                            <span style={{ fontSize: '9px', opacity: 0.8 }}>2 colaboradores</span>
                         </div>
-                        {/* Project Page */}
-                        <div style={{ padding: '8px' }}>
-                            <span style={{
-                                background: 'var(--primary-50)',
-                                color: 'var(--primary-600)',
-                                padding: '1px 4px',
-                                borderRadius: '2px',
-                                fontSize: '6px',
+                        {/* Navigation Menu */}
+                        <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', padding: '3px' }}>
+                            <div style={{ flex: 1, padding: '4px', borderRadius: '4px', background: 'white', textAlign: 'center', fontSize: '10px', fontWeight: 700, color: 'var(--primary-700)', boxShadow: 'var(--shadow-sm)' }}>
+                                proyecto
+                            </div>
+                            <div style={{ flex: 1, padding: '4px', textAlign: 'center', fontSize: '10px', color: 'var(--gray-500)' }}>
+                                ejecucion
+                            </div>
+                            <div style={{ flex: 1, padding: '4px', textAlign: 'center', fontSize: '10px', color: 'var(--gray-500)' }}>
+                                chat
+                            </div>
+                        </div>
+                        {/* Notification Banner & Page Body */}
+                        <div style={{ padding: '12px' }}>
+                            <div style={{
+                                background: 'var(--success-50)',
+                                border: '1px solid var(--success-200)',
+                                borderRadius: '6px',
+                                padding: '8px 10px',
+                                color: 'var(--success-700)',
+                                fontSize: '10.5px',
                                 fontWeight: 700,
-                                textTransform: 'uppercase'
+                                textAlign: 'center',
+                                marginBottom: '12px'
                             }}>
-                                INICIANDO
-                            </span>
-                            <h3 style={{ margin: '3px 0 2px 0', fontSize: '9px', fontWeight: 800 }}>Proyecto Rampa Av. Italia</h3>
-                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0 0 8px 0' }}>Av. Italia 2450 · Montevideo</p>
-
-                            <div style={{ background: 'var(--gray-50)', border: '1px solid var(--gray-200)', borderRadius: '4px', padding: '6px' }}>
-                                <div style={{ fontSize: '7px', color: 'var(--gray-700)', marginBottom: '4px' }}>
-                                    <strong>Organización líder:</strong> Mesa Montevideo
-                                </div>
-                                <div style={{ fontSize: '7px', color: 'var(--gray-700)' }}>
-                                    <strong>Colaboradores:</strong> 1 integrante
-                                </div>
+                                ✓ ¡Te sumaste al proyecto como colaborador!
+                            </div>
+                            <div style={{ fontSize: '10px', color: 'var(--gray-600)' }}>
+                                <strong>Líder:</strong> Mesa Montevideo
+                            </div>
+                            <div style={{ fontSize: '10px', color: 'var(--gray-600)', marginTop: '4px' }}>
+                                <strong>Detalle:</strong> Eliminación de escalón en vereda.
                             </div>
                         </div>
                     </div>
                 );
             }
 
-            // 2. CLAIM PROJECT VIEW
-            if (isClaimView) {
-                const showClaimModal = time >= 50.6;
-                return (
-                    <div style={{ height: '100%', background: 'var(--gray-50)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left', position: 'relative' }}>
-                        {/* Header */}
-                        <div style={{ background: 'var(--white)', padding: '6px 8px', borderBottom: '1px solid var(--gray-200)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
-                            <ArrowLeft size={10} />
-                            <span>Detalle de Barrera</span>
-                        </div>
-                        {/* Detail card */}
-                        <div style={{ padding: '6px' }}>
-                            <div style={{ display: 'flex', gap: '3px', marginBottom: '4px' }}>
-                                <span style={{ background: '#fef2f2', color: 'var(--barrier-fisica)', padding: '1px 4px', borderRadius: '2px', fontSize: '6px', fontWeight: 700 }}>Física</span>
-                                <span style={{ background: 'var(--success-50)', color: 'var(--success-600)', padding: '1px 4px', borderRadius: '2px', fontSize: '6px', fontWeight: 700 }}>APROBADA</span>
-                            </div>
-                            <h3 style={{ margin: '0 0 2px 0', fontSize: '9px', fontWeight: 800 }}>Rampa rota en vereda</h3>
-                            <p style={{ fontSize: '7.5px', color: 'var(--gray-500)', margin: '0 0 6px 0' }}>Av. Italia 2450 · Montevideo</p>
+            // 2. PROJECT LIST / PENDING REQUEST CARD
+            return (
+                <div style={{ height: '100%', background: 'var(--gray-50)', display: 'flex', flexDirection: 'column', fontSize: '11px', textAlign: 'left', position: 'relative' }}>
+                    {/* Header */}
+                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '13px' }}>Colaborar</span>
+                        <Users size={14} />
+                    </div>
 
-                            {/* Project Box Claim */}
+                    <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {/* Subtitle explanation */}
+                        <div style={{ color: 'var(--gray-500)', fontSize: '9.5px', lineHeight: 1.3 }}>
+                            Busca en la lista la barrera/proyecto de tu interés y envía tu solicitud.
+                        </div>
+
+                        {/* Search bar mock */}
+                        <div style={{ background: 'white', border: '1px solid var(--gray-200)', padding: '6px 10px', borderRadius: '4px', fontSize: '10px', color: 'var(--gray-400)' }}>
+                            Buscar proyectos...
+                        </div>
+
+                        {/* PENDING CARD (Triggered after submitting postulation) */}
+                        {isPending && (
                             <div style={{
-                                background: 'var(--accent-50)',
-                                border: '1.5px dashed var(--accent-300)',
-                                borderRadius: '6px',
-                                padding: '8px',
-                                textAlign: 'center',
+                                padding: '10px',
+                                background: '#fffbeb',
+                                border: '1px solid #fef3c7',
+                                borderRadius: '8px',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '4px',
-                                marginTop: '4px'
-                            }}>
-                                <h4 style={{ margin: 0, fontSize: '8px', color: 'var(--gray-800)', fontWeight: 700 }}>Esta barrera aún no tiene un proyecto asociado</h4>
-                                <p style={{ margin: 0, fontSize: '6.5px', color: 'var(--gray-500)' }}>¿Tu organización puede trabajar en esta barrera?</p>
-                                <button style={{
-                                    background: 'var(--accent-500)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '4px',
-                                    borderRadius: '3px',
-                                    fontWeight: 700,
-                                    fontSize: '8px',
-                                    cursor: 'pointer',
-                                    marginTop: '4px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '2px'
-                                }}>
-                                    <Handshake size={8} /> Trabajar en esto
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Claim Modal popup */}
-                        {showClaimModal && (
-                            <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: 'rgba(15, 23, 42, 0.65)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '12px',
-                                zIndex: 100
+                                gap: '3px'
                             }} className="animate-fadeIn">
-                                <div style={{
-                                    background: 'white',
-                                    borderRadius: '8px',
-                                    padding: '10px',
-                                    width: '100%',
-                                    boxShadow: 'var(--shadow-lg)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '5px'
-                                }}>
-                                    <h3 style={{ margin: 0, fontSize: '9px', fontWeight: 800 }}>Crear Proyecto de Resolución</h3>
-                                    <div>
-                                        <label style={{ fontSize: '7px', color: 'var(--gray-500)', display: 'block', marginBottom: '2px' }}>Título del proyecto</label>
-                                        <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7.5px' }}>
-                                            Proyecto Rampa Av. Italia
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label style={{ fontSize: '7px', color: 'var(--gray-500)', display: 'block', marginBottom: '2px' }}>Organización líder</label>
-                                        <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7.5px' }}>
-                                            Mesa Montevideo
-                                        </div>
-                                    </div>
-                                    <button style={{
-                                        background: 'var(--primary-600)',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '4px',
-                                        borderRadius: '3px',
-                                        fontWeight: 700,
-                                        fontSize: '7.5px',
-                                        marginTop: '4px',
-                                        textAlign: 'center'
-                                    }}>
-                                        Confirmar
-                                    </button>
-                                </div>
+                                <h4 style={{ color: '#b45309', margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700 }}>
+                                    <Clock size={12} /> Postulación Pendiente
+                                </h4>
+                                <p style={{ color: '#d97706', margin: 0, fontSize: '9px', lineHeight: 1.3 }}>
+                                    Tu solicitud para colaborar en el proyecto está siendo evaluada por un referente departamental. Una vez aprobada, podrás participar.
+                                </p>
                             </div>
                         )}
-                    </div>
-                );
-            }
 
-            // 3. REFERENTE MANAGEMENT VIEW
-            return (
-                <div style={{ height: '100%', background: 'var(--gray-50)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
-                    {/* Header */}
-                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700 }}>Panel de Gestión</span>
-                        <Shield size={10} />
-                    </div>
-                    {/* Tabs */}
-                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'white' }}>
-                        <div style={{ flex: 1, padding: '4px', borderBottom: '2px solid var(--primary-500)', color: 'var(--primary-600)', fontWeight: 700, textAlign: 'center', fontSize: '7.5px' }}>
-                            Identificación de barreras
-                        </div>
-                        <div style={{ flex: 1, padding: '4px', color: 'var(--gray-400)', textAlign: 'center', fontSize: '7.5px', opacity: 0.6 }}>
-                            Gestión de Colaboradores
-                        </div>
-                    </div>
-                    {/* Pending list */}
-                    <div style={{ padding: '8px' }}>
-                        <div style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: '4px', padding: '6px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                                <span style={{ fontWeight: 800, fontSize: '8px' }}>Rampa rota en vereda</span>
-                                <span style={{ fontSize: '6px', padding: '1px 3px', borderRadius: '2px', background: isApproved ? 'var(--success-50)' : 'var(--warning-50)', color: isApproved ? 'var(--success-600)' : 'var(--warning-600)', fontWeight: 700 }}>
-                                    {isApproved ? "APROBADA" : "PENDIENTE"}
+                        {/* Active Project Card */}
+                        <div style={{
+                            background: 'white',
+                            border: '1px solid var(--gray-200)',
+                            borderRadius: '6px',
+                            padding: '10px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{
+                                    background: 'var(--primary-50)',
+                                    color: 'var(--primary-600)',
+                                    padding: '2px 6px',
+                                    borderRadius: '3px',
+                                    fontSize: '8.5px',
+                                    fontWeight: 700
+                                }}>
+                                    INICIANDO
                                 </span>
                             </div>
-                            <p style={{ fontSize: '7px', color: 'var(--gray-500)', margin: '0 0 5px 0' }}>Av. Italia 2450 · Física</p>
-                            
-                            {!isApproved && (
-                                <button style={{ background: 'var(--success-500)', color: 'white', border: 'none', padding: '3px 6px', borderRadius: '2px', fontWeight: 700, fontSize: '7px' }}>
-                                    Aprobar
+                            <h3 style={{ margin: '2px 0', fontSize: '12px', fontWeight: 800 }}>Proyecto Rampa Av. Italia</h3>
+                            <p style={{ fontSize: '10px', color: 'var(--gray-500)', margin: 0 }}>Av. Italia 2450 · Montevideo</p>
+
+                            {!isPending && (
+                                <button style={{
+                                    background: 'var(--primary-600)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '6px',
+                                    borderRadius: '4px',
+                                    fontWeight: 700,
+                                    fontSize: '9.5px',
+                                    marginTop: '6px',
+                                    cursor: 'pointer',
+                                    textAlign: 'center'
+                                }}>
+                                    Postularme para colaborar
                                 </button>
                             )}
                         </div>
                     </div>
+
+                    {/* POSTULATION DIALOG OVERLAY */}
+                    {isModalOpen && (
+                        <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'rgba(15, 23, 42, 0.65)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '16px',
+                            zIndex: 100
+                        }} className="animate-fadeIn">
+                            <div style={{
+                                background: 'white',
+                                borderRadius: '12px',
+                                padding: '14px',
+                                width: '100%',
+                                boxShadow: 'var(--shadow-lg)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px',
+                                textAlign: 'left'
+                            }}>
+                                <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800 }}>Postularse para colaborar</h3>
+                                
+                                <div>
+                                    <label style={{ fontSize: '9px', color: 'var(--gray-500)', display: 'block', marginBottom: '2px', fontWeight: 600 }}>Nombre de tu Organización</label>
+                                    <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '6px', borderRadius: '4px', fontSize: '11px', minHeight: '26px' }}>
+                                        {getTypedText("Vecinos Zona 3", 43.5, 1.5)}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: '9px', color: 'var(--gray-500)', display: 'block', marginBottom: '2px', fontWeight: 600 }}>Motivo por el que querés colaborar</label>
+                                    <div style={{ background: 'var(--white)', border: '1px solid var(--gray-300)', padding: '6px', borderRadius: '4px', fontSize: '11px', minHeight: '40px', lineHeight: 1.3 }}>
+                                        {getTypedText("Quiero ayudar con la vereda", 48.0, 4.5)}
+                                    </div>
+                                </div>
+
+                                <button style={{
+                                    background: 'var(--primary-600)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '6px',
+                                    borderRadius: '4px',
+                                    fontWeight: 700,
+                                    fontSize: '11px',
+                                    marginTop: '4px',
+                                    textAlign: 'center'
+                                }}>
+                                    Postularse para colaborar
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
 
-        // Scene 3: Colaborar en Chat (60s - 80s)
+        // Scene 3: Pestañas de Colaboración (60s - 80s)
         if (time >= 60 && time < 80) {
-            const hasJoined = time >= 64.1;
-            const activeTab = time >= 69.6 ? 'chat' : 'proyecto';
-            const showMsg1 = time >= 68.0;
-            const showMsg2 = time >= 72.0;
-            const showMsg3 = time >= 76.0;
+            const activeTab = time < 65.6 ? 'proyecto' : (time < 72.1 ? 'ejecucion' : (time < 79.6 ? 'chat' : 'ejecucion'));
+            const showMsg1 = time >= 60.0;
+            const showMsg2 = time >= 73.0;
+            const showMsg3 = time >= 76.5;
 
             return (
-                <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left', position: 'relative' }}>
+                <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '11px', textAlign: 'left', position: 'relative' }}>
                     {/* Header */}
-                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '6px 8px', display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                        <span style={{ fontWeight: 700, fontSize: '8px' }}>Proyecto Rampa Av. Italia</span>
-                        <span style={{ fontSize: '6px', opacity: 0.8 }}>{hasJoined ? "2 colaboradores" : "1 colaborador"}</span>
+                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '10px 14px', display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 700, fontSize: '13px' }}>Proyecto Rampa Av. Italia</span>
+                        <span style={{ fontSize: '9px', opacity: 0.8 }}>2 colaboradores</span>
                     </div>
 
                     {/* Tab Navigation Menu (proyecto | ejecucion | chat) */}
-                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', padding: '2px' }}>
-                        <div style={{ flex: 1, padding: '3px', borderRadius: '3px', background: activeTab === 'proyecto' ? 'white' : 'transparent', textAlign: 'center', fontSize: '7px', fontWeight: activeTab === 'proyecto' ? 700 : 500, color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-500)', boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-100)', padding: '4px', gap: '4px' }}>
+                        <div style={{ flex: 1, padding: '5px', borderRadius: '4px', background: activeTab === 'proyecto' ? 'white' : 'transparent', textAlign: 'center', fontSize: '10px', fontWeight: activeTab === 'proyecto' ? 700 : 500, color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)', boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none', transition: 'all 0.15s' }}>
                             proyecto
                         </div>
-                        <div style={{ flex: 1, padding: '3px', textAlign: 'center', fontSize: '7px', color: 'var(--gray-500)', opacity: 0.6 }}>
+                        <div style={{ flex: 1, padding: '5px', borderRadius: '4px', background: activeTab === 'ejecucion' ? 'white' : 'transparent', textAlign: 'center', fontSize: '10px', fontWeight: activeTab === 'ejecucion' ? 700 : 500, color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)', boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none', transition: 'all 0.15s' }}>
                             ejecucion
                         </div>
-                        <div style={{ flex: 1, padding: '3px', borderRadius: '3px', background: activeTab === 'chat' ? 'white' : 'transparent', textAlign: 'center', fontSize: '7px', fontWeight: activeTab === 'chat' ? 700 : 500, color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-500)', boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none' }}>
+                        <div style={{ flex: 1, padding: '5px', borderRadius: '4px', background: activeTab === 'chat' ? 'white' : 'transparent', textAlign: 'center', fontSize: '10px', fontWeight: activeTab === 'chat' ? 700 : 500, color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)', boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none', transition: 'all 0.15s' }}>
                             chat
                         </div>
                     </div>
 
-                    {/* Tab Content */}
+                    {/* Tab Content 1: PROYECTO */}
                     {activeTab === 'proyecto' && (
-                        <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ fontSize: '7px', color: 'var(--gray-600)' }}>
-                                <strong>Líder:</strong> Mesa Montevideo
+                        <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '12px' }} className="animate-fadeIn">
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: 'var(--gray-800)', margin: '0 0 4px' }}>
+                                    <Package size={12} color="var(--primary-500)" /> Descripción
+                                </h3>
+                                <p style={{ fontSize: '10px', color: 'var(--gray-600)', lineHeight: 1.4, margin: 0 }}>
+                                    Eliminación de escalón en vereda y construcción de rampa de cemento.
+                                </p>
                             </div>
-                            <div style={{ fontSize: '7px', color: 'var(--gray-600)', marginBottom: '4px' }}>
-                                <strong>Detalle:</strong> Eliminación de escalón en vereda.
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: 'var(--gray-800)', margin: '0 0 4px' }}>
+                                    <Target size={12} color="var(--primary-500)" /> Objetivo
+                                </h3>
+                                <p style={{ fontSize: '10px', color: 'var(--gray-600)', lineHeight: 1.4, margin: 0 }}>
+                                    Eliminar el escalón para permitir el paso de sillas de ruedas.
+                                </p>
                             </div>
-
-                            {/* Join Project card */}
-                            {!hasJoined && (
-                                <div style={{
-                                    background: 'var(--primary-50)',
-                                    border: '1px solid var(--primary-100)',
-                                    borderRadius: '4px',
-                                    padding: '6px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '3px',
-                                    marginTop: '4px'
-                                }}>
-                                    <span style={{ fontWeight: 700, fontSize: '7.5px' }}>¡Sumate a colaborar en este proyecto!</span>
-                                    <div style={{ background: 'white', border: '1px solid var(--gray-300)', padding: '2px', borderRadius: '2px', fontSize: '7.5px' }}>
-                                        Vecinos Zona 3
+                            <div>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: 'var(--gray-800)', margin: '0 0 4px' }}>
+                                    <CheckCircle size={12} color="var(--primary-500)" /> Acciones Previstas
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '9.5px', color: 'var(--gray-600)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Circle size={4} style={{ fill: 'var(--gray-400)', stroke: 'none' }} />
+                                        <span>Conseguir materiales</span>
                                     </div>
-                                    <button style={{
-                                        background: 'var(--primary-600)',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '4px',
-                                        borderRadius: '3px',
-                                        fontWeight: 700,
-                                        fontSize: '7.5px',
-                                        cursor: 'pointer',
-                                        marginTop: '2px'
-                                    }}>
-                                        Postularse para colaborar
-                                    </button>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Circle size={4} style={{ fill: 'var(--gray-400)', stroke: 'none' }} />
+                                        <span>Preparar mezcla</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Circle size={4} style={{ fill: 'var(--gray-400)', stroke: 'none' }} />
+                                        <span>Construir rampa de cemento</span>
+                                    </div>
                                 </div>
-                            )}
-
-                            {hasJoined && (
-                                <div style={{
-                                    background: 'var(--success-50)',
-                                    border: '1px solid var(--success-200)',
-                                    borderRadius: '4px',
-                                    padding: '4px 6px',
-                                    color: 'var(--success-700)',
-                                    fontSize: '7.5px',
-                                    fontWeight: 700,
-                                    textAlign: 'center',
-                                    marginTop: '4px'
-                                }}>
-                                    ✓ ¡Te sumaste al proyecto como colaborador!
-                                </div>
-                            )}
+                            </div>
                         </div>
                     )}
 
+                    {/* Tab Content 2: EJECUCION */}
+                    {activeTab === 'ejecucion' && (
+                        <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }} className="animate-fadeIn">
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist de Avance</div>
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
+                                <CheckCircle size={14} color="var(--success-500)" />
+                                <span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', fontSize: '10px' }}>
+                                    Conseguir materiales
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
+                                <CheckCircle size={14} color="var(--success-500)" />
+                                <span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', fontSize: '10px' }}>
+                                    Preparar mezcla
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
+                                <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1.5px solid var(--gray-300)', minWidth: '14px' }} />
+                                <span style={{ color: 'var(--gray-700)', fontSize: '10px' }}>
+                                    Construir rampa de cemento
+                                </span>
+                            </div>
+
+                            <div style={{ marginTop: '8px' }}>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--gray-400)', marginBottom: '4px' }}>Bitácora de Avance</div>
+                                <div style={{ fontSize: '8.5px', color: 'var(--gray-500)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    <div>📅 12:00 · Materiales comprados y listos en vereda.</div>
+                                    <div>📅 13:30 · Mezcla de cemento preparada en el lugar.</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab Content 3: CHAT */}
                     {activeTab === 'chat' && (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '6px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px', overflow: 'hidden' }} className="animate-fadeIn">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
                                 {showMsg1 && (
-                                    <div className="animate-fadeInUp" style={{ background: 'var(--gray-100)', padding: '4px 6px', borderRadius: '4px 4px 4px 0', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Mesa MVD:</strong> ¡Bienvenidos! Organizamos la jornada para el sábado.
+                                    <div className="animate-fadeInUp" style={{ background: 'var(--gray-100)', padding: '6px 8px', borderRadius: '6px 6px 6px 0', maxWidth: '210px', fontSize: '10px', lineHeight: 1.3 }}>
+                                        <strong>Mesa MVD:</strong> ¡Bienvenidos! Organizamos la jornada para el sábado a las 9hs.
                                     </div>
                                 )}
                                 {showMsg2 && (
-                                    <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '4px 6px', borderRadius: '4px 4px 0 4px', alignSelf: 'flex-end', maxWidth: '140px', fontSize: '7px' }}>
-                                        <strong>Juan:</strong> Perfecto. Consigo cemento y arena.
+                                    <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '6px 8px', borderRadius: '6px 6px 0 6px', alignSelf: 'flex-end', maxWidth: '210px', fontSize: '10px', lineHeight: 1.3 }}>
+                                        <strong>Juan:</strong> Perfecto. Yo consigo las herramientas necesarias.
                                     </div>
                                 )}
                                 {showMsg3 && (
-                                    <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '4px 6px', borderRadius: '4px 4px 0 4px', alignSelf: 'flex-end', maxWidth: '140px', fontSize: '7px' }}>
+                                    <div className="animate-fadeInUp" style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', padding: '6px 8px', borderRadius: '6px 6px 0 6px', alignSelf: 'flex-end', maxWidth: '210px', fontSize: '10px', lineHeight: 1.3 }}>
                                         <strong>Tú:</strong> ¡Excelente! Yo ayudo a colocar el cemento el sábado.
                                     </div>
                                 )}
                             </div>
                             {/* Fake input message bar */}
-                            <div style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: '3px', padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ color: 'var(--gray-400)', fontSize: '7px' }}>Mensaje enviado...</span>
-                                <MessageSquare size={8} color="var(--primary-500)" />
+                            <div style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: '4px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+                                <span style={{ color: 'var(--gray-400)', fontSize: '9.5px' }}>{time >= 76.5 ? "Mensaje enviado..." : "Escribir mensaje..."}</span>
+                                <MessageSquare size={10} color="var(--primary-500)" />
                             </div>
                         </div>
                     )}
@@ -824,12 +890,10 @@ export default function AboutPage() {
             );
         }
 
-        // Scene 4: Resolver Barrera (80s - 100s)
+        // Scene 4: Resolver e Impactar (80s - 100s)
         if (time >= 80 && time <= 100) {
-            const isT1Done = time >= 81.5;
-            const isT2Done = time >= 83.5;
-            const isT3Done = time >= 85.5;
-            const isResolved = time >= 88.5;
+            const isT3Done = time >= 83.6;
+            const isResolved = time >= 87.1;
 
             if (isResolved) {
                 return (
@@ -843,113 +907,104 @@ export default function AboutPage() {
                         color: 'white',
                         textAlign: 'center',
                         position: 'relative',
-                        padding: '12px'
+                        padding: '16px'
                     }}>
                         <div className="scale-pulse" style={{
-                            width: '44px',
-                            height: '44px',
+                            width: '60px',
+                            height: '60px',
                             borderRadius: '50%',
                             background: 'rgba(255, 255, 255, 0.2)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            marginBottom: '10px'
+                            marginBottom: '14px'
                         }}>
-                            <CheckCircle size={28} color="var(--white)" />
+                            <CheckCircle size={36} color="var(--white)" />
                         </div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 2px' }}>¡Resuelto!</h3>
-                        <p style={{ fontSize: '7px', opacity: 0.9, maxWidth: '140px', margin: 0, lineHeight: 1.2 }}>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px' }}>¡Resuelto!</h3>
+                        <p style={{ fontSize: '10px', opacity: 0.9, maxWidth: '200px', margin: 0, lineHeight: 1.3 }}>
                             La rampa en Av. Italia está terminada y habilitada.
                         </p>
 
                         <div style={{
-                            marginTop: '10px',
-                            fontSize: '6.5px',
+                            marginTop: '14px',
+                            fontSize: '9px',
                             background: 'rgba(0, 0, 0, 0.2)',
-                            padding: '3px 8px',
-                            borderRadius: '2px',
+                            padding: '4px 10px',
+                            borderRadius: '3px',
                             fontWeight: 600
                         }}>
                             Estado: FINALIZADO
                         </div>
-
-                        {/* Confetti particles */}
-                        <div className="confetti c1" />
-                        <div className="confetti c2" />
-                        <div className="confetti c3" />
-                        <div className="confetti c4" />
                     </div>
                 );
             }
 
             return (
-                <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '9px', textAlign: 'left' }}>
+                <div style={{ height: '100%', background: 'var(--white)', display: 'flex', flexDirection: 'column', fontSize: '11px', textAlign: 'left' }}>
                     {/* Header */}
-                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, fontSize: '8px' }}>Proyecto Rampa Av. Italia</span>
-                        <Settings size={10} />
+                    <div style={{ background: 'var(--primary-800)', color: 'white', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '13px' }}>Proyecto Rampa Av. Italia</span>
+                        <Settings size={14} />
                     </div>
 
                     {/* Tab Navigation Menu */}
-                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)', padding: '2px' }}>
-                        <div style={{ flex: 1, padding: '3px', textAlign: 'center', fontSize: '7px', color: 'var(--gray-500)' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-100)', padding: '4px' }}>
+                        <div style={{ flex: 1, padding: '4px', textAlign: 'center', fontSize: '10px', color: 'var(--gray-500)' }}>
                             proyecto
                         </div>
-                        <div style={{ flex: 1, padding: '3px', borderRadius: '3px', background: 'white', textAlign: 'center', fontSize: '7px', fontWeight: 700, color: 'var(--primary-700)', boxShadow: 'var(--shadow-sm)' }}>
+                        <div style={{ flex: 1, padding: '4px', borderRadius: '4px', background: 'white', textAlign: 'center', fontSize: '10px', fontWeight: 700, color: 'var(--primary-700)', boxShadow: 'var(--shadow-sm)' }}>
                             ejecucion
                         </div>
-                        <div style={{ flex: 1, padding: '3px', textAlign: 'center', fontSize: '7px', color: 'var(--gray-500)' }}>
+                        <div style={{ flex: 1, padding: '4px', textAlign: 'center', fontSize: '10px', color: 'var(--gray-500)' }}>
                             chat
                         </div>
                     </div>
 
                     {/* Task checklist */}
-                    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {/* Title button resolution (Only for Referente role) */}
                         {isT3Done && (
                             <button style={{
                                 background: 'var(--success-500)',
                                 color: 'white',
                                 border: 'none',
-                                padding: '4px',
-                                borderRadius: '3px',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
                                 fontWeight: 700,
-                                fontSize: '8px',
+                                fontSize: '10px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '2px',
-                                marginBottom: '6px'
+                                gap: '3px',
+                                marginBottom: '6px',
+                                animation: 'pulseBtn 1s infinite alternate'
                             }}>
-                                <CheckCircle size={8} /> Marcar como Resuelto
+                                <CheckCircle size={10} /> Marcar como Resuelto
                             </button>
                         )}
 
-                        <div style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist de Avance</div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--gray-500)', marginBottom: '2px' }}>Checklist de Avance</div>
                         
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '3px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {isT1Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
-                            </span>
-                            <span style={{ textDecoration: isT1Done ? 'line-through' : 'none', color: isT1Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '7.5px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
+                            <CheckCircle size={14} color="var(--success-500)" />
+                            <span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', fontSize: '10px' }}>
                                 Conseguir materiales
                             </span>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '3px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {isT2Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
-                            </span>
-                            <span style={{ textDecoration: isT2Done ? 'line-through' : 'none', color: isT2Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '7.5px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
+                            <CheckCircle size={14} color="var(--success-500)" />
+                            <span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', fontSize: '10px' }}>
                                 Preparar mezcla
                             </span>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '3px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--gray-100)', paddingBottom: '4px' }}>
                             <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {isT3Done ? <CheckCircle size={10} color="var(--success-500)" /> : <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '1px solid var(--gray-300)' }} />}
+                                {isT3Done ? <CheckCircle size={14} color="var(--success-500)" /> : <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1.5px solid var(--gray-300)', minWidth: '14px' }} />}
                             </span>
-                            <span style={{ textDecoration: isT3Done ? 'line-through' : 'none', color: isT3Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '7.5px' }}>
+                            <span style={{ textDecoration: isT3Done ? 'line-through' : 'none', color: isT3Done ? 'var(--gray-400)' : 'var(--gray-700)', fontSize: '10px' }}>
                                 Construir rampa de cemento
                             </span>
                         </div>
@@ -970,127 +1025,58 @@ export default function AboutPage() {
                     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), var(--shadow-glow);
                     overflow: hidden;
                     position: relative;
-                    max-width: 800px;
+                    max-width: 960px;
                     margin: 0 auto;
                 }
 
                 .video-screen {
-                    min-height: 350px;
+                    min-height: 600px;
                     display: grid;
-                    grid-template-columns: 1.1fr 0.9fr;
+                    grid-template-columns: 1fr 320px;
                     align-items: center;
-                    padding: 24px;
-                    gap: 24px;
+                    padding: 32px;
+                    gap: 48px;
                     position: relative;
                     background: radial-gradient(circle at 70% 30%, #0f172a 0%, #020617 100%);
                 }
 
-                @media (max-width: 600px) {
-                    .video-screen {
-                        grid-template-columns: 1fr;
-                        min-height: 440px;
-                        padding: 16px;
-                        gap: 16px;
-                    }
-                    .info-column {
-                        text-align: center !important;
-                    }
-                }
-
                 /* Smartphone frame mockup */
                 .phone-frame {
-                    width: 170px;
-                    height: 320px;
-                    border: 6px solid #1e293b;
-                    border-radius: 26px;
+                    width: 280px;
+                    height: 520px;
+                    border: 10px solid #0f172a;
+                    border-radius: 40px;
                     background: #000;
-                    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 20px 40px rgba(0,0,0,0.6);
+                    box-shadow: 0 0 0 1px #334155, 0 25px 50px rgba(0,0,0,0.6);
                     position: relative;
                     overflow: hidden;
                     margin: 0 auto;
                 }
 
-                /* Phone screen display area */
                 .phone-screen {
                     width: 100%;
                     height: 100%;
-                    border-radius: 20px;
+                    border-radius: 30px;
                     overflow: hidden;
                     background: #fff;
                     position: relative;
                 }
 
-                /* Notch */
-                .phone-notch {
-                    position: absolute;
-                    top: 0;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 70px;
-                    height: 12px;
-                    background: #1e293b;
-                    border-radius: 0 0 8px 8px;
-                    z-index: 99;
+                /* Animations */
+                @keyframes pulseBtn {
+                    0% { transform: scale(1); }
+                    100% { transform: scale(1.05); }
                 }
+                .v-logo-float { animation: floatLogo 3s ease-in-out infinite alternate; }
+                @keyframes floatLogo { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
 
-                /* Logo float animation */
-                .v-logo-float {
-                    animation: floatLogo 3s ease-in-out infinite alternate;
-                }
-                @keyframes floatLogo {
-                    0% { transform: translateY(0); }
-                    100% { transform: translateY(-6px); }
-                }
-
-                /* Pin radar wave */
-                .pin-radar {
-                    position: absolute;
-                    left: 50%;
-                    top: 75%;
-                    transform: translate(-50%, -50%);
-                    width: 20px;
-                    height: 8px;
-                    border-radius: 50%;
-                    border: 1.5px solid var(--barrier-fisica);
-                    animation: radarPulse 1.5s ease-out infinite;
-                }
-                @keyframes radarPulse {
-                    0% { width: 5px; height: 2px; opacity: 1; }
-                    100% { width: 40px; height: 16px; opacity: 0; }
-                }
-
-                /* Confetti particles */
-                .confetti {
-                    position: absolute;
-                    width: 4px;
-                    height: 4px;
-                    background: #fbcfe8;
-                    border-radius: 50%;
-                }
-                .confetti.c1 { left: 20%; top: 20%; animation: particleFall 2s linear infinite; background: #fbbf24; }
-                .confetti.c2 { left: 40%; top: 10%; animation: particleFall 2.5s linear infinite 0.2s; background: #38bdf8; }
-                .confetti.c3 { left: 65%; top: 15%; animation: particleFall 2.2s linear infinite 0.5s; background: #f472b6; }
-                .confetti.c4 { left: 80%; top: 25%; animation: particleFall 1.8s linear infinite 0.1s; background: #34d399; }
-
-                @keyframes particleFall {
-                    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-                    100% { transform: translateY(160px) rotate(360deg); opacity: 0; }
-                }
-
-                /* Fade In animation */
                 .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
                 .animate-fadeInUp { animation: fadeInUp 0.4s ease-out forwards; }
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(8px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
             `}</style>
 
-            <div className="container" style={{ maxWidth: '850px' }}>
+            <div className="container" style={{ maxWidth: '920px' }}>
                 <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
                     <h1 style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: 'var(--gray-900)', margin: '0 0 6px' }}>
                         ¿Cómo funciona <span className="text-gradient">REDDIS</span>?
