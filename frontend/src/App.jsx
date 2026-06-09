@@ -147,10 +147,10 @@ function AppContent() {
             {/* Gestion mode: keep the old Navbar */}
             {showGestionLayout && <Navbar mode="gestion" />}
 
-            {/* Public mode: TopBar */}
-            {!showGestionLayout && <TopBar />}
+            {/* Public mode: TopBar (hidden on homepage - hero has its own branding) */}
+            {!showGestionLayout && location.pathname !== '/' && <TopBar />}
 
-            <main className={`app-main ${!showGestionLayout ? 'has-bottom-nav' : ''}`}>
+            <main className={`app-main ${!showGestionLayout ? 'has-bottom-nav' : ''} ${location.pathname === '/' ? 'is-homepage' : ''}`}>
                 <Routes>
                     {/* ═══ PUBLIC ROUTES ═══ */}
                     <Route path="/" element={<HomePage />} />

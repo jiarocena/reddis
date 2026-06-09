@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Home, MapPin, AlertTriangle, Users, LogIn, Handshake, Briefcase } from 'lucide-react';
+import { Home, MapPin, PlusCircle, Users, LogIn, Handshake, Briefcase } from 'lucide-react';
 
 export default function BottomNav() {
     const location = useLocation();
@@ -22,7 +22,7 @@ export default function BottomNav() {
                 <span>Barreras</span>
             </NavLink>
             <NavLink to="/reportar" className="bottom-nav-item">
-                <AlertTriangle size={20} />
+                <PlusCircle size={22} />
                 <span>Reportar</span>
             </NavLink>
             <NavLink to="/gestion/proyectos" className="bottom-nav-item">
