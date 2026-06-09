@@ -18,19 +18,57 @@ export default function HomePage() {
                 <div className="hero-glass-shape hero-glass-shape-3" />
                 <div className="hero-glass-shape hero-glass-shape-4" />
 
-                <div className="container">
-                    <div className="hero-content animate-fadeInUp">
-                        {/* Branding logo */}
-                        <div className="hero-brand">
-                            <div className="hero-brand-icon">
-                                <Network size={28} strokeWidth={2.2} />
-                            </div>
-                            <div className="hero-brand-text">
-                                <strong>REDDIS</strong>
-                                <span>Red Digital de Inclusión Social</span>
-                            </div>
+                <div className="container hero-container">
+                    {/* Branding logo */}
+                    <div className="hero-brand">
+                        <div className="hero-brand-icon">
+                            <svg viewBox="0 0 100 100" className="hero-logo-svg" style={{ width: '48px', height: '48px' }}>
+                                <circle cx="50" cy="50" r="16" stroke="white" strokeWidth="5.5" fill="none" />
+                                
+                                {/* Left node */}
+                                <line x1="34" y1="50" x2="18" y2="50" stroke="white" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="18" cy="50" r="6.5" fill="white" />
+                                
+                                {/* Top-Left node */}
+                                <line x1="39" y1="39" x2="27" y2="27" stroke="white" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="27" cy="27" r="6.5" fill="white" />
+                                
+                                {/* Top node */}
+                                <line x1="50" y1="34" x2="50" y2="18" stroke="white" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="50" cy="18" r="6.5" fill="white" />
+                                
+                                {/* Top-Right-ish white node */}
+                                <line x1="61" y1="39" x2="73" y2="27" stroke="white" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="73" cy="27" r="6.5" fill="white" />
+                                
+                                {/* Top-Right double teal node */}
+                                <line x1="65" y1="45" x2="79" y2="40" stroke="#14b8a6" strokeWidth="5" strokeLinecap="round" />
+                                <line x1="79" y1="40" x2="89" y2="33" stroke="#14b8a6" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="79" cy="40" r="6.5" fill="#14b8a6" />
+                                <circle cx="89" cy="33" r="6.5" fill="#14b8a6" />
+                                
+                                {/* Bottom-Right node */}
+                                <line x1="61" y1="61" x2="73" y2="73" stroke="white" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="73" cy="73" r="6.5" fill="white" />
+                                
+                                {/* Bottom node */}
+                                <line x1="50" y1="66" x2="50" y2="82" stroke="white" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="50" cy="82" r="6.5" fill="white" />
+                                
+                                {/* Bottom-Left double teal node */}
+                                <line x1="39" y1="61" x2="25" y2="75" stroke="#14b8a6" strokeWidth="5" strokeLinecap="round" />
+                                <line x1="25" y1="75" x2="15" y2="85" stroke="#14b8a6" strokeWidth="5" strokeLinecap="round" />
+                                <circle cx="25" cy="75" r="6.5" fill="#14b8a6" />
+                                <circle cx="15" cy="85" r="6.5" fill="#14b8a6" />
+                            </svg>
                         </div>
+                        <div className="hero-brand-text">
+                            <strong>REDDIS</strong>
+                            <span>Red Digital de Inclusión Social</span>
+                        </div>
+                    </div>
 
+                    <div className="hero-content animate-fadeInUp">
                         {isAuthenticated && user?.departamento && (
                             <Link to="/gestion/perfil" className="hero-user-pill">
                                 <User size={14} />
