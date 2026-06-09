@@ -574,9 +574,9 @@ select {
   right: 8%;
   transform: rotate(8deg);
   animation: floatShape2 9s ease-in-out infinite alternate;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.55) 0%, rgba(239, 68, 68, 0.35) 100%);
-  border-color: rgba(245, 158, 11, 0.35);
-  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, rgba(254, 215, 170, 0.18) 0%, rgba(254, 240, 138, 0.08) 100%);
+  border-color: rgba(254, 215, 170, 0.22);
+  box-shadow: 0 8px 32px rgba(254, 215, 170, 0.08);
 }
 
 .hero-glass-shape-3 {
@@ -596,10 +596,10 @@ select {
   bottom: 15%;
   right: 22%;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.85) 0%, rgba(239, 68, 68, 0.65) 100%);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, rgba(254, 186, 115, 0.3) 0%, rgba(254, 215, 170, 0.15) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
   animation: floatShape2 6s ease-in-out infinite alternate;
-  box-shadow: 0 0 35px rgba(245, 158, 11, 0.65);
+  box-shadow: 0 0 25px rgba(254, 186, 115, 0.12);
 }
 
 @keyframes floatShape1 {
@@ -775,9 +775,9 @@ select {
   }
 
   .hero h1 {
-    font-size: 3.8rem;
-    letter-spacing: -0.04em;
-    line-height: 1.05;
+    font-size: 4.2rem;
+    letter-spacing: -0.05em;
+    line-height: 1.0;
   }
 }
 
@@ -2665,8 +2665,9 @@ a.step-card:hover {
   }
 
   .hero h1 {
-    font-size: 1.75rem;
-    line-height: 1.2;
+    font-size: 3rem;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
   }
 
   .hero p {
