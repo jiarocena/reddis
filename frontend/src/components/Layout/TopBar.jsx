@@ -12,7 +12,7 @@ const PAGE_TITLES = {
     '/gestion/confirmar': { title: 'Confirmar Cuenta', subtitle: 'Verificá tu dirección de correo', icon: Info },
     '/gestion/perfil': { title: 'Mi Cuenta', subtitle: 'Detalles de tu cuenta REDDIS', icon: User },
     '/gestion/proyectos': { title: 'Colaborar', subtitle: 'Sumate a colaborar en proyectos activos', icon: Handshake },
-    '/gestion/mis-proyectos': { title: 'Resolver', subtitle: 'Mis proyectos activos y colaboraciones', icon: Briefcase },
+    '/gestion/mis-proyectos': { title: 'Proyectos', subtitle: 'Mis proyectos activos y colaboraciones', icon: Briefcase },
     '/gestion/mapa': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
     '/gestion/barreras': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
     '/gestion/reportar': { title: 'Reportar Barrera', subtitle: 'Identificá una barrera de accesibilidad', icon: AlertTriangle },
