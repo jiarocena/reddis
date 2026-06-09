@@ -16,13 +16,14 @@ export default function HomePage() {
                 <div className="hero-glass-shape hero-glass-shape-1" />
                 <div className="hero-glass-shape hero-glass-shape-2" />
                 <div className="hero-glass-shape hero-glass-shape-3" />
+                <div className="hero-glass-shape hero-glass-shape-4" />
 
                 <div className="container">
                     <div className="hero-content animate-fadeInUp">
-                        {/* Branding logo row */}
+                        {/* Branding logo */}
                         <div className="hero-brand">
                             <div className="hero-brand-icon">
-                                <Network size={22} color="var(--accent-400)" />
+                                <Network size={28} strokeWidth={2.2} />
                             </div>
                             <div className="hero-brand-text">
                                 <strong>REDDIS</strong>
@@ -31,30 +32,25 @@ export default function HomePage() {
                         </div>
 
                         {isAuthenticated && user?.departamento && (
-                            <Link to="/gestion/perfil" className="hero-user-pill" style={{
-                                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                                background: 'rgba(251, 191, 36, 0.15)', border: '1px solid rgba(251, 191, 36, 0.3)',
-                                padding: '8px 16px', borderRadius: 'var(--radius-full)',
-                                fontSize: 'var(--font-sm)', color: '#fbbf24', marginBottom: 'var(--space-4)',
-                                backdropFilter: 'blur(8px)', textDecoration: 'none', transition: 'all 0.2s'
-                            }}>
+                            <Link to="/gestion/perfil" className="hero-user-pill">
                                 <User size={14} />
                                 <span>{user.nombre} — {user.departamento}</span>
                             </Link>
                         )}
+
                         <h1>
-                            <span className="highlight">Comunidad</span><br />
+                            Comunidad<br />
                             sin barreras
                         </h1>
                         <p>
                             REDDIS conecta a quienes identifican barreras con quienes pueden resolverlas.
                         </p>
-                        <div className="hero-actions" style={{ display: 'flex', gap: '12px', marginTop: 'var(--space-6)', flexWrap: 'wrap' }}>
+                        <div className="hero-actions">
                             <Link to="/reportar" className="btn btn-primary">
-                                <PlusCircle size={16} /> Reportar Barrera
+                                Reportar Barrera
                             </Link>
                             <Link to="/acerca" className="btn btn-secondary">
-                                <BookOpen size={16} /> Cómo funciona
+                                Cómo funciona
                             </Link>
                         </div>
                     </div>
