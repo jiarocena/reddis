@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { PlusCircle, MapPin, Users, CheckCircle, AlertTriangle, Zap, Eye, BookOpen, User } from 'lucide-react';
+import { PlusCircle, MapPin, Users, CheckCircle, AlertTriangle, Zap, Eye, BookOpen, User, Network } from 'lucide-react';
 import Footer from '../components/Layout/Footer';
 
 export default function HomePage() {
@@ -12,8 +12,24 @@ export default function HomePage() {
         <div>
             {/* Hero */}
             <section className="hero">
+                {/* Glassmorphism decorative floating shapes */}
+                <div className="hero-glass-shape hero-glass-shape-1" />
+                <div className="hero-glass-shape hero-glass-shape-2" />
+                <div className="hero-glass-shape hero-glass-shape-3" />
+
                 <div className="container">
                     <div className="hero-content animate-fadeInUp">
+                        {/* Branding logo row */}
+                        <div className="hero-brand">
+                            <div className="hero-brand-icon">
+                                <Network size={22} color="var(--accent-400)" />
+                            </div>
+                            <div className="hero-brand-text">
+                                <strong>REDDIS</strong>
+                                <span>Red Digital de Inclusión Social</span>
+                            </div>
+                        </div>
+
                         {isAuthenticated && user?.departamento && (
                             <Link to="/gestion/perfil" className="hero-user-pill" style={{
                                 display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -32,13 +48,12 @@ export default function HomePage() {
                         </h1>
                         <p>
                             REDDIS conecta a quienes identifican barreras con quienes pueden resolverlas.
-                            Un ciclo virtuoso de identificación, acción, seguimiento y aprendizaje colectivo.
                         </p>
                         <div className="hero-actions" style={{ display: 'flex', gap: '12px', marginTop: 'var(--space-6)', flexWrap: 'wrap' }}>
-                            <Link to="/reportar" className="btn btn-primary" style={{ background: 'var(--accent-500)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)' }}>
+                            <Link to="/reportar" className="btn btn-primary">
                                 <PlusCircle size={16} /> Reportar Barrera
                             </Link>
-                            <Link to="/acerca" className="btn btn-secondary" style={{ background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.3)', color: 'var(--white)' }}>
+                            <Link to="/acerca" className="btn btn-secondary">
                                 <BookOpen size={16} /> Cómo funciona
                             </Link>
                         </div>
