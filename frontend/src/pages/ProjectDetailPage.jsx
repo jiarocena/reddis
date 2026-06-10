@@ -231,9 +231,7 @@ export default function ProjectDetailPage() {
                         </span>
                     </div>
                     
-                    <div style={{ width: '36px', display: 'flex', justifyContent: 'flex-end', opacity: 0.9 }}>
-                        <span style={{ fontSize: '1.2rem', cursor: 'pointer', color: 'white' }}>🔍</span>
-                    </div>
+                    <div style={{ width: '36px' }} />
                 </div>
                 
                 {/* Folder Tabs row */}
