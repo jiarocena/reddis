@@ -76,6 +76,7 @@ function AppContent() {
     const { refreshData } = useData();
     const isGestion = location.pathname.startsWith('/gestion');
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);
+    const isProjectView = /^\/(gestion\/)?proyecto\//.test(location.pathname);
 
     const [installPrompt, setInstallPrompt] = useState(null);
     const [installDismissed, setInstallDismissed] = useState(false);
@@ -145,12 +146,12 @@ function AppContent() {
     return (
         <>
             {/* Gestion mode: keep the old Navbar */}
-            {showGestionLayout && <Navbar mode="gestion" />}
+            {showGestionLayout && !isProjectView && <Navbar mode="gestion" />}
 
             {/* Public mode: TopBar (hidden on homepage - hero has its own branding) */}
-            {!showGestionLayout && location.pathname !== '/' && <TopBar />}
+            {!showGestionLayout && location.pathname !== '/' && !isProjectView && <TopBar />}
 
-            <main className={`app-main ${!showGestionLayout ? 'has-bottom-nav' : ''} ${location.pathname === '/' ? 'is-homepage' : ''}`}>
+            <main className={`app-main ${!showGestionLayout && !isProjectView ? 'has-bottom-nav' : ''} ${location.pathname === '/' ? 'is-homepage' : ''}`}>
                 <Routes>
                     {/* ═══ PUBLIC ROUTES ═══ */}
                     <Route path="/" element={<HomePage />} />
@@ -289,7 +290,7 @@ function AppContent() {
             </main>
 
             {/* Bottom nav for public mode only */}
-            <BottomNav />
+            {!isProjectView && <BottomNav />}
 
             <Toast />
         </>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../api/api';
@@ -15,6 +15,7 @@ export default function ProjectDetailPage() {
     const { projects, barriers, updateProject, addTimelineEntry, loading } = useData();
     const { isAuthenticated, user, hasRole } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const isGestion = location.pathname.startsWith('/gestion');
     const prefix = isGestion ? '/gestion' : '';
 
@@ -96,117 +97,175 @@ export default function ProjectDetailPage() {
     const statusOrder = ['denuncia', 'iniciando', 'en-proceso', 'finalizado'];
     const idx = statusOrder.indexOf(project.status);
 
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const sideMargin = isMobile ? 'var(--space-4)' : 'var(--space-8)';
+
+    const parseAction = (action) => {
+        if (!action) return { isCompleted: false, text: '', time: '' };
+        const isCompleted = action.startsWith('[x] ');
+        let text = action;
+        let time = '';
+        if (isCompleted) {
+            text = action.substring(4); // remove "[x] "
+            const pipeIndex = text.lastIndexOf(' | ');
+            if (pipeIndex !== -1) {
+                time = text.substring(pipeIndex + 3);
+                text = text.substring(0, pipeIndex);
+            }
+        }
+        return { isCompleted, text, time };
+    };
+
+    const handleToggleAccion = async (idx) => {
+        if (!canEdit) return;
+        const currentActions = [...(project.accionesPrevistas || [])];
+        const action = currentActions[idx];
+        const { isCompleted, text } = parseAction(action);
+        
+        if (isCompleted) {
+            currentActions[idx] = text;
+        } else {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            currentActions[idx] = `[x] ${text} | ${timeStr}`;
+        }
+        await updateProject(project.id, { accionesPrevistas: currentActions });
+    };
+
+    const parseTimelineText = (text) => {
+        if (!text) return { time: '', content: '' };
+        const match = text.match(/^(\d{2}:\d{2}\s*(?:AM|PM|am|pm))\s*-\s*(.*)$/);
+        if (match) {
+            return { time: match[1], content: match[2] };
+        }
+        return { time: '', content: text };
+    };
+
+    const formatDateHeader = (dateStr) => {
+        if (!dateStr) return '';
+        const today = new Date().toISOString().split('T')[0];
+        const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        
+        const day = parseInt(parts[2], 10);
+        const month = months[parseInt(parts[1], 10) - 1];
+        const year = parts[0];
+        
+        if (dateStr === today) {
+            return `HOY - ${day} ${month}`;
+        }
+        return `${day} ${month.toUpperCase()} ${year}`;
+    };
+
     const handleAddEntry = () => {
         if (!newEntry.trim()) return;
-        addTimelineEntry(project.id, { text: newEntry, completed: true });
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const textWithTime = `${timeStr} - ${newEntry.trim()}`;
+        addTimelineEntry(project.id, { text: textWithTime, completed: true });
         setNewEntry('');
     };
 
+    const handleBack = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate(isGestion ? '/gestion/proyectos' : '/gestion/proyectos');
+        }
+    };
+
     return (
-        <div className="project-panel animate-fadeIn" style={{ maxWidth: '100%', width: '100%' }}>
-            {/* Sticky Header: Title and Tab Menu */}
-            <div className="project-sticky-header">
-                {/* Title Section */}
-                <div className="pending-header" style={{ marginTop: 0, marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-                            <Briefcase size={24} /> {project.title}
+        <div className="project-panel animate-fadeIn" style={{ maxWidth: '100%', width: '100%', paddingTop: 0 }}>
+            {/* Sticky Header: Dark Blue, Full-Width, Folder Tabs */}
+            <div style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 1000,
+                background: '#0c1b3a',
+                color: 'white',
+                marginLeft: `calc(-1 * ${sideMargin})`,
+                marginRight: `calc(-1 * ${sideMargin})`,
+                paddingLeft: sideMargin,
+                paddingRight: sideMargin,
+                paddingTop: '16px',
+                paddingBottom: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: 'var(--shadow-md)',
+                marginBottom: '1rem'
+            }}>
+                {/* Header Title & Navigation Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <button 
+                        onClick={handleBack} 
+                        style={{ 
+                            background: 'transparent', 
+                            border: 'none', 
+                            color: 'white', 
+                            cursor: 'pointer',
+                            padding: '8px',
+                            marginLeft: '-8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            outline: 'none'
+                        }}
+                        aria-label="Volver"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    
+                    <div style={{ textAlign: 'center', flexGrow: 1, padding: '0 8px' }}>
+                        <h1 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'white', margin: 0, lineHeight: 1.3 }}>
+                            {project.title}
                         </h1>
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.8)', display: 'block', marginTop: '2px' }}>
+                            {project.collaborators?.length || 0} {project.collaborators?.length === 1 ? 'colaborador' : 'colaboradores'}
+                        </span>
+                    </div>
+                    
+                    <div style={{ width: '36px', display: 'flex', justifyContent: 'flex-end', opacity: 0.9 }}>
+                        <span style={{ fontSize: '1.2rem', cursor: 'pointer', color: 'white' }}>🔍</span>
                     </div>
                 </div>
-
-                {/* Tabbed Navigation Bar (Pill style Segmented Control) */}
-                <div style={{ display: 'flex', width: '100%', borderBottom: 'none' }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        width: '100%',
-                        background: 'var(--gray-100)', 
-                        padding: '4px', 
-                        borderRadius: 'var(--radius-lg)', 
-                        gap: '4px',
-                        border: '1px solid var(--gray-200)'
-                    }}>
-                        <button
-                            type="button"
-                            className={`project-menu-btn ${activeTab === 'proyecto' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('proyecto')}
-                            style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                gap: '6px', 
-                                padding: '8px 12px', 
-                                fontSize: '0.95rem', 
-                                fontWeight: 600, 
-                                border: 'none', 
-                                borderRadius: 'var(--radius-md)', 
-                                cursor: 'pointer',
-                                background: activeTab === 'proyecto' ? 'var(--white)' : 'transparent',
-                                color: activeTab === 'proyecto' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                boxShadow: activeTab === 'proyecto' ? 'var(--shadow-sm)' : 'none',
-                                transition: 'all 0.15s',
-                                outline: 'none',
-                                whiteSpace: 'nowrap',
-                                flex: 1
-                            }}
-                        >
-                            <Briefcase size={14} /> Proyecto
-                        </button>
-                        <button
-                            type="button"
-                            className={`project-menu-btn ${activeTab === 'ejecucion' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('ejecucion')}
-                            style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                gap: '6px', 
-                                padding: '8px 12px', 
-                                fontSize: '0.95rem', 
-                                fontWeight: 600, 
-                                border: 'none', 
-                                borderRadius: 'var(--radius-md)', 
-                                cursor: 'pointer',
-                                background: activeTab === 'ejecucion' ? 'var(--white)' : 'transparent',
-                                color: activeTab === 'ejecucion' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                boxShadow: activeTab === 'ejecucion' ? 'var(--shadow-sm)' : 'none',
-                                transition: 'all 0.15s',
-                                outline: 'none',
-                                whiteSpace: 'nowrap',
-                                flex: 1
-                            }}
-                        >
-                            <Activity size={14} /> Ejecución
-                        </button>
-                        {isCollaborator && (
+                
+                {/* Folder Tabs row */}
+                <div style={{ display: 'flex', width: '100%', gap: '4px', marginTop: '4px' }}>
+                    {['proyecto', 'ejecucion', 'chat'].map((tab) => {
+                        if (tab === 'chat' && !isCollaborator) return null;
+                        const isActive = activeTab === tab;
+                        return (
                             <button
+                                key={tab}
                                 type="button"
-                                className={`project-menu-btn ${activeTab === 'chat' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('chat')}
-                                style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    gap: '6px', 
-                                    padding: '8px 12px', 
-                                    fontSize: '0.95rem', 
-                                    fontWeight: 600, 
-                                    border: 'none', 
-                                    borderRadius: 'var(--radius-md)', 
+                                onClick={() => setActiveTab(tab)}
+                                style={{
+                                    flex: 1,
+                                    background: isActive ? 'white' : 'transparent',
+                                    color: isActive ? '#0c1b3a' : 'rgba(255, 255, 255, 0.8)',
+                                    border: 'none',
+                                    borderRadius: '8px 8px 0 0',
+                                    padding: '10px 4px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 600,
                                     cursor: 'pointer',
-                                    background: activeTab === 'chat' ? 'var(--white)' : 'transparent',
-                                    color: activeTab === 'chat' ? 'var(--primary-700)' : 'var(--gray-600)',
-                                    boxShadow: activeTab === 'chat' ? 'var(--shadow-sm)' : 'none',
-                                    transition: 'all 0.15s',
-                                    outline: 'none',
-                                    whiteSpace: 'nowrap',
-                                    flex: 1
+                                    textAlign: 'center',
+                                    textTransform: 'lowercase',
+                                    transition: 'all 0.15s ease',
+                                    outline: 'none'
                                 }}
                             >
-                                <MessageSquare size={14} /> Chat
+                                {tab}
                             </button>
-                        )}
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -319,31 +378,92 @@ export default function ProjectDetailPage() {
 
                             {/* Acciones Previstas */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
-                                    <CheckCircle size={16} /> Acciones Previstas
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>
+                                    ACCIONES PREVISTAS
                                 </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
                                     {(!project.accionesPrevistas || project.accionesPrevistas.length === 0) ? (
                                         <p style={{ fontSize: '0.875rem', color: 'var(--gray-400)', fontStyle: 'italic', margin: 0 }}>Sin acciones previstas definidas</p>
                                     ) : (
-                                        project.accionesPrevistas.map((accion, idx) => (
-                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', background: 'var(--gray-50)', padding: '0.4rem 0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
-                                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--gray-600)', lineHeight: 1.4 }}>
-                                                    <Circle size={6} style={{ marginTop: '0.4rem', fill: 'var(--gray-400)', stroke: 'none', minWidth: '6px' }} />
-                                                    <span>{accion}</span>
-                                                </div>
-                                                {canEdit && (
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-secondary btn-sm"
-                                                        style={{ padding: '0.1rem 0.3rem', minWidth: 'auto', color: 'var(--danger)', borderColor: 'var(--danger)', background: 'transparent', fontSize: '10px' }}
-                                                        onClick={() => handleRemoveAccionDirect(idx)}
+                                        project.accionesPrevistas.map((accion, idx) => {
+                                            const { isCompleted, text } = parseAction(accion);
+                                            return (
+                                                <div 
+                                                    key={idx} 
+                                                    style={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'space-between', 
+                                                        gap: '0.75rem', 
+                                                        background: '#f8fafc', 
+                                                        padding: '10px 14px', 
+                                                        borderRadius: '8px', 
+                                                        border: '1px solid #e2e8f0' 
+                                                    }}
+                                                >
+                                                    <div 
+                                                        onClick={() => handleToggleAccion(idx)}
+                                                        style={{ 
+                                                            display: 'flex', 
+                                                            alignItems: 'center', 
+                                                            gap: '12px', 
+                                                            fontSize: '0.9rem', 
+                                                            color: '#334155', 
+                                                            lineHeight: 1.4,
+                                                            cursor: canEdit ? 'pointer' : 'default',
+                                                            flexGrow: 1,
+                                                            userSelect: 'none'
+                                                        }}
                                                     >
-                                                        ✕
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))
+                                                        {isCompleted ? (
+                                                            <div style={{
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%',
+                                                                background: '#10b981',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: 'white',
+                                                                fontSize: '12px',
+                                                                fontWeight: 'bold',
+                                                                flexShrink: 0
+                                                            }}>
+                                                                ✓
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{
+                                                                width: '18px',
+                                                                height: '18px',
+                                                                borderRadius: '4px',
+                                                                border: '2px solid #94a3b8',
+                                                                background: 'white',
+                                                                flexShrink: 0
+                                                            }} />
+                                                        )}
+                                                        <span>{text}</span>
+                                                    </div>
+                                                    {canEdit && (
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-secondary btn-sm"
+                                                            style={{ 
+                                                                padding: '4px 8px', 
+                                                                minWidth: 'auto', 
+                                                                color: '#ef4444', 
+                                                                borderColor: '#fee2e2', 
+                                                                background: '#fef2f2', 
+                                                                fontSize: '11px',
+                                                                borderRadius: '6px'
+                                                            }}
+                                                            onClick={() => handleRemoveAccionDirect(idx)}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
                                     )}
                                 </div>
                                 {canEdit && (
@@ -439,35 +559,202 @@ export default function ProjectDetailPage() {
             {activeTab === 'ejecucion' && (
                 <div className="animate-fadeIn" style={{ padding: 'var(--space-2) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
                     
-                    {/* Timeline (Avances) */}
-                    <div>
+                    {/* Checklist de Avance Card */}
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        padding: '20px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                    }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0c1b3a', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <CheckCircle size={20} style={{ color: '#0c1b3a' }} /> Checklist de Avance
+                        </h3>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {(!project.accionesPrevistas || project.accionesPrevistas.length === 0) ? (
+                                <p style={{ fontSize: '0.9rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
+                                    No hay acciones planificadas en este proyecto.
+                                </p>
+                            ) : (
+                                project.accionesPrevistas.map((accion, aIdx) => {
+                                    const { isCompleted, text, time } = parseAction(accion);
+                                    return (
+                                        <div 
+                                            key={aIdx} 
+                                            onClick={() => handleToggleAccion(aIdx)}
+                                            style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'space-between', 
+                                                padding: '10px 0', 
+                                                borderBottom: '1px solid #f1f5f9',
+                                                cursor: canEdit ? 'pointer' : 'default',
+                                                userSelect: 'none',
+                                                gap: '12px'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexGrow: 1 }}>
+                                                {isCompleted ? (
+                                                    <div style={{
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '50%',
+                                                        background: '#10b981',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: 'white',
+                                                        fontSize: '12px',
+                                                        fontWeight: 'bold',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        ✓
+                                                    </div>
+                                                ) : (
+                                                    <div style={{
+                                                        width: '18px',
+                                                        height: '18px',
+                                                        borderRadius: '50%',
+                                                        border: '2px solid #0d9488',
+                                                        background: 'white',
+                                                        flexShrink: 0
+                                                    }} />
+                                                )}
+                                                <span style={{ 
+                                                    fontSize: '0.92rem', 
+                                                    color: isCompleted ? '#94a3b8' : '#1e293b',
+                                                    textDecoration: isCompleted ? 'line-through' : 'none',
+                                                    transition: 'all 0.2s'
+                                                }}>
+                                                    {text}
+                                                </span>
+                                            </div>
+                                            
+                                            {isCompleted && time && (
+                                                <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }}>
+                                                    {time}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Bitácora de Avance Card */}
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        padding: '20px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                    }}>
                         <div
                             onClick={() => setTimelineExpanded(!timelineExpanded)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', cursor: 'pointer', userSelect: 'none' }}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none', marginBottom: '16px' }}
                         >
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', margin: 0 }}>
-                                <Clock size={18} /> Registro de Avances
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0c1b3a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Clock size={20} style={{ color: '#0c1b3a' }} /> Bitácora de Avance
                             </h3>
-                            {timelineExpanded ? <ChevronUp size={16} style={{ color: 'var(--gray-400)' }} /> : <ChevronDown size={16} style={{ color: 'var(--gray-400)' }} />}
+                            {timelineExpanded ? <ChevronUp size={18} style={{ color: '#64748b' }} /> : <ChevronDown size={18} style={{ color: '#64748b' }} />}
                         </div>
 
                         {timelineExpanded && (
-                            <div style={{ paddingLeft: '0.5rem' }}>
-                                <Timeline entries={project.timeline} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {(!project.timeline || project.timeline.length === 0) ? (
+                                    <p style={{ fontSize: '0.9rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
+                                        No hay avances registrados aún.
+                                    </p>
+                                ) : (
+                                    (() => {
+                                        const grouped = {};
+                                        project.timeline.forEach(e => {
+                                            const d = e.date || new Date().toISOString().split('T')[0];
+                                            if (!grouped[d]) grouped[d] = [];
+                                            grouped[d].push(e);
+                                        });
+                                        const sortedDates = Object.keys(grouped).sort().reverse();
+                                        
+                                        return sortedDates.map(dateStr => (
+                                            <div key={dateStr} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                <div style={{ 
+                                                    fontSize: '0.8rem', 
+                                                    fontWeight: 700, 
+                                                    color: '#64748b', 
+                                                    textTransform: 'uppercase', 
+                                                    letterSpacing: '0.05em' 
+                                                }}>
+                                                    {formatDateHeader(dateStr)}
+                                                </div>
+                                                
+                                                <div style={{ 
+                                                    position: 'relative', 
+                                                    borderLeft: '2px solid #e2e8f0', 
+                                                    marginLeft: '9px', 
+                                                    paddingLeft: '20px', 
+                                                    display: 'flex', 
+                                                    flexDirection: 'column', 
+                                                    gap: '16px' 
+                                                }}>
+                                                    {grouped[dateStr].map((entry, eIdx) => {
+                                                        const { time, content } = parseTimelineText(entry.text);
+                                                        return (
+                                                            <div key={eIdx} style={{ position: 'relative' }}>
+                                                                <div style={{ 
+                                                                    position: 'absolute', 
+                                                                    left: '-29px', 
+                                                                    top: '1px', 
+                                                                    background: 'white', 
+                                                                    borderRadius: '50%', 
+                                                                    padding: '2px', 
+                                                                    zIndex: 1,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}>
+                                                                    <Clock size={15} style={{ color: '#64748b' }} />
+                                                                </div>
+                                                                
+                                                                <div style={{ fontSize: '0.9rem', color: '#334155', lineHeight: 1.4 }}>
+                                                                    {time ? (
+                                                                        <>
+                                                                            <span style={{ fontWeight: 600, color: '#1e293b', marginRight: '6px' }}>{time}</span>
+                                                                            <span style={{ color: '#94a3b8', marginRight: '6px' }}>·</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        entry.date && <span style={{ fontWeight: 600, color: '#1e293b', marginRight: '6px' }}>{entry.date}</span>
+                                                                    )}
+                                                                    <span>{content}</span>
+                                                                    {entry.authorName && (
+                                                                        <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '6px', fontStyle: 'italic' }}>
+                                                                            — {entry.authorName}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ));
+                                    })()
+                                )}
 
                                 {/* Add Timeline entry */}
                                 {(isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN')) && project.status !== 'finalizado' && (
-                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingLeft: '1rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
                                         <input
                                             className="form-input"
                                             placeholder="Escribe y registra un avance..."
                                             value={newEntry}
                                             onChange={e => setNewEntry(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && handleAddEntry()}
-                                            style={{ fontSize: '0.875rem' }}
+                                            style={{ fontSize: '0.875rem', flexGrow: 1 }}
                                         />
-                                        <button className="btn btn-primary btn-sm" onClick={handleAddEntry}>
-                                            <Plus size={14} /> Registrar
+                                        <button className="btn btn-primary btn-sm" onClick={handleAddEntry} style={{ whiteSpace: 'nowrap' }}>
+                                            <Plus size={14} style={{ marginRight: '4px' }} /> Registrar
                                         </button>
                                     </div>
                                 )}
@@ -670,7 +957,20 @@ function ProjectChatSection({ projectId }) {
             </div>
 
             {/* Messages box */}
-            <div ref={containerRef} style={{ flexGrow: 1, height: '350px', overflowY: 'auto', background: 'var(--gray-50)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div ref={containerRef} style={{
+                flexGrow: 1,
+                height: 'calc(100vh - 220px)',
+                minHeight: '350px',
+                overflowY: 'auto',
+                background: '#f4f6f9',
+                padding: '16px',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                paddingBottom: '80px'
+            }}>
                 {messages.length === 0 ? (
                     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)', gap: 'var(--space-2)' }}>
                         <MessageSquare size={32} />
@@ -680,26 +980,45 @@ function ProjectChatSection({ projectId }) {
                     messages.map((m, idx) => {
                         const isMe = Number(m.senderId) === Number(user?.id);
                         return (
-                            <div key={m.id || idx} style={{ display: 'flex', flexDirection: 'column', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%' }}>
-                                <span style={{ fontSize: '10px', color: 'var(--gray-400)', alignSelf: isMe ? 'flex-end' : 'flex-start', marginBottom: '2px', fontWeight: 500 }}>
+                            <div key={m.id || idx} style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                alignSelf: isMe ? 'flex-end' : 'flex-start', 
+                                maxWidth: '75%',
+                                alignItems: isMe ? 'flex-end' : 'flex-start'
+                            }}>
+                                <span style={{ 
+                                    fontSize: '11px', 
+                                    color: '#64748b', 
+                                    marginBottom: '4px', 
+                                    fontWeight: 600,
+                                    paddingLeft: isMe ? '0' : '4px',
+                                    paddingRight: isMe ? '4px' : '0'
+                                }}>
                                     {isMe ? 'Tú' : m.senderName}
                                 </span>
                                 <div style={{
-                                    background: isMe ? 'var(--primary-600)' : 'var(--white)',
-                                    color: isMe ? 'var(--white)' : 'var(--gray-800)',
-                                    padding: 'var(--space-2) var(--space-4)',
+                                    background: isMe ? '#2b76c2' : '#ffffff',
+                                    color: isMe ? '#ffffff' : '#1e293b',
+                                    padding: '10px 14px',
                                     borderRadius: '16px',
                                     borderTopRightRadius: isMe ? '4px' : '16px',
                                     borderTopLeftRadius: isMe ? '16px' : '4px',
-                                    border: isMe ? 'none' : '1px solid var(--gray-200)',
-                                    fontSize: 'var(--font-sm)',
-                                    boxShadow: 'var(--shadow-sm)',
+                                    border: isMe ? 'none' : '1px solid #e2e8f0',
+                                    fontSize: '0.9rem',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                                     wordBreak: 'break-word',
                                     lineHeight: '1.4'
                                 }}>
                                     {m.text}
                                 </div>
-                                <span style={{ fontSize: '8px', color: 'var(--gray-400)', alignSelf: isMe ? 'flex-end' : 'flex-start', marginTop: '2px' }}>
+                                <span style={{ 
+                                    fontSize: '9px', 
+                                    color: '#94a3b8', 
+                                    marginTop: '4px',
+                                    paddingLeft: isMe ? '0' : '4px',
+                                    paddingRight: isMe ? '4px' : '0'
+                                }}>
                                     {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
@@ -708,26 +1027,83 @@ function ProjectChatSection({ projectId }) {
                 )}
             </div>
 
-            {/* Input area */}
-            <form onSubmit={handleSend} style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
-                <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Escribí un mensaje..."
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    disabled={sending}
-                    style={{ flexGrow: 1, fontSize: 'var(--font-sm)' }}
-                />
-                <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={sending || !text.trim()}
-                    style={{ padding: '0 var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                    Enviar
-                </button>
-            </form>
+            {/* Input area fixed to bottom styled like WhatsApp */}
+            <div style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: '#0c1b3a',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                zIndex: 1000,
+                boxShadow: '0 -2px 10px rgba(0,0,0,0.15)'
+            }}>
+                <form onSubmit={handleSend} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '10px', maxWidth: '600px', margin: '0 auto' }}>
+                    <div style={{ position: 'relative', flexGrow: 1 }}>
+                        <input
+                            type="text"
+                            placeholder="Escribir mensaje..."
+                            value={text}
+                            onChange={e => setText(e.target.value)}
+                            disabled={sending}
+                            style={{
+                                width: '100%',
+                                borderRadius: '24px',
+                                border: 'none',
+                                padding: '10px 42px 10px 16px',
+                                fontSize: '0.92rem',
+                                background: 'white',
+                                color: '#333',
+                                outline: 'none',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                        <span style={{
+                            position: 'absolute',
+                            right: '14px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: '#8e8e93',
+                            cursor: 'pointer',
+                            fontSize: '1.2rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            userSelect: 'none'
+                        }}>
+                            📎
+                        </span>
+                    </div>
+                    
+                    <button
+                        type="submit"
+                        disabled={sending || !text.trim()}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: '#2b76c2',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                            boxShadow: 'var(--shadow-sm)',
+                            opacity: text.trim() ? 1 : 0.6,
+                            outline: 'none',
+                            transition: 'opacity 0.2s'
+                        }}
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
