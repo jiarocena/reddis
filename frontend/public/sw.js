@@ -27,23 +27,40 @@ self.addEventListener('push', function(event) {
 });
 
 self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  const urlToOpen = event.notification.data?.url || '/';
+  try {
+    event.notification.close();
+  } catch (err) {
+    console.error('Error closing notification:', err);
+  }
+
+  const urlToOpen = (event.notification && event.notification.data && event.notification.data.url) 
+    ? event.notification.data.url 
+    : '/';
   
+  const targetUrl = new URL(urlToOpen, self.location.origin).href;
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      // Check if window is already open and focus it
-      for (let i = 0; i < clientList.length; i++) {
-        let client = clientList[i];
-        if (client.url.includes(urlToOpen) && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(function(clientList) {
+        // If a window is already open, focus it and navigate to the target URL
+        for (let i = 0; i < clientList.length; i++) {
+          let client = clientList[i];
+          if ('focus' in client) {
+            client.focus();
+            if ('navigate' in client) {
+              return client.navigate(targetUrl);
+            }
+            return;
+          }
         }
-      }
-      // If not open, open a new window
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
+        // If no window is open, open a new one
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+      .catch(function(err) {
+        console.error('Error handling notification click:', err);
+      })
   );
 });
 

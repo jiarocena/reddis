@@ -47,6 +47,16 @@ export default function ProjectDetailPage() {
     const isCollaborator = isAuthenticated && project?.collaborators?.some(c => Number(c.userId) === Number(user?.id));
     const canEdit = isAuthenticated && (isCollaborator || hasRole('REFERENTE') || hasRole('ADMIN'));
 
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const tabParam = queryParams.get('tab');
+        if (tabParam && ['proyecto', 'ejecucion', 'chat'].includes(tabParam)) {
+            if (tabParam !== 'chat' || isCollaborator) {
+                setActiveTab(tabParam);
+            }
+        }
+    }, [location.search, isCollaborator]);
+
     // Autosave handler
     const handleBlur = async (fieldName, currentValue, originalValue) => {
         if (currentValue.trim() !== (originalValue || '').trim()) {
