@@ -10,6 +10,29 @@ export default function MisProyectosPage() {
     const { user } = useAuth();
     const [search, setSearch] = useState('');
 
+    const getProjectImage = (p, barrier) => {
+        if (barrier?.photoBase64) {
+            return barrier.photoBase64;
+        }
+        const titleLower = p.title?.toLowerCase() || '';
+        if (titleLower.includes('rampa') || titleLower.includes('escuela')) {
+            return 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=300&q=80';
+        }
+        if (titleLower.includes('vereda') || titleLower.includes('calle') || titleLower.includes('vía') || titleLower.includes('camino')) {
+            return 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=300&q=80';
+        }
+        if (titleLower.includes('parada') || titleLower.includes('ómnibus') || titleLower.includes('bus') || titleLower.includes('ruta')) {
+            return 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=300&q=80';
+        }
+        if (titleLower.includes('silla') || titleLower.includes('ruedas') || titleLower.includes('motorizada')) {
+            return 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=300&q=80';
+        }
+        if (titleLower.includes('intérprete') || titleLower.includes('lsu') || titleLower.includes('sordos') || titleLower.includes('auditiva')) {
+            return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80';
+        }
+        return 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=300&q=80';
+    };
+
     // Filter projects where current user is a collaborator
     const myCollaborations = projects.filter(p => 
         p.collaborators?.some(c => Number(c.userId) === Number(user?.id))
@@ -80,34 +103,74 @@ export default function MisProyectosPage() {
                 ) : (
                     filtered.map(p => {
                         const barrier = barriers.find(b => String(b.id) === String(p.barrierId));
-                        const lastEntry = p.timeline?.[p.timeline.length - 1];
                         const completedEntries = p.timeline?.filter(t => t.completed).length || 0;
 
                         return (
                             <Link key={p.id} to={`/gestion/proyecto/${p.id}`} style={{ textDecoration: 'none' }}>
-                                <div className="pending-card">
-                                    <div className="pending-card-header">
-                                        <div>
-                                            <h3 style={{ marginBottom: '0.25rem', color: 'var(--gray-900)' }}>{p.title}</h3>
-                                            {barrier && (
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--gray-400)' }}>
-                                                    Barrera: {barrier.title}
+                                <div className="pending-card" style={{ padding: '12px', borderRadius: '16px' }}>
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                        <img 
+                                            src={getProjectImage(p, barrier)} 
+                                            alt={p.title} 
+                                            style={{ 
+                                                width: '110px', 
+                                                height: '110px', 
+                                                borderRadius: '8px', 
+                                                objectFit: 'cover', 
+                                                flexShrink: 0 
+                                            }} 
+                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', fontWeight: 600 }}>Proyecto</span>
+                                                <span style={{ 
+                                                    fontSize: '0.65rem', 
+                                                    fontWeight: 800, 
+                                                    padding: '2px 8px', 
+                                                    borderRadius: '6px', 
+                                                    textTransform: 'uppercase',
+                                                    background: p.status === 'iniciando' ? '#eff6ff' : p.status === 'en-proceso' ? '#fef9c3' : p.status === 'finalizado' ? '#d1fae5' : '#fee2e2',
+                                                    color: p.status === 'iniciando' ? '#1d4ed8' : p.status === 'en-proceso' ? '#a16207' : p.status === 'finalizado' ? '#065f46' : '#991b1b'
+                                                }}>
+                                                    {PROJECT_STATUSES[p.status]?.label.toUpperCase()}
                                                 </span>
-                                            )}
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', flexShrink: 0, alignItems: 'flex-start' }}>
-                                            <span className={`badge badge-${p.status}`}>
-                                                {PROJECT_STATUSES[p.status]?.label}
-                                            </span>
+                                            </div>
+                                            <h3 style={{ 
+                                                margin: '0 0 2px 0', 
+                                                fontSize: '0.95rem', 
+                                                fontWeight: 800, 
+                                                color: 'var(--gray-900)', 
+                                                lineHeight: 1.25,
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}>
+                                                {p.title}
+                                            </h3>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--gray-500)', fontSize: '0.75rem', marginBottom: '2px' }}>
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--gray-400)' }}>📍</span>
+                                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    Ubicación: {barrier?.address || 'Sin dirección'}
+                                                </span>
+                                            </div>
+                                            <p style={{ 
+                                                margin: 0, 
+                                                fontSize: '0.7rem', 
+                                                color: 'var(--gray-500)', 
+                                                lineHeight: 1.35, 
+                                                display: '-webkit-box', 
+                                                WebkitLineClamp: 3, 
+                                                WebkitBoxOrient: 'vertical', 
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}>
+                                                Descripción: {p.description || 'Sin descripción'}
+                                            </p>
                                         </div>
                                     </div>
 
-                                    <p style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
-                                        {p.description?.substring(0, 120)}{p.description?.length > 120 ? '...' : ''}
-                                    </p>
-
                                     {/* Quick stats */}
-                                    <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', marginBottom: '0.5rem', fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                                    <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--gray-500)' }}>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Users size={12} /> {p.collaborators?.length || 0} colaboradores
                                         </span>
@@ -115,7 +178,6 @@ export default function MisProyectosPage() {
                                             <CheckCircle size={12} /> {completedEntries}/{p.timeline?.length || 0} hitos
                                         </span>
                                     </div>
-
                                 </div>
                             </Link>
                         );
