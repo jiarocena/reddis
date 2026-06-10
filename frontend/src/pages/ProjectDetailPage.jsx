@@ -306,8 +306,8 @@ export default function ProjectDetailPage() {
 
                             {/* Descripción */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
-                                    <Package size={16} /> Descripción
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: 700, color: '#0c1b3a', marginBottom: 'var(--space-2)' }}>
+                                    Descripción
                                     {canEdit && !isEditingDesc && (
                                         <button
                                             className="btn btn-secondary btn-sm"
@@ -342,8 +342,8 @@ export default function ProjectDetailPage() {
 
                             {/* Objetivo */}
                             <div>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 600, color: 'var(--gray-800)', marginBottom: 'var(--space-2)' }}>
-                                    <Target size={16} /> Objetivo
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: 700, color: '#0c1b3a', marginBottom: 'var(--space-2)' }}>
+                                    Objetivo
                                     {canEdit && !isEditingObj && (
                                         <button
                                             className="btn btn-secondary btn-sm"
@@ -402,7 +402,6 @@ export default function ProjectDetailPage() {
                                                     }}
                                                 >
                                                     <div 
-                                                        onClick={() => handleToggleAccion(idx)}
                                                         style={{ 
                                                             display: 'flex', 
                                                             alignItems: 'center', 
@@ -410,7 +409,7 @@ export default function ProjectDetailPage() {
                                                             fontSize: '0.9rem', 
                                                             color: '#334155', 
                                                             lineHeight: 1.4,
-                                                            cursor: canEdit ? 'pointer' : 'default',
+                                                            cursor: 'default',
                                                             flexGrow: 1,
                                                             userSelect: 'none'
                                                         }}
