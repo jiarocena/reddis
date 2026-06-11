@@ -13,6 +13,10 @@ export default function BottomNav() {
 
     return (
         <nav className="bottom-nav">
+            <div className="sidebar-logo">
+                <span className="logo-yellow">REDDIS</span>
+                <span className="logo-white">Comunidad</span>
+            </div>
             <NavLink to="/" end className="bottom-nav-item">
                 <Home size={20} />
                 <span>Inicio</span>

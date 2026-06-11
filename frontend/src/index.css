@@ -3569,19 +3569,100 @@ a.step-card:hover {
 /* Desktop adjustments */
 @media (min-width: 768px) {
   .bottom-nav {
-    max-width: 480px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    border: 1px solid var(--gray-200);
-    border-bottom: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 250px;
+    height: 100vh;
+    z-index: 1000;
+    background: #0f1d32;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 30px 16px;
+    gap: 12px;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+    transform: none;
+    max-width: none;
+    border-radius: 0;
+  }
+
+  .bottom-nav-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 12px 18px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 0;
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  .bottom-nav-item span {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .bottom-nav-item.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+  }
+
+  .bottom-nav-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .sidebar-logo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+    padding: 0 10px;
+    line-height: 1.1;
+  }
+
+  .sidebar-logo .logo-yellow {
+    font-size: 1.50rem;
+    font-weight: 800;
+    color: var(--accent-400);
+    letter-spacing: 0.05em;
+  }
+
+  .sidebar-logo .logo-white {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .app-main.has-bottom-nav {
+    padding-left: 250px;
+    padding-bottom: 0;
+  }
+
+  .top-bar {
+    left: 250px;
   }
 
   .barreras-page {
-    max-width: 1200px;
-    margin: 0 auto;
+    height: calc(100vh - 68px);
+    max-width: none;
+    margin: 0;
     width: 100%;
   }
+}
+
+.sidebar-logo {
+  display: none;
 }
 
 /* =========================================
