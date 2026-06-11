@@ -109,6 +109,7 @@ public class ReddisAdminController {
     }
 
     @PutMapping("/role-requests/{id}/approve")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> approveRoleRequest(@PathVariable Long id,
             @RequestHeader("Authorization") String authHeader) {
         RoleRequest req = roleRequestRepo.findById(id).orElse(null);
@@ -352,6 +353,7 @@ public class ReddisAdminController {
     }
 
     @PostMapping("/projects/{projectId}/collaborators")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> addProjectCollaborator(@PathVariable Long projectId,
             @RequestBody Map<String, Object> body) {
         Optional<Proyecto> projOpt = proyectoRepo.findById(projectId);

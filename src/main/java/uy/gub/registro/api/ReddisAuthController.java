@@ -250,6 +250,7 @@ public class ReddisAuthController {
     // ═══════ REQUEST ROLE ═══════
 
     @PostMapping("/role-request")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> requestRole(@RequestHeader("Authorization") String authHeader,
             @RequestBody Map<String, String> body) {
         String token = authHeader.substring(7);
@@ -321,7 +322,13 @@ public class ReddisAuthController {
 
         System.out.println("📋 AUTO-APROBACIÓN DE ROL: " + usuario.getNombreCompleto() + " (" + usuario.getEmail() + ") → COLABORADOR");
 
-        return ResponseEntity.ok(Map.of("message", "¡Te sumaste al proyecto como colaborador exitosamente!"));
+        // Generate a new token with the updated role so the user doesn't have to re-login to get permissions
+        String newToken = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), usuario.getId());
+
+        return ResponseEntity.ok(Map.of(
+            "message", "¡Te sumaste al proyecto como colaborador exitosamente!",
+            "token", newToken
+        ));
     }
 
     // ═══════ HELPERS ═══════

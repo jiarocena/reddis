@@ -75,6 +75,10 @@ export function AuthProvider({ children }) {
 
     const requestCollaboratorRole = useCallback(async (message, organization, motive) => {
         const result = await api.requestRole(message, organization, motive);
+        if (result && result.token) {
+            localStorage.setItem('reddis_token', result.token);
+            setToken(result.token);
+        }
         await refreshUser();
         return result;
     }, [refreshUser]);
