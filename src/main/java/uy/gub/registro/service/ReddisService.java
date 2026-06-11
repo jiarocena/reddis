@@ -140,26 +140,29 @@ public class ReddisService {
     @Transactional
     public void ensureProyectosForPublicBarreras() {
         List<Barrera> publicBarreras = barreraRepository.findByIsPublicTrueOrderByCreatedAtDesc();
+        if (publicBarreras.isEmpty()) return;
+
+        List<Long> barrierIdsWithProject = proyectoRepository.findAllBarrierIdsWithProject();
+        Set<Long> existingIds = new HashSet<>(barrierIdsWithProject);
+
         for (Barrera b : publicBarreras) {
-            if (Boolean.TRUE.equals(b.getApproved())) {
-                if (proyectoRepository.findByBarreraId(b.getId()).isEmpty()) {
-                    Proyecto proyecto = Proyecto.builder()
-                            .title(b.getTitle())
-                            .description(b.getDescription())
-                            .status(b.getStatus() != null ? b.getStatus() : "denuncia")
-                            .barrera(b)
-                            .build();
-                    Proyecto saved = proyectoRepository.save(proyecto);
-                    
-                    // Create initial timeline entry
-                    TimelineEntry initial = TimelineEntry.builder()
-                            .date(LocalDate.now())
-                            .text("Proyecto creado - " + proyecto.getTitle())
-                            .completed(true)
-                            .proyecto(saved)
-                            .build();
-                    timelineEntryRepository.save(initial);
-                }
+            if (Boolean.TRUE.equals(b.getApproved()) && !existingIds.contains(b.getId())) {
+                Proyecto proyecto = Proyecto.builder()
+                        .title(b.getTitle())
+                        .description(b.getDescription())
+                        .status(b.getStatus() != null ? b.getStatus() : "denuncia")
+                        .barrera(b)
+                        .build();
+                Proyecto saved = proyectoRepository.save(proyecto);
+                
+                // Create initial timeline entry
+                TimelineEntry initial = TimelineEntry.builder()
+                        .date(LocalDate.now())
+                        .text("Proyecto creado - " + proyecto.getTitle())
+                        .completed(true)
+                        .proyecto(saved)
+                        .build();
+                timelineEntryRepository.save(initial);
             }
         }
     }

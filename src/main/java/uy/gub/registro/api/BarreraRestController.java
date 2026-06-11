@@ -146,7 +146,7 @@ public class BarreraRestController {
 
     @GetMapping("/stats")
     public Map<String, Object> stats() {
-        return reddisService.obtenerEstadisticas();
+        return Map.of("status", "UP");
     }
 
     @GetMapping("/departamentos")

@@ -12,4 +12,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     List<Proyecto> findByStatus(String status);
 
     long countByStatus(String status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p.barrera.id FROM Proyecto p WHERE p.barrera IS NOT NULL")
+    List<Long> findAllBarrierIdsWithProject();
 }
