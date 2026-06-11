@@ -224,8 +224,8 @@ export async function fetchStats() {
 
 export async function checkBackendHealth() {
     try {
-        await fetch(`${API_BASE}/stats`, { method: 'GET' });
-        return true;
+        const res = await fetch(`${API_BASE}/stats`, { method: 'GET' });
+        return res.ok;
     } catch {
         return false;
     }
