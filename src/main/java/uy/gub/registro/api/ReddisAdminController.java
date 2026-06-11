@@ -20,15 +20,18 @@ public class ReddisAdminController {
     private final JwtUtil jwtUtil;
     private final ProyectoRepository proyectoRepo;
     private final ColaboradorRepository colaboradorRepo;
+    private final ChatMessageRepository chatMessageRepo;
 
     public ReddisAdminController(BarreraRepository barreraRepo, RoleRequestRepository roleRequestRepo,
-            UsuarioRepository usuarioRepo, JwtUtil jwtUtil, ProyectoRepository proyectoRepo, ColaboradorRepository colaboradorRepo) {
+            UsuarioRepository usuarioRepo, JwtUtil jwtUtil, ProyectoRepository proyectoRepo, 
+            ColaboradorRepository colaboradorRepo, ChatMessageRepository chatMessageRepo) {
         this.barreraRepo = barreraRepo;
         this.roleRequestRepo = roleRequestRepo;
         this.usuarioRepo = usuarioRepo;
         this.jwtUtil = jwtUtil;
         this.proyectoRepo = proyectoRepo;
         this.colaboradorRepo = colaboradorRepo;
+        this.chatMessageRepo = chatMessageRepo;
     }
 
     // ═══════ PENDING BARRIERS ═══════
@@ -302,7 +305,10 @@ public class ReddisAdminController {
         proyectoRepo.findAll().stream()
                 .filter(p -> p.getBarrera() != null && p.getBarrera().getId().equals(id))
                 .findFirst()
-                .ifPresent(proyectoRepo::delete);
+                .ifPresent(p -> {
+                    chatMessageRepo.deleteAll(chatMessageRepo.findByProyectoIdOrderByCreatedAtAsc(p.getId()));
+                    proyectoRepo.delete(p);
+                });
 
         barreraRepo.delete(b);
         System.out.println("🗑️ BARRERA ELIMINADA: #" + id);
@@ -323,6 +329,9 @@ public class ReddisAdminController {
             b.setStatus("denuncia");
             barreraRepo.save(b);
         }
+
+        // Delete associated chat messages first to avoid constraint violations
+        chatMessageRepo.deleteAll(chatMessageRepo.findByProyectoIdOrderByCreatedAtAsc(p.getId()));
 
         proyectoRepo.delete(p);
         System.out.println("🗑️ PROYECTO ELIMINADO: #" + id);
