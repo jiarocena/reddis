@@ -16,11 +16,16 @@ export function AuthProvider({ children }) {
                     setUser(data);
                     setLoading(false);
                 })
-                .catch(() => {
-                    // Token invalid/expired
-                    localStorage.removeItem('reddis_token');
-                    setToken(null);
-                    setUser(null);
+                .catch((err) => {
+                    const msg = err?.message || '';
+                    if (msg.includes('autorización') || msg.includes('401') || msg.includes('403')) {
+                        // Token invalid/expired - clear it
+                        localStorage.removeItem('reddis_token');
+                        setToken(null);
+                        setUser(null);
+                    } else {
+                        console.warn('Fallo temporal al conectar con el servidor en el inicio. Conservando token.');
+                    }
                     setLoading(false);
                 });
         } else {
@@ -58,8 +63,13 @@ export function AuthProvider({ children }) {
         try {
             const data = await api.fetchMe();
             setUser(data);
-        } catch {
-            logout();
+        } catch (err) {
+            const msg = err?.message || '';
+            if (msg.includes('autorización') || msg.includes('401') || msg.includes('403')) {
+                logout();
+            } else {
+                console.warn('Fallo temporal al refrescar usuario (omitido deslogueo):', err);
+            }
         }
     }, [token, logout]);
 

@@ -37,10 +37,17 @@ public class JwtFilter extends OncePerRequestFilter {
                 String username = jwtUtil.getUsername(token);
                 Long userId = jwtUtil.getUserId(token);
 
-                // Fetch the actual current role from database to support real-time role changes
-                String role = usuarioRepo.findById(userId)
-                        .map(Usuario::getRol)
-                        .orElseGet(() -> jwtUtil.getRole(token));
+                // Fetch the actual current role from database to support real-time role changes.
+                // Fall back to token's role if database connection fails/times out.
+                String role;
+                try {
+                    role = usuarioRepo.findById(userId)
+                            .map(Usuario::getRol)
+                            .orElseGet(() -> jwtUtil.getRole(token));
+                } catch (Exception e) {
+                    logger.warn("Error al consultar el rol del usuario en la BD, se usa el rol del token JWT: " + e.getMessage());
+                    role = jwtUtil.getRole(token);
+                }
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         username, null,
