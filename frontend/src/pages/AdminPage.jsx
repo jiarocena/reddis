@@ -4,7 +4,7 @@ import { useData } from '../context/DataContext';
 import { CATEGORIES, PROJECT_STATUSES } from '../data/seedData';
 import {
     Shield, BarChart3, AlertTriangle, CheckCircle, Users,
-    RefreshCw, Eye, Search, Filter, Trash2, MailCheck, Briefcase
+    RefreshCw, Eye, Search, Filter, Trash2, MailCheck, Briefcase, MapPin, MessageSquare
 } from 'lucide-react';
 import * as api from '../api/api';
 
@@ -12,6 +12,8 @@ export default function AdminPage() {
     const { barriers, projects, stats, resetData, deleteBarrier, deleteProject, backendAvailable, showToast, loading } = useData();
 
     const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'barriers' | 'projects' | 'users'
+    const [loggedTimeFilter, setLoggedTimeFilter] = useState('dia');
+    const [guestTimeFilter, setGuestTimeFilter] = useState('dia');
 
     // Lists and filters
     const [barrierSearch, setBarrierSearch] = useState('');
@@ -53,7 +55,7 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        if (activeTab === 'users') {
+        if (activeTab === 'users' || activeTab === 'dashboard') {
             loadUsers();
         }
     }, [activeTab, backendAvailable]);
@@ -213,7 +215,7 @@ export default function AdminPage() {
                         </div>
 
                         {/* Distributions */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                             <div className="card">
                                 <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Por Categoría</h3>
                                 {barriersByCategory.map(cat => (
@@ -237,6 +239,93 @@ export default function AdminPage() {
                                         <strong style={{ fontSize: '0.875rem' }}>{st.count}</strong>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Application Usage Metrics Section */}
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '2rem 0 1rem', color: 'var(--gray-900)' }}>
+                            Métricas de Uso de la Aplicación
+                        </h2>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(325px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                            {/* Chart 1: Logged-in Users */}
+                            <div className="card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Users size={18} style={{ color: 'var(--primary-500)' }} />
+                                        Usuarios Logueados
+                                    </h3>
+                                    <div style={{ display: 'flex', background: 'var(--gray-100)', padding: '2px', borderRadius: 'var(--radius-md)' }}>
+                                        {['dia', 'semana', 'mes', 'ano'].map(key => (
+                                            <button
+                                                key={key}
+                                                onClick={() => setLoggedTimeFilter(key)}
+                                                style={{
+                                                    padding: '4px 10px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    background: loggedTimeFilter === key ? 'var(--white)' : 'transparent',
+                                                    color: loggedTimeFilter === key ? 'var(--primary-600)' : 'var(--gray-500)',
+                                                    boxShadow: loggedTimeFilter === key ? 'var(--shadow-sm)' : 'none',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {key === 'dia' ? 'Día' : key === 'semana' ? 'Semana' : key === 'mes' ? 'Mes' : 'Año'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <TimeSeriesChart data={LOGGED_IN_DATA[loggedTimeFilter]} colorTheme="primary" />
+                            </div>
+
+                            {/* Chart 2: Guest Users */}
+                            <div className="card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Eye size={18} style={{ color: 'var(--accent-500)' }} />
+                                        Usuarios No Logueados (Invitados)
+                                    </h3>
+                                    <div style={{ display: 'flex', background: 'var(--gray-100)', padding: '2px', borderRadius: 'var(--radius-md)' }}>
+                                        {['dia', 'semana', 'mes', 'ano'].map(key => (
+                                            <button
+                                                key={key}
+                                                onClick={() => setGuestTimeFilter(key)}
+                                                style={{
+                                                    padding: '4px 10px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    background: guestTimeFilter === key ? 'var(--white)' : 'transparent',
+                                                    color: guestTimeFilter === key ? 'var(--accent-600)' : 'var(--gray-500)',
+                                                    boxShadow: guestTimeFilter === key ? 'var(--shadow-sm)' : 'none',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {key === 'dia' ? 'Día' : key === 'semana' ? 'Semana' : key === 'mes' ? 'Mes' : 'Año'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <TimeSeriesChart data={GUEST_DATA[guestTimeFilter]} colorTheme="accent" />
+                            </div>
+
+                            {/* Chart 3: Feature Usage Frequency */}
+                            <div className="card">
+                                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <BarChart3 size={18} style={{ color: 'var(--success-500)' }} />
+                                    Uso de cada Funcionalidad
+                                </h3>
+                                <FeatureUsageChart />
+                            </div>
+
+                            {/* Chart 4: Usage per User */}
+                            <div className="card">
+                                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Users size={18} style={{ color: 'var(--accent-600)' }} />
+                                    Uso por Usuario
+                                </h3>
+                                <UserActivityRanking usersList={usersList} />
                             </div>
                         </div>
                     </div>
@@ -526,6 +615,456 @@ export default function AdminPage() {
                     </>
                 )}
             </div>
+        </div>
+    );
+}
+
+// ============================================================
+// Internal Custom Chart Components & Mock Datasets (Analytics)
+// ============================================================
+
+const LOGGED_IN_DATA = {
+    dia: [
+        { label: '00:00', value: 8 }, { label: '03:00', value: 3 }, { label: '06:00', value: 12 },
+        { label: '09:00', value: 34 }, { label: '12:00', value: 65 }, { label: '15:00', value: 48 },
+        { label: '18:00', value: 72 }, { label: '21:00', value: 45 }
+    ],
+    semana: [
+        { label: 'Lun', value: 58 }, { label: 'Mar', value: 64 }, { label: 'Mié', value: 89 },
+        { label: 'Jue', value: 76 }, { label: 'Vie', value: 95 }, { label: 'Sáb', value: 110 },
+        { label: 'Dom', value: 82 }
+    ],
+    mes: [
+        { label: 'Sem 1', value: 240 }, { label: 'Sem 2', value: 310 },
+        { label: 'Sem 3', value: 395 }, { label: 'Sem 4', value: 460 }
+    ],
+    ano: [
+        { label: 'Ene', value: 320 }, { label: 'Feb', value: 410 }, { label: 'Mar', value: 550 },
+        { label: 'Abr', value: 680 }, { label: 'May', value: 850 }, { label: 'Jun', value: 1020 },
+        { label: 'Jul', value: 1150 }, { label: 'Ago', value: 1210 }, { label: 'Sep', value: 1350 },
+        { label: 'Oct', value: 1500 }, { label: 'Nov', value: 1780 }, { label: 'Dic', value: 2150 }
+    ]
+};
+
+const GUEST_DATA = {
+    dia: [
+        { label: '00:00', value: 18 }, { label: '03:00', value: 8 }, { label: '06:00', value: 22 },
+        { label: '09:00', value: 89 }, { label: '12:00', value: 145 }, { label: '15:00', value: 120 },
+        { label: '18:00', value: 168 }, { label: '21:00', value: 98 }
+    ],
+    semana: [
+        { label: 'Lun', value: 140 }, { label: 'Mar', value: 168 }, { label: 'Mié', value: 215 },
+        { label: 'Jue', value: 190 }, { label: 'Vie', value: 260 }, { label: 'Sáb', value: 290 },
+        { label: 'Dom', value: 198 }
+    ],
+    mes: [
+        { label: 'Sem 1', value: 650 }, { label: 'Sem 2', value: 890 },
+        { label: 'Sem 3', value: 1050 }, { label: 'Sem 4', value: 1220 }
+    ],
+    ano: [
+        { label: 'Ene', value: 1450 }, { label: 'Feb', value: 1920 }, { label: 'Mar', value: 2450 },
+        { label: 'Abr', value: 2900 }, { label: 'May', value: 3600 }, { label: 'Jun', value: 4150 },
+        { label: 'Jul', value: 4600 }, { label: 'Ago', value: 4850 }, { label: 'Sep', value: 5400 },
+        { label: 'Oct', value: 5900 }, { label: 'Nov', value: 6800 }, { label: 'Dic', value: 7900 }
+    ]
+};
+
+function TimeSeriesChart({ data, colorTheme = 'primary' }) {
+    const [hoveredIndex, setHoveredIndex] = useState(null);
+
+    const config = {
+        primary: {
+            stroke: 'var(--primary-500)',
+            fillGradStart: 'rgba(45, 90, 184, 0.4)',
+            fillGradEnd: 'rgba(45, 90, 184, 0.0)',
+            dotColor: 'var(--primary-600)'
+        },
+        accent: {
+            stroke: 'var(--accent-500)',
+            fillGradStart: 'rgba(245, 158, 11, 0.4)',
+            fillGradEnd: 'rgba(245, 158, 11, 0.0)',
+            dotColor: 'var(--accent-600)'
+        }
+    }[colorTheme];
+
+    if (!data || data.length === 0) return null;
+
+    const margin = { top: 20, right: 15, bottom: 30, left: 35 };
+    const width = 500;
+    const height = 220;
+
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+
+    const values = data.map(d => d.value);
+    const maxValue = Math.max(...values, 10);
+    const minValue = 0;
+    const valueRange = maxValue - minValue;
+
+    const points = data.map((d, i) => {
+        const x = margin.left + (i / (data.length - 1)) * chartWidth;
+        const y = margin.top + chartHeight - ((d.value - minValue) / valueRange) * chartHeight;
+        return { x, y, label: d.label, value: d.value };
+    });
+
+    let linePathStr = '';
+    let areaPathStr = '';
+
+    if (points.length > 0) {
+        linePathStr = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+        areaPathStr = `${linePathStr} L ${points[points.length - 1].x} ${margin.top + chartHeight} L ${points[0].x} ${margin.top + chartHeight} Z`;
+    }
+
+    const yGridCount = 4;
+    const yGridLines = Array.from({ length: yGridCount + 1 }).map((_, i) => {
+        const val = minValue + (i / yGridCount) * valueRange;
+        const y = margin.top + chartHeight - (i / yGridCount) * chartHeight;
+        return { y, value: Math.round(val) };
+    });
+
+    return (
+        <div style={{ position: 'relative', width: '100%', height: `${height}px` }}>
+            <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="100%" style={{ overflow: 'visible' }}>
+                <defs>
+                    <linearGradient id={`grad-${colorTheme}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={config.fillGradStart} />
+                        <stop offset="100%" stopColor={config.fillGradEnd} />
+                    </linearGradient>
+                </defs>
+
+                {/* Y Grid Lines */}
+                {yGridLines.map((line, i) => (
+                    <g key={i}>
+                        <line 
+                            x1={margin.left} 
+                            y1={line.y} 
+                            x2={width - margin.right} 
+                            y2={line.y} 
+                            stroke="var(--gray-100)" 
+                            strokeDasharray="4 4" 
+                        />
+                        <text 
+                            x={margin.left - 8} 
+                            y={line.y + 4} 
+                            textAnchor="end" 
+                            fontSize="10" 
+                            fill="var(--gray-400)"
+                            fontWeight="600"
+                        >
+                            {line.value}
+                        </text>
+                    </g>
+                ))}
+
+                {/* X Labels */}
+                {points.map((p, i) => (
+                    <text 
+                        key={i} 
+                        x={p.x} 
+                        y={height - 10} 
+                        textAnchor="middle" 
+                        fontSize="10" 
+                        fill="var(--gray-400)"
+                        fontWeight="600"
+                    >
+                        {p.label}
+                    </text>
+                ))}
+
+                {/* Fill Area */}
+                {areaPathStr && (
+                    <path 
+                        d={areaPathStr} 
+                        fill={`url(#grad-${colorTheme})`} 
+                    />
+                )}
+
+                {/* Stroke Line */}
+                {linePathStr && (
+                    <path 
+                        d={linePathStr} 
+                        fill="none" 
+                        stroke={config.stroke} 
+                        strokeWidth="3" 
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                )}
+
+                {/* Hover Trigger Areas */}
+                {points.map((p, i) => {
+                    const barWidth = chartWidth / data.length;
+                    return (
+                        <rect
+                            key={i}
+                            x={p.x - barWidth / 2}
+                            y={margin.top}
+                            width={barWidth}
+                            height={chartHeight}
+                            fill="transparent"
+                            style={{ cursor: 'pointer' }}
+                            onMouseEnter={() => setHoveredIndex(i)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                        />
+                    );
+                })}
+
+                {/* Vertical Cursor & Highlight Dot */}
+                {hoveredIndex !== null && points[hoveredIndex] && (
+                    <g>
+                        <line 
+                            x1={points[hoveredIndex].x} 
+                            y1={margin.top} 
+                            x2={points[hoveredIndex].x} 
+                            y2={margin.top + chartHeight} 
+                            stroke="var(--gray-300)" 
+                            strokeWidth="1.5" 
+                            strokeDasharray="2 2"
+                        />
+                        <circle 
+                            cx={points[hoveredIndex].x} 
+                            cy={points[hoveredIndex].y} 
+                            r="6" 
+                            fill={config.dotColor} 
+                            stroke="var(--white)" 
+                            strokeWidth="2"
+                        />
+                    </g>
+                )}
+            </svg>
+
+            {/* Float Tooltip */}
+            {hoveredIndex !== null && points[hoveredIndex] && (
+                <div style={{
+                    position: 'absolute',
+                    left: `${(points[hoveredIndex].x / width) * 100}%`,
+                    top: `${(points[hoveredIndex].y / height) * 100 - 45}%`,
+                    transform: 'translateX(-50%)',
+                    background: 'var(--gray-900)',
+                    color: 'var(--white)',
+                    padding: '6px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    pointerEvents: 'none',
+                    boxShadow: 'var(--shadow-lg)',
+                    whiteSpace: 'nowrap',
+                    zIndex: 10
+                }}>
+                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px', fontWeight: 'normal', textTransform: 'uppercase', marginBottom: '2px' }}>
+                        {points[hoveredIndex].label}
+                    </div>
+                    <div>{points[hoveredIndex].value} usuarios</div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function FeatureUsageChart() {
+    const features = [
+        { name: 'Mapa y Consulta de Barreras', value: 1420, percentage: 54, color: 'var(--primary-500)', icon: 'map' },
+        { name: 'Registro / Denuncia de Barreras', value: 348, percentage: 13, color: 'var(--barrier-actitudinal)', icon: 'report' },
+        { name: 'Colaboración en Proyectos', value: 284, percentage: 11, color: 'var(--status-iniciando)', icon: 'project' },
+        { name: 'Chat y Mensajería de Proyectos', value: 512, percentage: 19, color: 'var(--barrier-comunicacional)', icon: 'chat' },
+        { name: 'Consola de Administración', value: 96, percentage: 3, color: 'var(--primary-700)', icon: 'admin' }
+    ];
+
+    const getIcon = (type) => {
+        switch (type) {
+            case 'map': return <MapPin size={16} style={{ color: 'var(--primary-500)' }} />;
+            case 'report': return <AlertTriangle size={16} style={{ color: 'var(--barrier-actitudinal)' }} />;
+            case 'project': return <Briefcase size={16} style={{ color: 'var(--status-iniciando)' }} />;
+            case 'chat': return <MessageSquare size={16} style={{ color: 'var(--barrier-comunicacional)' }} />;
+            case 'admin': return <Shield size={16} style={{ color: 'var(--primary-700)' }} />;
+            default: return null;
+        }
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.25rem 0' }}>
+            {features.map((f, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {getIcon(f.icon)}
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)' }}>{f.name}</span>
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-500)' }}>
+                            <strong style={{ color: 'var(--gray-800)' }}>{f.value}</strong> <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>({f.percentage}%)</span>
+                        </div>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: 'var(--gray-100)', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div 
+                            style={{ 
+                                height: '100%', 
+                                width: `${f.percentage}%`, 
+                                background: f.color, 
+                                borderRadius: '999px',
+                                transition: 'width 1s ease-out'
+                            }} 
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function UserActivityRanking({ usersList }) {
+    const [viewAll, setViewAll] = useState(false);
+
+    // Dynamic generation based on real loaded system users
+    const getActivities = () => {
+        const defaultUsers = [
+            { id: 101, nombre: 'Administrador General', email: 'admin@reddis.gub.uy', rol: 'ADMIN' },
+            { id: 102, nombre: 'Referente Canelones', email: 'referente.canelones@reddis.gub.uy', rol: 'REFERENTE' },
+            { id: 103, nombre: 'Colaborador Fray Bentos', email: 'colab.fraybentos@reddis.gub.uy', rol: 'COLABORADOR' },
+            { id: 104, nombre: 'María Inés', email: 'maria.ines@gmail.com', rol: 'CIUDADANO' },
+            { id: 105, nombre: 'José Pedro', email: 'jose.pedro@hotmail.com', rol: 'CIUDADANO' },
+            { id: 106, nombre: 'Juan Pérez', email: 'juan.perez@gmail.com', rol: 'CIUDADANO' }
+        ];
+
+        const uniqueEmails = new Set();
+        const merged = [];
+
+        if (usersList && usersList.length > 0) {
+            usersList.forEach(u => {
+                if (u.email && !uniqueEmails.has(u.email.toLowerCase())) {
+                    uniqueEmails.add(u.email.toLowerCase());
+                    merged.push({
+                        id: u.id,
+                        nombre: u.nombre || u.nombreCompleto || u.email.split('@')[0],
+                        email: u.email,
+                        rol: u.rol || 'CIUDADANO'
+                    });
+                }
+            });
+        }
+
+        defaultUsers.forEach(u => {
+            if (!uniqueEmails.has(u.email.toLowerCase())) {
+                uniqueEmails.add(u.email.toLowerCase());
+                merged.push(u);
+            }
+        });
+
+        return merged.map((u, index) => {
+            const hash = u.id || index;
+            const baseActions = 25 + (hash % 17) * 9 + (u.rol === 'ADMIN' ? 60 : u.rol === 'REFERENTE' ? 40 : 15);
+            
+            let breakdown = [0.4, 0.2, 0.2, 0.1, 0.1];
+            if (u.rol === 'ADMIN') {
+                breakdown = [0.15, 0.1, 0.2, 0.25, 0.3];
+            } else if (u.rol === 'REFERENTE') {
+                breakdown = [0.2, 0.2, 0.35, 0.2, 0.05];
+            } else if (u.rol === 'COLABORADOR') {
+                breakdown = [0.3, 0.25, 0.3, 0.15, 0.0];
+            }
+
+            const actions = {
+                map: Math.round(baseActions * breakdown[0]),
+                report: Math.round(baseActions * breakdown[1]),
+                projects: Math.round(baseActions * breakdown[2]),
+                chat: Math.round(baseActions * breakdown[3]),
+                admin: Math.round(baseActions * breakdown[4])
+            };
+            
+            const total = actions.map + actions.report + actions.projects + actions.chat + actions.admin;
+
+            return {
+                ...u,
+                actions,
+                total
+            };
+        }).sort((a, b) => b.total - a.total);
+    };
+
+    const activities = getActivities();
+    const visibleActivities = viewAll ? activities : activities.slice(0, 5);
+
+    return (
+        <div className="admin-table" style={{ border: 'none', background: 'transparent' }}>
+            <table style={{ width: '100%' }}>
+                <thead>
+                    <tr style={{ borderBottom: '2px solid var(--gray-100)' }}>
+                        <th style={{ background: 'transparent', padding: '0.75rem 0.5rem', width: '50px' }}>Rank</th>
+                        <th style={{ background: 'transparent', padding: '0.75rem 0.5rem' }}>Usuario</th>
+                        <th style={{ background: 'transparent', padding: '0.75rem 0.5rem', textAlign: 'center', width: '80px' }}>Acciones</th>
+                        <th style={{ background: 'transparent', padding: '0.75rem 0.5rem', width: '160px' }}>Frecuencia de Uso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {visibleActivities.map((user, idx) => {
+                        const mapPct = user.total ? (user.actions.map / user.total) * 100 : 0;
+                        const reportPct = user.total ? (user.actions.report / user.total) * 100 : 0;
+                        const projectPct = user.total ? (user.actions.projects / user.total) * 100 : 0;
+                        const chatPct = user.total ? (user.actions.chat / user.total) * 100 : 0;
+                        const adminPct = user.total ? (user.actions.admin / user.total) * 100 : 0;
+
+                        return (
+                            <tr key={user.email} style={{ borderBottom: '1px solid var(--gray-100)' }}>
+                                <td style={{ padding: '0.75rem 0.5rem', fontWeight: 'bold', color: idx === 0 ? 'var(--accent-600)' : idx === 1 ? 'var(--primary-500)' : 'var(--gray-400)' }}>
+                                    #{idx + 1}
+                                </td>
+                                <td style={{ padding: '0.75rem 0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div style={{
+                                            width: '28px',
+                                            height: '28px',
+                                            borderRadius: '50%',
+                                            background: user.rol === 'ADMIN' ? '#fee2e2' : user.rol === 'REFERENTE' ? '#fef3c7' : '#dbeafe',
+                                            color: user.rol === 'ADMIN' ? '#b91c1c' : user.rol === 'REFERENTE' ? '#d97706' : '#2563eb',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.7rem',
+                                            fontWeight: 'bold',
+                                            textTransform: 'uppercase',
+                                            flexShrink: 0
+                                        }}>
+                                            {user.nombre.substring(0, 2)}
+                                        </div>
+                                        <div style={{ minWidth: 0 }}>
+                                            <div style={{ fontWeight: 600, fontSize: '0.825rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.nombre}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--gray-400)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                    {user.total}
+                                </td>
+                                <td style={{ padding: '0.75rem 0.5rem', verticalAlign: 'middle' }}>
+                                    <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', width: '100%', background: 'var(--gray-100)' }}>
+                                        {mapPct > 0 && <div style={{ width: `${mapPct}%`, background: 'var(--primary-500)' }} title={`Mapa: ${user.actions.map}`} />}
+                                        {reportPct > 0 && <div style={{ width: `${reportPct}%`, background: 'var(--barrier-actitudinal)' }} title={`Reportar: ${user.actions.report}`} />}
+                                        {projectPct > 0 && <div style={{ width: `${projectPct}%`, background: 'var(--status-iniciando)' }} title={`Proyectos: ${user.actions.projects}`} />}
+                                        {chatPct > 0 && <div style={{ width: `${chatPct}%`, background: 'var(--barrier-comunicacional)' }} title={`Chat: ${user.actions.chat}`} />}
+                                        {adminPct > 0 && <div style={{ width: `${adminPct}%`, background: 'var(--primary-700)' }} title={`Admin: ${user.actions.admin}`} />}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '4px', fontSize: '7px', color: 'var(--gray-400)', marginTop: '4px', flexWrap: 'wrap' }}>
+                                        <span>🔵 Mapa</span>
+                                        <span>🟠 Reportes</span>
+                                        <span>🟢 Proy</span>
+                                        <span>🟣 Chat</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+            {activities.length > 5 && (
+                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                    <button 
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setViewAll(!viewAll)}
+                        style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                    >
+                        {viewAll ? 'Ver menos' : `Ver todos (${activities.length})`}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
