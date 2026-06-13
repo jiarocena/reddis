@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import uy.gub.registro.config.JwtUtil;
 import uy.gub.registro.model.*;
 import uy.gub.registro.repository.*;
+import uy.gub.registro.model.ActivityLog;
+import uy.gub.registro.repository.ActivityLogRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,18 +23,21 @@ public class ReddisAdminController {
     private final ProyectoRepository proyectoRepo;
     private final ColaboradorRepository colaboradorRepo;
     private final ChatMessageRepository chatMessageRepo;
-
-    public ReddisAdminController(BarreraRepository barreraRepo, RoleRequestRepository roleRequestRepo,
-            UsuarioRepository usuarioRepo, JwtUtil jwtUtil, ProyectoRepository proyectoRepo, 
-            ColaboradorRepository colaboradorRepo, ChatMessageRepository chatMessageRepo) {
-        this.barreraRepo = barreraRepo;
-        this.roleRequestRepo = roleRequestRepo;
-        this.usuarioRepo = usuarioRepo;
-        this.jwtUtil = jwtUtil;
-        this.proyectoRepo = proyectoRepo;
-        this.colaboradorRepo = colaboradorRepo;
-        this.chatMessageRepo = chatMessageRepo;
-    }
+    private final ActivityLogRepository activityLogRepo;
+ 
+     public ReddisAdminController(BarreraRepository barreraRepo, RoleRequestRepository roleRequestRepo,
+             UsuarioRepository usuarioRepo, JwtUtil jwtUtil, ProyectoRepository proyectoRepo, 
+             ColaboradorRepository colaboradorRepo, ChatMessageRepository chatMessageRepo,
+             ActivityLogRepository activityLogRepo) {
+         this.barreraRepo = barreraRepo;
+         this.roleRequestRepo = roleRequestRepo;
+         this.usuarioRepo = usuarioRepo;
+         this.jwtUtil = jwtUtil;
+         this.proyectoRepo = proyectoRepo;
+         this.colaboradorRepo = colaboradorRepo;
+         this.chatMessageRepo = chatMessageRepo;
+         this.activityLogRepo = activityLogRepo;
+     }
 
     // ═══════ PENDING BARRIERS ═══════
 
@@ -406,5 +411,173 @@ public class ReddisAdminController {
         System.out.println("👥 COLABORADOR ASOCIADO POR REFERENTE: " + name + " al proyecto #" + projectId);
         
         return ResponseEntity.ok(Map.of("message", "Usuario asociado como colaborador exitosamente"));
+    }
+
+    // ═══════ TELEMETRY METRICS ═══════
+
+    @GetMapping("/metrics")
+    public ResponseEntity<?> getMetrics() {
+        LocalDateTime now = LocalDateTime.now();
+        List<ActivityLog> logs = activityLogRepo.findByCreatedAtAfter(now.minusYears(1));
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("logged", Map.of(
+            "dia", getDailyMetrics(logs, now, true),
+            "semana", getWeeklyMetrics(logs, now, true),
+            "mes", getMonthlyMetrics(logs, now, true),
+            "ano", getYearlyMetrics(logs, now, true)
+        ));
+        response.put("guest", Map.of(
+            "dia", getDailyMetrics(logs, now, false),
+            "semana", getWeeklyMetrics(logs, now, false),
+            "mes", getMonthlyMetrics(logs, now, false),
+            "ano", getYearlyMetrics(logs, now, false)
+        ));
+        response.put("features", getFeatureUsage(logs));
+        response.put("userActivities", getUserActivities(logs));
+
+        return ResponseEntity.ok(response);
+    }
+
+    private List<Map<String, Object>> getFeatureUsage(List<ActivityLog> logs) {
+        long mapCount = logs.stream().filter(l -> "/barreras".equals(l.getDetail()) || "/mapa".equals(l.getDetail()) || "/".equals(l.getDetail())).count();
+        long reportCount = logs.stream().filter(l -> "/reportar".equals(l.getDetail()) || "/gestion/reportar".equals(l.getDetail()) || "report_barrier".equals(l.getDetail())).count();
+        long projectCount = logs.stream().filter(l -> l.getDetail() != null && (l.getDetail().startsWith("/proyecto") || l.getDetail().startsWith("/gestion/proyecto") || l.getDetail().startsWith("/gestion/mis-proyectos"))).count();
+        long chatCount = logs.stream().filter(l -> "chat_message".equals(l.getDetail())).count();
+        long adminCount = logs.stream().filter(l -> l.getDetail() != null && l.getDetail().startsWith("/gestion/admin")).count();
+
+        long total = mapCount + reportCount + projectCount + chatCount + adminCount;
+        if (total == 0) total = 1;
+
+        return List.of(
+            Map.of("name", "Mapa y Consulta de Barreras", "value", mapCount, "percentage", Math.round(mapCount * 100.0 / total), "color", "var(--primary-500)", "icon", "map"),
+            Map.of("name", "Registro / Denuncia de Barreras", "value", reportCount, "percentage", Math.round(reportCount * 100.0 / total), "color", "var(--barrier-actitudinal)", "icon", "report"),
+            Map.of("name", "Colaboración en Proyectos", "value", projectCount, "percentage", Math.round(projectCount * 100.0 / total), "color", "var(--status-iniciando)", "icon", "project"),
+            Map.of("name", "Chat y Mensajería de Proyectos", "value", chatCount, "percentage", Math.round(chatCount * 100.0 / total), "color", "var(--barrier-comunicacional)", "icon", "chat"),
+            Map.of("name", "Consola de Administración", "value", adminCount, "percentage", Math.round(adminCount * 100.0 / total), "color", "var(--primary-700)", "icon", "admin")
+        );
+    }
+
+    private List<Map<String, Object>> getUserActivities(List<ActivityLog> logs) {
+        List<Usuario> dbUsers = usuarioRepo.findAll();
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for (Usuario u : dbUsers) {
+            String username = u.getUsername();
+            List<ActivityLog> userLogs = logs.stream()
+                .filter(l -> username.equalsIgnoreCase(l.getUsername()))
+                .toList();
+
+            long map = userLogs.stream().filter(l -> "/barreras".equals(l.getDetail()) || "/mapa".equals(l.getDetail()) || "/".equals(l.getDetail())).count();
+            long report = userLogs.stream().filter(l -> "/reportar".equals(l.getDetail()) || "/gestion/reportar".equals(l.getDetail()) || "report_barrier".equals(l.getDetail())).count();
+            long projects = userLogs.stream().filter(l -> l.getDetail() != null && (l.getDetail().startsWith("/proyecto") || l.getDetail().startsWith("/gestion/proyecto") || l.getDetail().startsWith("/gestion/mis-proyectos"))).count();
+            long chat = userLogs.stream().filter(l -> "chat_message".equals(l.getDetail())).count();
+            long admin = userLogs.stream().filter(l -> l.getDetail() != null && l.getDetail().startsWith("/gestion/admin")).count();
+
+            long total = map + report + projects + chat + admin;
+
+            if (total > 0 || "admin".equals(username) || "laura".equals(username) || "soledad".equals(username) || "jose".equals(username)) {
+                Map<String, Object> actions = new LinkedHashMap<>();
+                actions.put("map", map);
+                actions.put("report", report);
+                actions.put("projects", projects);
+                actions.put("chat", chat);
+                actions.put("admin", admin);
+
+                Map<String, Object> uMap = new LinkedHashMap<>();
+                uMap.put("nombre", u.getNombreCompleto());
+                uMap.put("email", u.getEmail());
+                uMap.put("rol", u.getRol());
+                uMap.put("actions", actions);
+                uMap.put("total", total);
+                list.add(uMap);
+            }
+        }
+
+        list.sort((a, b) -> Long.compare((long) b.get("total"), (long) a.get("total")));
+        return list;
+    }
+
+    private List<Map<String, Object>> getDailyMetrics(List<ActivityLog> logs, LocalDateTime now, boolean logged) {
+        List<Map<String, Object>> points = new ArrayList<>();
+        for (int i = 7; i >= 0; i--) {
+            LocalDateTime end = now.minusHours(i * 3L);
+            LocalDateTime start = end.minusHours(3L);
+
+            long count = logs.stream()
+                .filter(l -> l.getCreatedAt().isAfter(start) && l.getCreatedAt().isBefore(end))
+                .filter(l -> (l.getUsername() != null) == logged)
+                .count();
+
+            String dayLabel = end.toLocalDate().isEqual(now.toLocalDate()) ? "Hoy" : "Ayer";
+            String label = dayLabel + " " + String.format("%02d:00", end.getHour());
+
+            points.add(Map.of("label", label, "value", count));
+        }
+        return points;
+    }
+
+    private List<Map<String, Object>> getWeeklyMetrics(List<ActivityLog> logs, LocalDateTime now, boolean logged) {
+        List<Map<String, Object>> points = new ArrayList<>();
+        String[] weekdays = {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"};
+        for (int i = 6; i >= 0; i--) {
+            LocalDateTime day = now.minusDays(i);
+            LocalDateTime start = day.toLocalDate().atStartOfDay();
+            LocalDateTime end = day.toLocalDate().atTime(23, 59, 59);
+
+            long count = logs.stream()
+                .filter(l -> l.getCreatedAt().isAfter(start) && l.getCreatedAt().isBefore(end))
+                .filter(l -> (l.getUsername() != null) == logged)
+                .count();
+
+            int index = day.getDayOfWeek().getValue() == 7 ? 0 : day.getDayOfWeek().getValue();
+            String label = weekdays[index];
+
+            points.add(Map.of("label", label, "value", count));
+        }
+        return points;
+    }
+
+    private List<Map<String, Object>> getMonthlyMetrics(List<ActivityLog> logs, LocalDateTime now, boolean logged) {
+        List<Map<String, Object>> points = new ArrayList<>();
+        String[] months = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
+        for (int i = 3; i >= 0; i--) {
+            LocalDateTime end = now.minusDays(i * 7L);
+            LocalDateTime start = end.minusDays(7L);
+
+            long count = logs.stream()
+                .filter(l -> l.getCreatedAt().isAfter(start) && l.getCreatedAt().isBefore(end))
+                .filter(l -> (l.getUsername() != null) == logged)
+                .count();
+
+            String label;
+            if (i == 0) {
+                label = "Esta sem.";
+            } else {
+                label = start.getDayOfMonth() + " " + months[start.getMonthValue() - 1] +
+                        " a " + end.getDayOfMonth() + " " + months[end.getMonthValue() - 1];
+            }
+            points.add(Map.of("label", label, "value", count));
+        }
+        return points;
+    }
+
+    private List<Map<String, Object>> getYearlyMetrics(List<ActivityLog> logs, LocalDateTime now, boolean logged) {
+        List<Map<String, Object>> points = new ArrayList<>();
+        String[] months = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
+        for (int i = 11; i >= 0; i--) {
+            LocalDateTime targetMonth = now.minusMonths(i);
+            LocalDateTime start = targetMonth.withDayOfMonth(1).toLocalDate().atStartOfDay();
+            LocalDateTime end = targetMonth.withDayOfMonth(targetMonth.toLocalDate().lengthOfMonth()).toLocalDate().atTime(23, 59, 59);
+
+            long count = logs.stream()
+                .filter(l -> l.getCreatedAt().isAfter(start) && l.getCreatedAt().isBefore(end))
+                .filter(l -> (l.getUsername() != null) == logged)
+                .count();
+
+            String label = months[targetMonth.getMonthValue() - 1] + " " + String.valueOf(targetMonth.getYear()).substring(2);
+            points.add(Map.of("label", label, "value", count));
+        }
+        return points;
     }
 }

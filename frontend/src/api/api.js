@@ -244,6 +244,22 @@ export async function subscribePush(subscription) {
     });
 }
 
+// ═══════════════ TELEMETRY & METRICS ═══════════════
+
+export async function logActivity(eventType, detail) {
+    return request('/metrics/log', {
+        method: 'POST',
+        body: JSON.stringify({ eventType, detail }),
+    }).catch(err => {
+        // Telemetry errors should fail silently to not disrupt user experience
+        console.warn('Silent telemetry log failure:', err);
+    });
+}
+
+export async function fetchAdminMetrics() {
+    return request('/admin/metrics');
+}
+
 // ═══════════════ CHAT ═══════════════
 
 export async function fetchChatMessages(projectId) {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
+import * as api from './api/api';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Layout/Navbar';
@@ -73,6 +74,11 @@ function GestionRegisterRedirect() {
 function AppContent() {
     const location = useLocation();
     const { isAuthenticated, hasRole, refreshUser } = useAuth();
+
+    // Log every page view telemetry event
+    useEffect(() => {
+        api.logActivity('PAGE_VIEW', location.pathname);
+    }, [location.pathname]);
     const { refreshData } = useData();
     const isGestion = location.pathname.startsWith('/gestion');
     const isDetailPage = /^\/(barrera|proyecto)\//.test(location.pathname);

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Configuration
@@ -44,7 +45,8 @@ public class DataInitializer {
             DepartamentoRepository departamentoRepo,
             UsuarioRepository usuarioRepo,
             RoleRequestRepository roleRequestRepo,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            ActivityLogRepository activityLogRepo) {
         return args -> {
             System.out.println(">>> REDDIS: Iniciando comprobación de datos semilla...");
             
@@ -128,6 +130,51 @@ public class DataInitializer {
                         .build();
                 usuarioRepo.save(juan);
                 System.out.println(">>> Usuario general Juan creado (juan@test.com / juan123)");
+            }
+            
+            // Seed telemetry logs
+            if (activityLogRepo.count() == 0) {
+                System.out.println(">>> REDDIS: Creando logs de actividad históricos...");
+                LocalDateTime now = LocalDateTime.now();
+                List<ActivityLog> historicalLogs = new ArrayList<>();
+                
+                String[] pages = {"/mapa", "/reportar", "/gestion/proyectos", "/gestion/admin", "/acerca"};
+                String[] users = {"admin", "laura", "soledad", "jose", "juan", null, null, null};
+                String[] roles = {"ADMIN", "REFERENTE", "REFERENTE", "REFERENTE", "USUARIO", null, null, null};
+                
+                java.util.Random rand = new java.util.Random();
+                
+                for (int i = 365; i >= 0; i--) {
+                    LocalDateTime day = now.minusDays(i);
+                    
+                    int monthValue = day.getMonthValue();
+                    double seasonalFactor = (monthValue == 1 || monthValue == 2) ? 0.45 : (monthValue == 7) ? 0.7 : 1.0;
+                    double growthFactor = 0.5 + (365 - i) / 365.0 * 0.5;
+                    
+                    int dailyHits = (int) ((20 + rand.nextInt(30)) * seasonalFactor * growthFactor);
+                    
+                    for (int h = 0; h < dailyHits; h++) {
+                        int userIdx = rand.nextInt(users.length);
+                        String username = users[userIdx];
+                        String role = roles[userIdx];
+                        
+                        String eventType = rand.nextDouble() < 0.85 ? "PAGE_VIEW" : "ACTION";
+                        String detail = eventType.equals("PAGE_VIEW") ? pages[rand.nextInt(pages.length)] : "report_barrier";
+                        
+                        int hour = rand.nextDouble() < 0.7 ? (9 + rand.nextInt(13)) : rand.nextInt(24);
+                        LocalDateTime eventTime = day.toLocalDate().atTime(hour, rand.nextInt(60));
+                        
+                        historicalLogs.add(ActivityLog.builder()
+                                .eventType(eventType)
+                                .detail(detail)
+                                .username(username)
+                                .rol(role)
+                                .createdAt(eventTime)
+                                .build());
+                    }
+                }
+                activityLogRepo.saveAll(historicalLogs);
+                System.out.println(">>> REDDIS: " + historicalLogs.size() + " logs de actividad creados.");
             }
             
             System.out.println(">>> REDDIS: Reseteo e inicialización de Paysandú completa.");

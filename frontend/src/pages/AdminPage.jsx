@@ -26,6 +26,25 @@ export default function AdminPage() {
     const [usersList, setUsersList] = useState([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
 
+    const [metrics, setMetrics] = useState(null);
+    const [loadingMetrics, setLoadingMetrics] = useState(true);
+
+    const loadMetrics = async () => {
+        if (!backendAvailable) {
+            setLoadingMetrics(false);
+            return;
+        }
+        setLoadingMetrics(true);
+        try {
+            const data = await api.fetchAdminMetrics();
+            setMetrics(data);
+        } catch (err) {
+            console.error('Error fetching admin metrics:', err);
+        } finally {
+            setLoadingMetrics(false);
+        }
+    };
+
     // Load users from API when user tab is active
     const loadUsers = async () => {
         if (!backendAvailable) {
@@ -57,6 +76,9 @@ export default function AdminPage() {
     useEffect(() => {
         if (activeTab === 'users' || activeTab === 'dashboard') {
             loadUsers();
+        }
+        if (activeTab === 'dashboard') {
+            loadMetrics();
         }
     }, [activeTab, backendAvailable]);
 
@@ -145,6 +167,11 @@ export default function AdminPage() {
                             u.rol?.toLowerCase().includes(userSearch.toLowerCase());
         return matchSearch;
     });
+
+    const loggedData = (metrics && metrics.logged) ? metrics.logged : LOGGED_IN_DATA;
+    const guestData = (metrics && metrics.guest) ? metrics.guest : GUEST_DATA;
+    const featuresData = (metrics && metrics.features) ? metrics.features : null;
+    const userActivitiesData = (metrics && metrics.userActivities) ? metrics.userActivities : null;
 
     return (
         <div className="admin-page animate-fadeIn">
@@ -276,7 +303,7 @@ export default function AdminPage() {
                                         ))}
                                     </div>
                                 </div>
-                                <TimeSeriesChart data={LOGGED_IN_DATA[loggedTimeFilter]} colorTheme="primary" />
+                                <TimeSeriesChart data={loggedData[loggedTimeFilter]} colorTheme="primary" />
                             </div>
 
                             {/* Chart 2: Guest Users */}
@@ -307,7 +334,7 @@ export default function AdminPage() {
                                         ))}
                                     </div>
                                 </div>
-                                <TimeSeriesChart data={GUEST_DATA[guestTimeFilter]} colorTheme="accent" />
+                                <TimeSeriesChart data={guestData[guestTimeFilter]} colorTheme="accent" />
                             </div>
 
                             {/* Chart 3: Feature Usage Frequency */}
@@ -316,7 +343,7 @@ export default function AdminPage() {
                                     <BarChart3 size={18} style={{ color: 'var(--success-500)' }} />
                                     Uso de cada Funcionalidad
                                 </h3>
-                                <FeatureUsageChart />
+                                <FeatureUsageChart featuresData={featuresData} />
                             </div>
 
                             {/* Chart 4: Usage per User */}
@@ -325,7 +352,7 @@ export default function AdminPage() {
                                     <Users size={18} style={{ color: 'var(--accent-600)' }} />
                                     Uso por Usuario
                                 </h3>
-                                <UserActivityRanking usersList={usersList} />
+                                <UserActivityRanking usersList={usersList} userActivitiesData={userActivitiesData} />
                             </div>
                         </div>
                     </div>
@@ -898,14 +925,16 @@ function TimeSeriesChart({ data, colorTheme = 'primary' }) {
     );
 }
 
-function FeatureUsageChart() {
-    const features = [
+function FeatureUsageChart({ featuresData }) {
+    const defaultFeatures = [
         { name: 'Mapa y Consulta de Barreras', value: 1420, percentage: 54, color: 'var(--primary-500)', icon: 'map' },
         { name: 'Registro / Denuncia de Barreras', value: 348, percentage: 13, color: 'var(--barrier-actitudinal)', icon: 'report' },
         { name: 'Colaboración en Proyectos', value: 284, percentage: 11, color: 'var(--status-iniciando)', icon: 'project' },
         { name: 'Chat y Mensajería de Proyectos', value: 512, percentage: 19, color: 'var(--barrier-comunicacional)', icon: 'chat' },
         { name: 'Consola de Administración', value: 96, percentage: 3, color: 'var(--primary-700)', icon: 'admin' }
     ];
+
+    const features = featuresData || defaultFeatures;
 
     const getIcon = (type) => {
         switch (type) {
@@ -948,11 +977,15 @@ function FeatureUsageChart() {
     );
 }
 
-function UserActivityRanking({ usersList }) {
+function UserActivityRanking({ usersList, userActivitiesData }) {
     const [viewAll, setViewAll] = useState(false);
 
     // Dynamic generation based on real loaded system users
     const getActivities = () => {
+        if (userActivitiesData && userActivitiesData.length > 0) {
+            return userActivitiesData;
+        }
+
         const defaultUsers = [
             { id: 101, nombre: 'Administrador General', email: 'admin@reddis.gub.uy', rol: 'ADMIN' },
             { id: 102, nombre: 'Referente Canelones', email: 'referente.canelones@reddis.gub.uy', rol: 'REFERENTE' },

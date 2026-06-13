@@ -11,6 +11,8 @@ import uy.gub.registro.model.Usuario;
 import uy.gub.registro.repository.DepartamentoRepository;
 import uy.gub.registro.repository.UsuarioRepository;
 import uy.gub.registro.service.ReddisService;
+import uy.gub.registro.model.ActivityLog;
+import uy.gub.registro.repository.ActivityLogRepository;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -26,13 +28,15 @@ public class BarreraRestController {
     private final UsuarioRepository usuarioRepo;
     private final DepartamentoRepository departamentoRepo;
     private final JwtUtil jwtUtil;
+    private final ActivityLogRepository activityLogRepo;
 
     public BarreraRestController(ReddisService reddisService, UsuarioRepository usuarioRepo,
-            DepartamentoRepository departamentoRepo, JwtUtil jwtUtil) {
+            DepartamentoRepository departamentoRepo, JwtUtil jwtUtil, ActivityLogRepository activityLogRepo) {
         this.reddisService = reddisService;
         this.usuarioRepo = usuarioRepo;
         this.departamentoRepo = departamentoRepo;
         this.jwtUtil = jwtUtil;
+        this.activityLogRepo = activityLogRepo;
     }
 
     @GetMapping("/barreras")
@@ -159,6 +163,37 @@ public class BarreraRestController {
                     m.put("codigo", d.getCodigo());
                     return m;
                 }).toList();
+    }
+
+    @PostMapping("/metrics/log")
+    public ResponseEntity<?> logActivity(@RequestBody Map<String, String> body,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        String eventType = body.get("eventType");
+        String detail = body.get("detail");
+        if (eventType == null || eventType.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "eventType es obligatorio"));
+        }
+
+        String username = null;
+        String rol = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String token = authHeader.substring(7);
+                username = jwtUtil.getUsername(token);
+                rol = jwtUtil.getRole(token);
+            } catch (Exception ignored) {}
+        }
+
+        ActivityLog log = ActivityLog.builder()
+                .eventType(eventType)
+                .detail(detail)
+                .username(username)
+                .rol(rol)
+                .build();
+
+        activityLogRepo.save(log);
+        return ResponseEntity.ok().build();
     }
 
     // ---- helpers ----
