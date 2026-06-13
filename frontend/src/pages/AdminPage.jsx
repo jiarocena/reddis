@@ -48,14 +48,7 @@ export default function AdminPage() {
     // Load users from API when user tab is active
     const loadUsers = async () => {
         if (!backendAvailable) {
-            // Mock Users fallback
-            setUsersList([
-                { id: 1, nombre: 'Administrador General', email: 'admin@reddis.gub.uy', rol: 'ADMIN', activo: true, emailConfirmed: true, departamento: 'Montevideo', createdAt: '2025-01-01' },
-                { id: 2, nombre: 'Referente Canelones', email: 'referente.canelones@reddis.gub.uy', rol: 'REFERENTE', departamento: 'Canelones', activo: true, emailConfirmed: true, createdAt: '2025-01-10' },
-                { id: 3, nombre: 'Colaborador Fray Bentos', email: 'colab.fraybentos@reddis.gub.uy', rol: 'COLABORADOR', departamento: 'Río Negro', activo: true, emailConfirmed: true, createdAt: '2025-02-15' },
-                { id: 4, nombre: 'María Inés', email: 'maria.ines@gmail.com', rol: 'CIUDADANO', departamento: 'San José', activo: true, emailConfirmed: false, createdAt: '2025-03-20' },
-                { id: 5, nombre: 'José Pedro', email: 'jose.pedro@hotmail.com', rol: 'CIUDADANO', departamento: 'Flores', activo: true, emailConfirmed: true, createdAt: '2025-04-01' }
-            ]);
+            setUsersList([]);
             return;
         }
 
@@ -650,7 +643,7 @@ export default function AdminPage() {
 // Internal Custom Chart Components & Mock Datasets (Analytics)
 // ============================================================
 
-function getDynamicMetrics() {
+function getZeroMetrics() {
     const now = new Date();
     
     // --- 1. DIA (Últimas 24 horas en intervalos de 3h) ---
@@ -664,11 +657,8 @@ function getDynamicMetrics() {
         const isToday = d.getDate() === now.getDate();
         const label = `${isToday ? 'Hoy' : 'Ayer'} ${hourStr}`;
         
-        const baseValue = hour >= 9 && hour <= 22 ? 40 : 10;
-        const randomFactor = Math.floor(Math.sin(hour / 3) * 15) + Math.floor(Math.random() * 10);
-        
-        diaLogged.push({ label, value: Math.max(2, baseValue + randomFactor) });
-        diaGuest.push({ label, value: Math.max(5, (baseValue + randomFactor) * 2 + Math.floor(Math.random() * 15)) });
+        diaLogged.push({ label, value: 0 });
+        diaGuest.push({ label, value: 0 });
     }
 
     // --- 2. SEMANA (Últimos 7 días finalizando hoy) ---
@@ -679,12 +669,8 @@ function getDynamicMetrics() {
         const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const label = weekdays[d.getDay()];
         
-        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-        const baseValue = isWeekend ? 65 : 85;
-        const randomFactor = Math.floor(Math.random() * 20) - 10;
-        
-        semanaLogged.push({ label, value: Math.max(30, baseValue + randomFactor) });
-        semanaGuest.push({ label, value: Math.max(80, (baseValue + randomFactor) * 2.5 + Math.floor(Math.random() * 30)) });
+        semanaLogged.push({ label, value: 0 });
+        semanaGuest.push({ label, value: 0 });
     }
 
     // --- 3. MES (Últimas 4 semanas) ---
@@ -697,11 +683,8 @@ function getDynamicMetrics() {
         const formatLabel = (date) => `${date.getDate()} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][date.getMonth()]}`;
         const label = i === 0 ? 'Esta sem.' : `${formatLabel(start)} a ${formatLabel(end)}`;
         
-        const baseValue = 350 + (3 - i) * 30;
-        const randomFactor = Math.floor(Math.random() * 40) - 20;
-        
-        mesLogged.push({ label, value: baseValue + randomFactor });
-        mesGuest.push({ label, value: Math.round((baseValue + randomFactor) * 2.8 + Math.random() * 50) });
+        mesLogged.push({ label, value: 0 });
+        mesGuest.push({ label, value: 0 });
     }
 
     // --- 4. AÑO (Últimos 12 meses) ---
@@ -712,15 +695,8 @@ function getDynamicMetrics() {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const label = `${months[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
         
-        const monthIndex = d.getMonth();
-        const seasonality = (monthIndex === 0 || monthIndex === 1) ? 0.75 : (monthIndex === 6) ? 0.88 : 1.0;
-        
-        const trend = 400 + (11 - i) * 35;
-        const baseValue = Math.round(trend * seasonality);
-        const randomFactor = Math.floor(Math.random() * 50) - 25;
-        
-        anoLogged.push({ label, value: Math.max(100, baseValue + randomFactor) });
-        anoGuest.push({ label, value: Math.max(250, Math.round((baseValue + randomFactor) * 2.9 + Math.random() * 80)) });
+        anoLogged.push({ label, value: 0 });
+        anoGuest.push({ label, value: 0 });
     }
 
     return {
@@ -729,9 +705,9 @@ function getDynamicMetrics() {
     };
 }
 
-const dynamicMetrics = getDynamicMetrics();
-const LOGGED_IN_DATA = dynamicMetrics.logged;
-const GUEST_DATA = dynamicMetrics.guest;
+const zeroMetrics = getZeroMetrics();
+const LOGGED_IN_DATA = zeroMetrics.logged;
+const GUEST_DATA = zeroMetrics.guest;
 
 function TimeSeriesChart({ data, colorTheme = 'primary' }) {
     const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -927,11 +903,11 @@ function TimeSeriesChart({ data, colorTheme = 'primary' }) {
 
 function FeatureUsageChart({ featuresData }) {
     const defaultFeatures = [
-        { name: 'Mapa y Consulta de Barreras', value: 1420, percentage: 54, color: 'var(--primary-500)', icon: 'map' },
-        { name: 'Registro / Denuncia de Barreras', value: 348, percentage: 13, color: 'var(--barrier-actitudinal)', icon: 'report' },
-        { name: 'Colaboración en Proyectos', value: 284, percentage: 11, color: 'var(--status-iniciando)', icon: 'project' },
-        { name: 'Chat y Mensajería de Proyectos', value: 512, percentage: 19, color: 'var(--barrier-comunicacional)', icon: 'chat' },
-        { name: 'Consola de Administración', value: 96, percentage: 3, color: 'var(--primary-700)', icon: 'admin' }
+        { name: 'Mapa y Consulta de Barreras', value: 0, percentage: 0, color: 'var(--primary-500)', icon: 'map' },
+        { name: 'Registro / Denuncia de Barreras', value: 0, percentage: 0, color: 'var(--barrier-actitudinal)', icon: 'report' },
+        { name: 'Colaboración en Proyectos', value: 0, percentage: 0, color: 'var(--status-iniciando)', icon: 'project' },
+        { name: 'Chat y Mensajería de Proyectos', value: 0, percentage: 0, color: 'var(--barrier-comunicacional)', icon: 'chat' },
+        { name: 'Consola de Administración', value: 0, percentage: 0, color: 'var(--primary-700)', icon: 'admin' }
     ];
 
     const features = featuresData || defaultFeatures;
@@ -986,68 +962,35 @@ function UserActivityRanking({ usersList, userActivitiesData }) {
             return userActivitiesData;
         }
 
-        const defaultUsers = [
-            { id: 101, nombre: 'Administrador General', email: 'admin@reddis.gub.uy', rol: 'ADMIN' },
-            { id: 102, nombre: 'Referente Canelones', email: 'referente.canelones@reddis.gub.uy', rol: 'REFERENTE' },
-            { id: 103, nombre: 'Colaborador Fray Bentos', email: 'colab.fraybentos@reddis.gub.uy', rol: 'COLABORADOR' },
-            { id: 104, nombre: 'María Inés', email: 'maria.ines@gmail.com', rol: 'CIUDADANO' },
-            { id: 105, nombre: 'José Pedro', email: 'jose.pedro@hotmail.com', rol: 'CIUDADANO' },
-            { id: 106, nombre: 'Juan Pérez', email: 'juan.perez@gmail.com', rol: 'CIUDADANO' }
-        ];
+        // Si no hay datos de actividades reales del backend, listamos los usuarios reales del sistema (usersList) pero con todas sus acciones y totales en 0.
+        // No agregamos ningún usuario ficticio que no exista en la base de datos real.
+        if (!usersList || usersList.length === 0) {
+            return [];
+        }
 
         const uniqueEmails = new Set();
         const merged = [];
 
-        if (usersList && usersList.length > 0) {
-            usersList.forEach(u => {
-                if (u.email && !uniqueEmails.has(u.email.toLowerCase())) {
-                    uniqueEmails.add(u.email.toLowerCase());
-                    merged.push({
-                        id: u.id,
-                        nombre: u.nombre || u.nombreCompleto || u.email.split('@')[0],
-                        email: u.email,
-                        rol: u.rol || 'CIUDADANO'
-                    });
-                }
-            });
-        }
-
-        defaultUsers.forEach(u => {
-            if (!uniqueEmails.has(u.email.toLowerCase())) {
+        usersList.forEach(u => {
+            if (u.email && !uniqueEmails.has(u.email.toLowerCase())) {
                 uniqueEmails.add(u.email.toLowerCase());
-                merged.push(u);
+                merged.push({
+                    id: u.id,
+                    nombre: u.nombre || u.nombreCompleto || u.email.split('@')[0],
+                    email: u.email,
+                    rol: u.rol || 'CIUDADANO'
+                });
             }
         });
 
-        return merged.map((u, index) => {
-            const hash = u.id || index;
-            const baseActions = 25 + (hash % 17) * 9 + (u.rol === 'ADMIN' ? 60 : u.rol === 'REFERENTE' ? 40 : 15);
-            
-            let breakdown = [0.4, 0.2, 0.2, 0.1, 0.1];
-            if (u.rol === 'ADMIN') {
-                breakdown = [0.15, 0.1, 0.2, 0.25, 0.3];
-            } else if (u.rol === 'REFERENTE') {
-                breakdown = [0.2, 0.2, 0.35, 0.2, 0.05];
-            } else if (u.rol === 'COLABORADOR') {
-                breakdown = [0.3, 0.25, 0.3, 0.15, 0.0];
-            }
-
-            const actions = {
-                map: Math.round(baseActions * breakdown[0]),
-                report: Math.round(baseActions * breakdown[1]),
-                projects: Math.round(baseActions * breakdown[2]),
-                chat: Math.round(baseActions * breakdown[3]),
-                admin: Math.round(baseActions * breakdown[4])
-            };
-            
-            const total = actions.map + actions.report + actions.projects + actions.chat + actions.admin;
-
+        return merged.map(u => {
+            const actions = { map: 0, report: 0, projects: 0, chat: 0, admin: 0 };
             return {
                 ...u,
                 actions,
-                total
+                total: 0
             };
-        }).sort((a, b) => b.total - a.total);
+        });
     };
 
     const activities = getActivities();
