@@ -623,51 +623,88 @@ export default function AdminPage() {
 // Internal Custom Chart Components & Mock Datasets (Analytics)
 // ============================================================
 
-const LOGGED_IN_DATA = {
-    dia: [
-        { label: '00:00', value: 8 }, { label: '03:00', value: 3 }, { label: '06:00', value: 12 },
-        { label: '09:00', value: 34 }, { label: '12:00', value: 65 }, { label: '15:00', value: 48 },
-        { label: '18:00', value: 72 }, { label: '21:00', value: 45 }
-    ],
-    semana: [
-        { label: 'Lun', value: 58 }, { label: 'Mar', value: 64 }, { label: 'Mié', value: 89 },
-        { label: 'Jue', value: 76 }, { label: 'Vie', value: 95 }, { label: 'Sáb', value: 110 },
-        { label: 'Dom', value: 82 }
-    ],
-    mes: [
-        { label: 'Sem 1', value: 240 }, { label: 'Sem 2', value: 310 },
-        { label: 'Sem 3', value: 395 }, { label: 'Sem 4', value: 460 }
-    ],
-    ano: [
-        { label: 'Ene', value: 320 }, { label: 'Feb', value: 410 }, { label: 'Mar', value: 550 },
-        { label: 'Abr', value: 680 }, { label: 'May', value: 850 }, { label: 'Jun', value: 1020 },
-        { label: 'Jul', value: 1150 }, { label: 'Ago', value: 1210 }, { label: 'Sep', value: 1350 },
-        { label: 'Oct', value: 1500 }, { label: 'Nov', value: 1780 }, { label: 'Dic', value: 2150 }
-    ]
-};
+function getDynamicMetrics() {
+    const now = new Date();
+    
+    // --- 1. DIA (Últimas 24 horas en intervalos de 3h) ---
+    const diaLogged = [];
+    const diaGuest = [];
+    for (let i = 7; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 3 * 60 * 60 * 1000);
+        const hour = d.getHours();
+        const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+        
+        const isToday = d.getDate() === now.getDate();
+        const label = `${isToday ? 'Hoy' : 'Ayer'} ${hourStr}`;
+        
+        const baseValue = hour >= 9 && hour <= 22 ? 40 : 10;
+        const randomFactor = Math.floor(Math.sin(hour / 3) * 15) + Math.floor(Math.random() * 10);
+        
+        diaLogged.push({ label, value: Math.max(2, baseValue + randomFactor) });
+        diaGuest.push({ label, value: Math.max(5, (baseValue + randomFactor) * 2 + Math.floor(Math.random() * 15)) });
+    }
 
-const GUEST_DATA = {
-    dia: [
-        { label: '00:00', value: 18 }, { label: '03:00', value: 8 }, { label: '06:00', value: 22 },
-        { label: '09:00', value: 89 }, { label: '12:00', value: 145 }, { label: '15:00', value: 120 },
-        { label: '18:00', value: 168 }, { label: '21:00', value: 98 }
-    ],
-    semana: [
-        { label: 'Lun', value: 140 }, { label: 'Mar', value: 168 }, { label: 'Mié', value: 215 },
-        { label: 'Jue', value: 190 }, { label: 'Vie', value: 260 }, { label: 'Sáb', value: 290 },
-        { label: 'Dom', value: 198 }
-    ],
-    mes: [
-        { label: 'Sem 1', value: 650 }, { label: 'Sem 2', value: 890 },
-        { label: 'Sem 3', value: 1050 }, { label: 'Sem 4', value: 1220 }
-    ],
-    ano: [
-        { label: 'Ene', value: 1450 }, { label: 'Feb', value: 1920 }, { label: 'Mar', value: 2450 },
-        { label: 'Abr', value: 2900 }, { label: 'May', value: 3600 }, { label: 'Jun', value: 4150 },
-        { label: 'Jul', value: 4600 }, { label: 'Ago', value: 4850 }, { label: 'Sep', value: 5400 },
-        { label: 'Oct', value: 5900 }, { label: 'Nov', value: 6800 }, { label: 'Dic', value: 7900 }
-    ]
-};
+    // --- 2. SEMANA (Últimos 7 días finalizando hoy) ---
+    const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const semanaLogged = [];
+    const semanaGuest = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const label = weekdays[d.getDay()];
+        
+        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+        const baseValue = isWeekend ? 65 : 85;
+        const randomFactor = Math.floor(Math.random() * 20) - 10;
+        
+        semanaLogged.push({ label, value: Math.max(30, baseValue + randomFactor) });
+        semanaGuest.push({ label, value: Math.max(80, (baseValue + randomFactor) * 2.5 + Math.floor(Math.random() * 30)) });
+    }
+
+    // --- 3. MES (Últimas 4 semanas) ---
+    const mesLogged = [];
+    const mesGuest = [];
+    for (let i = 3; i >= 0; i--) {
+        const start = new Date(now.getTime() - (i * 7 + 6) * 24 * 60 * 60 * 1000);
+        const end = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+        
+        const formatLabel = (date) => `${date.getDate()} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][date.getMonth()]}`;
+        const label = i === 0 ? 'Esta sem.' : `${formatLabel(start)} a ${formatLabel(end)}`;
+        
+        const baseValue = 350 + (3 - i) * 30;
+        const randomFactor = Math.floor(Math.random() * 40) - 20;
+        
+        mesLogged.push({ label, value: baseValue + randomFactor });
+        mesGuest.push({ label, value: Math.round((baseValue + randomFactor) * 2.8 + Math.random() * 50) });
+    }
+
+    // --- 4. AÑO (Últimos 12 meses) ---
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const anoLogged = [];
+    const anoGuest = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const label = `${months[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
+        
+        const monthIndex = d.getMonth();
+        const seasonality = (monthIndex === 0 || monthIndex === 1) ? 0.75 : (monthIndex === 6) ? 0.88 : 1.0;
+        
+        const trend = 400 + (11 - i) * 35;
+        const baseValue = Math.round(trend * seasonality);
+        const randomFactor = Math.floor(Math.random() * 50) - 25;
+        
+        anoLogged.push({ label, value: Math.max(100, baseValue + randomFactor) });
+        anoGuest.push({ label, value: Math.max(250, Math.round((baseValue + randomFactor) * 2.9 + Math.random() * 80)) });
+    }
+
+    return {
+        logged: { dia: diaLogged, semana: semanaLogged, mes: mesLogged, ano: anoLogged },
+        guest: { dia: diaGuest, semana: semanaGuest, mes: mesGuest, ano: anoGuest }
+    };
+}
+
+const dynamicMetrics = getDynamicMetrics();
+const LOGGED_IN_DATA = dynamicMetrics.logged;
+const GUEST_DATA = dynamicMetrics.guest;
 
 function TimeSeriesChart({ data, colorTheme = 'primary' }) {
     const [hoveredIndex, setHoveredIndex] = useState(null);
