@@ -24,11 +24,14 @@ public class ReddisAdminController {
     private final ColaboradorRepository colaboradorRepo;
     private final ChatMessageRepository chatMessageRepo;
     private final ActivityLogRepository activityLogRepo;
+    private final PushSubscriptionRepository pushSubscriptionRepo;
+    private final PersonaRepository personaRepo;
  
      public ReddisAdminController(BarreraRepository barreraRepo, RoleRequestRepository roleRequestRepo,
              UsuarioRepository usuarioRepo, JwtUtil jwtUtil, ProyectoRepository proyectoRepo, 
              ColaboradorRepository colaboradorRepo, ChatMessageRepository chatMessageRepo,
-             ActivityLogRepository activityLogRepo) {
+             ActivityLogRepository activityLogRepo, PushSubscriptionRepository pushSubscriptionRepo,
+             PersonaRepository personaRepo) {
          this.barreraRepo = barreraRepo;
          this.roleRequestRepo = roleRequestRepo;
          this.usuarioRepo = usuarioRepo;
@@ -37,6 +40,8 @@ public class ReddisAdminController {
          this.colaboradorRepo = colaboradorRepo;
          this.chatMessageRepo = chatMessageRepo;
          this.activityLogRepo = activityLogRepo;
+         this.pushSubscriptionRepo = pushSubscriptionRepo;
+         this.personaRepo = personaRepo;
      }
 
     // ═══════ PENDING BARRIERS ═══════
@@ -255,46 +260,111 @@ public class ReddisAdminController {
         return ResponseEntity.ok(Map.of("message", "Email confirmado para " + u.getNombreCompleto()));
     }
 
+    private void deleteUserCleanly(Usuario u) {
+        Long id = u.getId();
+
+        // 1. Suscripciones push
+        pushSubscriptionRepo.findAll().stream()
+                .filter(ps -> ps.getUsuario() != null && ps.getUsuario().getId().equals(id))
+                .forEach(pushSubscriptionRepo::delete);
+        pushSubscriptionRepo.flush();
+
+        // 2. Colaboradores
+        colaboradorRepo.findAll().stream()
+                .filter(col -> id.equals(col.getUserId()))
+                .forEach(colaboradorRepo::delete);
+        colaboradorRepo.flush();
+
+        // 3. Barreras reportadas / aprobadas
+        barreraRepo.findAll().stream()
+                .filter(b -> (b.getReportedByUser() != null && b.getReportedByUser().getId().equals(id)) ||
+                             (b.getApprovedBy() != null && b.getApprovedBy().getId().equals(id)))
+                .forEach(b -> {
+                    if (b.getReportedByUser() != null && b.getReportedByUser().getId().equals(id)) {
+                        b.setReportedByUser(null);
+                    }
+                    if (b.getApprovedBy() != null && b.getApprovedBy().getId().equals(id)) {
+                        b.setApprovedBy(null);
+                    }
+                    barreraRepo.save(b);
+                });
+        barreraRepo.flush();
+
+        // 4. Personas auditadas
+        personaRepo.findAll().stream()
+                .filter(p -> p.getRegistradoPor() != null && p.getRegistradoPor().getId().equals(id))
+                .forEach(p -> {
+                    p.setRegistradoPor(null);
+                    personaRepo.save(p);
+                });
+        personaRepo.flush();
+
+        // 5. Solicitudes de rol (como revisor)
+        roleRequestRepo.findAll().stream()
+                .filter(r -> r.getReviewedBy() != null && r.getReviewedBy().getId().equals(id))
+                .forEach(r -> {
+                    r.setReviewedBy(null);
+                    roleRequestRepo.save(r);
+                });
+
+        // 6. Solicitudes de rol (como solicitante)
+        roleRequestRepo.findAll().stream()
+                .filter(r -> r.getUsuario() != null && r.getUsuario().getId().equals(id))
+                .forEach(roleRequestRepo::delete);
+        roleRequestRepo.flush();
+
+        // 7. Finalmente, eliminar el usuario
+        usuarioRepo.delete(u);
+        usuarioRepo.flush();
+    }
+
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
         var opt = usuarioRepo.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
 
         Usuario u = opt.get();
-        // Don't allow deleting system accounts
-        if ("ADMIN".equals(u.getRol()) || "REFERENTE".equals(u.getRol())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No se puede eliminar cuentas de sistema"));
+        
+        // Prevent deleting the main admin account
+        if ("admin".equals(u.getUsername())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se puede eliminar la cuenta del administrador principal"));
         }
 
-        // Delete associated role requests
-        roleRequestRepo.findAll().stream()
-                .filter(r -> r.getUsuario().getId().equals(id))
-                .forEach(roleRequestRepo::delete);
+        // Prevent deleting yourself
+        Long currentUserId = jwtUtil.getUserId(authHeader.substring(7));
+        if (currentUserId.equals(id)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No puedes eliminar tu propio usuario"));
+        }
 
-        usuarioRepo.delete(u);
+        deleteUserCleanly(u);
         System.out.println("🗑️ USUARIO ELIMINADO: " + u.getEmail());
 
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado: " + u.getEmail()));
     }
 
     @DeleteMapping("/users/by-email")
-    public ResponseEntity<?> deleteUserByEmail(@RequestParam String email) {
+    public ResponseEntity<?> deleteUserByEmail(@RequestParam String email,
+            @RequestHeader("Authorization") String authHeader) {
         var opt = usuarioRepo.findByEmail(email);
         if (opt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         Usuario u = opt.get();
-        if ("ADMIN".equals(u.getRol()) || "REFERENTE".equals(u.getRol())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No se puede eliminar cuentas de sistema"));
+        
+        // Prevent deleting the main admin account
+        if ("admin".equals(u.getUsername())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se puede eliminar la cuenta del administrador principal"));
         }
 
-        // Delete associated role requests
-        roleRequestRepo.findAll().stream()
-                .filter(r -> r.getUsuario().getId().equals(u.getId()))
-                .forEach(roleRequestRepo::delete);
+        // Prevent deleting yourself
+        Long currentUserId = jwtUtil.getUserId(authHeader.substring(7));
+        if (currentUserId.equals(u.getId())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No puedes eliminar tu propio usuario"));
+        }
 
-        usuarioRepo.delete(u);
+        deleteUserCleanly(u);
         System.out.println("🗑️ USUARIO ELIMINADO POR EMAIL: " + email);
 
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado: " + email));
@@ -312,11 +382,19 @@ public class ReddisAdminController {
                 .filter(p -> p.getBarrera() != null && p.getBarrera().getId().equals(id))
                 .findFirst()
                 .ifPresent(p -> {
+                    // break association
+                    p.setBarrera(null);
+                    proyectoRepo.saveAndFlush(p);
+                    // delete chat messages
                     chatMessageRepo.deleteAll(chatMessageRepo.findByProyectoIdOrderByCreatedAtAsc(p.getId()));
+                    chatMessageRepo.flush();
+                    // delete project
                     proyectoRepo.delete(p);
+                    proyectoRepo.flush();
                 });
 
         barreraRepo.delete(b);
+        barreraRepo.flush();
         System.out.println("🗑️ BARRERA ELIMINADA: #" + id);
 
         return ResponseEntity.ok(Map.of("message", "Barrera eliminada con éxito"));
@@ -329,17 +407,21 @@ public class ReddisAdminController {
 
         Proyecto p = opt.get();
 
-        // Reset associated barrier status to "denuncia"
+        // Reset associated barrier status to "denuncia" and break link
         if (p.getBarrera() != null) {
             Barrera b = p.getBarrera();
             b.setStatus("denuncia");
-            barreraRepo.save(b);
+            barreraRepo.saveAndFlush(b);
+            p.setBarrera(null);
+            proyectoRepo.saveAndFlush(p);
         }
 
         // Delete associated chat messages first to avoid constraint violations
         chatMessageRepo.deleteAll(chatMessageRepo.findByProyectoIdOrderByCreatedAtAsc(p.getId()));
+        chatMessageRepo.flush();
 
         proyectoRepo.delete(p);
+        proyectoRepo.flush();
         System.out.println("🗑️ PROYECTO ELIMINADO: #" + id);
 
         return ResponseEntity.ok(Map.of("message", "Proyecto eliminado con éxito"));

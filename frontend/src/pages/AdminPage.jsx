@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { CATEGORIES, PROJECT_STATUSES } from '../data/seedData';
 import {
     Shield, BarChart3, AlertTriangle, CheckCircle, Users,
@@ -10,6 +11,7 @@ import * as api from '../api/api';
 
 export default function AdminPage() {
     const { barriers, projects, stats, resetData, deleteBarrier, deleteProject, backendAvailable, showToast, loading } = useData();
+    const { user: currentUser } = useAuth();
 
     const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'barriers' | 'projects' | 'users'
     const [loggedTimeFilter, setLoggedTimeFilter] = useState('dia');
@@ -570,7 +572,7 @@ export default function AdminPage() {
                                 <tbody>
                                     {filteredUsers.map(u => {
                                         const name = u.nombre || u.nombreCompleto || 'Usuario';
-                                        const isSystem = u.rol === 'ADMIN' || u.rol === 'REFERENTE';
+                                        const cannotDelete = u.username === 'admin' || u.id === currentUser?.id;
                                         return (
                                             <tr key={u.id}>
                                                 <td style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>#{u.id}</td>
@@ -606,12 +608,12 @@ export default function AdminPage() {
                                                         <button
                                                             className="btn btn-secondary btn-sm"
                                                             onClick={() => handleDeleteUser(u.id, u.email)}
-                                                            disabled={isSystem}
+                                                            disabled={cannotDelete}
                                                             style={{
-                                                                color: isSystem ? 'var(--gray-300)' : 'var(--danger-500)',
-                                                                cursor: isSystem ? 'not-allowed' : 'pointer'
+                                                                color: cannotDelete ? 'var(--gray-300)' : 'var(--danger-500)',
+                                                                cursor: cannotDelete ? 'not-allowed' : 'pointer'
                                                             }}
-                                                            title={isSystem ? "Cuentas de sistema no se pueden eliminar" : "Eliminar usuario"}
+                                                            title={u.username === 'admin' ? "La cuenta de administrador principal no se puede eliminar" : u.id === currentUser?.id ? "No puedes eliminar tu propio usuario" : "Eliminar usuario"}
                                                         >
                                                             <Trash2 size={12} />
                                                         </button>
