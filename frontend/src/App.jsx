@@ -22,6 +22,7 @@ import ProfilePage from './pages/ProfilePage';
 import PendingBarriersPage from './pages/PendingBarriersPage';
 import ProyectosListPage from './pages/ProyectosListPage';
 import MisProyectosPage from './pages/MisProyectosPage';
+import ConsultasPage from './pages/ConsultasPage';
 
 function Toast() {
     const { toast } = useData();
@@ -195,6 +196,9 @@ function AppContent() {
                         <ProtectedRoute><MapPage /></ProtectedRoute>
                     } />
                     <Route path="/gestion/proyectos" element={<ProyectosListPage />} />
+                    <Route path="/gestion/consultas" element={
+                        <ProtectedRoute><ConsultasPage /></ProtectedRoute>
+                    } />
                     <Route path="/gestion/barrera/:id" element={
                         <ProtectedRoute><BarrierDetailPage /></ProtectedRoute>
                     } />

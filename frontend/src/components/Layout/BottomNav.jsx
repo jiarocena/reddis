@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Home, MapPin, PlusCircle, Users, LogIn, Handshake, Briefcase } from 'lucide-react';
+import { Home, MapPin, PlusCircle, Users, LogIn, Handshake, Briefcase, HelpCircle } from 'lucide-react';
 
 export default function BottomNav() {
     const location = useLocation();
@@ -34,10 +34,16 @@ export default function BottomNav() {
                 <span>Colaborar</span>
             </NavLink>
             {isAuthenticated ? (
-                <NavLink to="/gestion/mis-proyectos" className="bottom-nav-item">
-                    <Briefcase size={20} />
-                    <span>Proyectos</span>
-                </NavLink>
+                <>
+                    <NavLink to="/gestion/mis-proyectos" className="bottom-nav-item">
+                        <Briefcase size={20} />
+                        <span>Proyectos</span>
+                    </NavLink>
+                    <NavLink to="/gestion/consultas" className="bottom-nav-item">
+                        <HelpCircle size={20} />
+                        <span>Consultas</span>
+                    </NavLink>
+                </>
             ) : (
                 <NavLink to="/gestion" className="bottom-nav-item">
                     <LogIn size={20} />
@@ -45,5 +51,6 @@ export default function BottomNav() {
                 </NavLink>
             )}
         </nav>
+
     );
 }

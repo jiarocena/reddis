@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     Menu, X, MapPin, FileText, PlusCircle, Shield, Info, Network,
-    LogIn, UserPlus, User, LogOut, Clock, List, Briefcase
+    LogIn, UserPlus, User, LogOut, Clock, List, Briefcase, HelpCircle
 } from 'lucide-react';
 
 export default function Navbar({ mode = 'public' }) {
@@ -84,6 +84,11 @@ export default function Navbar({ mode = 'public' }) {
                             <li>
                                 <NavLink to="/gestion/proyectos" onClick={() => setIsOpen(false)}>
                                     <Briefcase size={16} /> Proyectos
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/gestion/consultas" onClick={() => setIsOpen(false)}>
+                                    <HelpCircle size={16} /> Consultas
                                 </NavLink>
                             </li>
                             {hasRole('REFERENTE') && (

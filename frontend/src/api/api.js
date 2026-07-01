@@ -273,3 +273,24 @@ export async function sendChatMessage(projectId, text) {
     });
 }
 
+// ═══════════════ CONSULTAS (FORO) ═══════════════
+
+export async function fetchConsultas() {
+    return request('/consultas');
+}
+
+export async function createConsulta(title, content, category) {
+    return request('/consultas', {
+        method: 'POST',
+        body: JSON.stringify({ title, content, category }),
+    });
+}
+
+export async function createRespuesta(consultaId, content) {
+    return request(`/consultas/${consultaId}/respuestas`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+    });
+}
+
+

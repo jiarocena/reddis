@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, User, Handshake, Briefcase } from 'lucide-react';
+import { Network, Home, MapPin, AlertTriangle, Users, Info, LogIn, UserPlus, User, Handshake, Briefcase, HelpCircle } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/': { title: 'REDDIS (piloto)', subtitle: 'Red Digital de Inclusión Social', icon: Network },
@@ -16,6 +16,7 @@ const PAGE_TITLES = {
     '/gestion/mapa': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
     '/gestion/barreras': { title: 'Barreras', subtitle: 'Barreras reportadas en Uruguay', icon: MapPin },
     '/gestion/reportar': { title: 'Reportar Barrera', subtitle: 'Identificá una barrera de accesibilidad', icon: AlertTriangle },
+    '/gestion/consultas': { title: 'Consultas', subtitle: 'Foro de consultas y propuestas ciudadanas', icon: HelpCircle },
 };
 
 export default function TopBar() {

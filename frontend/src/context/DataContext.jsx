@@ -33,6 +33,8 @@ export function DataProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
     const [backendAvailable, setBackendAvailable] = useState(null); // null = checking
     const [loading, setLoading] = useState(true);
+    const [consultas, setConsultas] = useState([]);
+
 
     // ═══════════════ TOAST ═══════════════
 
@@ -55,6 +57,7 @@ export function DataProvider({ children }) {
                 const hasToken = !!localStorage.getItem('reddis_token');
                 let barreras = [];
                 let proyectos = [];
+                let forumConsultas = [];
                 
                 try {
                     barreras = await (hasToken ? api.fetchBarreras() : api.fetchBarrerasPublic());
@@ -67,19 +70,28 @@ export function DataProvider({ children }) {
                 } catch (pErr) {
                     console.error('Error cargando proyectos:', pErr);
                 }
+
+                try {
+                    forumConsultas = await api.fetchConsultas();
+                } catch (cErr) {
+                    console.error('Error cargando consultas:', cErr);
+                }
                 
                 setBarriers(barreras || []);
                 setProjects(proyectos || []);
+                setConsultas(forumConsultas || []);
             } else {
-                console.warn('Backend no disponible.');
-                setBarriers([]);
-                setProjects([]);
+                console.warn('Backend no disponible. Cargando de localStorage...');
+                setBarriers(loadFromStorage(STORAGE_KEYS.barriers, []));
+                setProjects(loadFromStorage(STORAGE_KEYS.projects, []));
+                setConsultas(loadFromStorage('reddis_consultas', []));
             }
         } catch (err) {
             console.error('Error cargando datos:', err);
             setBackendAvailable(false);
-            setBarriers([]);
-            setProjects([]);
+            setBarriers(loadFromStorage(STORAGE_KEYS.barriers, []));
+            setProjects(loadFromStorage(STORAGE_KEYS.projects, []));
+            setConsultas(loadFromStorage('reddis_consultas', []));
         } finally {
             if (!silent) setLoading(false);
         }
@@ -412,6 +424,84 @@ export function DataProvider({ children }) {
         }
     }
 
+    // ═══════════════ CONSULTAS (FORO) OPERATIONS ═══════════════
+
+    async function addConsulta(title, content, category) {
+        if (backendAvailable) {
+            try {
+                const saved = await api.createConsulta(title, content, category);
+                await loadData(true);
+                showToast('¡Consulta publicada con éxito!', 'success');
+                return saved;
+            } catch (err) {
+                console.error('Error creando consulta:', err);
+                showToast(err.message || 'Error al crear consulta', 'error');
+                return null;
+            }
+        } else {
+            // Local fallback
+            const newConsulta = {
+                id: 'c' + Date.now(),
+                title,
+                content,
+                category,
+                createdAt: new Date().toISOString(),
+                userId: user?.id || 1,
+                userName: user?.nombreCompleto || user?.nombre || 'Usuario Local',
+                username: user?.username || 'usuario_local',
+                respuestas: []
+            };
+            setConsultas(prev => {
+                const updated = [newConsulta, ...prev];
+                saveToStorage('reddis_consultas', updated);
+                return updated;
+            });
+            showToast('¡Consulta publicada con éxito! (modo local)', 'success');
+            return newConsulta;
+        }
+    }
+
+    async function addRespuesta(consultaId, content) {
+        if (backendAvailable) {
+            try {
+                const saved = await api.createRespuesta(consultaId, content);
+                await loadData(true);
+                showToast('¡Respuesta publicada!', 'success');
+                return saved;
+            } catch (err) {
+                console.error('Error creando respuesta:', err);
+                showToast(err.message || 'Error al enviar respuesta', 'error');
+                return null;
+            }
+        } else {
+            // Local fallback
+            const newReply = {
+                id: 'r' + Date.now(),
+                content,
+                createdAt: new Date().toISOString(),
+                userId: user?.id || 1,
+                userName: user?.nombreCompleto || user?.nombre || 'Usuario Local',
+                username: user?.username || 'usuario_local'
+            };
+            setConsultas(prev => {
+                const updated = prev.map(c => {
+                    if (String(c.id) === String(consultaId)) {
+                        return {
+                            ...c,
+                            respuestas: [...(c.respuestas || []), newReply]
+                        };
+                    }
+                    return c;
+                });
+                saveToStorage('reddis_consultas', updated);
+                return updated;
+            });
+            showToast('¡Respuesta publicada! (modo local)', 'success');
+            return newReply;
+        }
+    }
+
+
     // Background polling for project chat notifications
     useEffect(() => {
         if (!isAuthenticated || !user || projects.length === 0) return;
@@ -502,6 +592,9 @@ export function DataProvider({ children }) {
         showToast,
         getChatMessages,
         sendProjectMessage,
+        consultas,
+        addConsulta,
+        addRespuesta,
     };
 
     return (
